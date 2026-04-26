@@ -1,0 +1,820 @@
+/* ══════════════════════════════════════════════════════════
+   SDO Koronadal City — Leave Card System
+   leavecard.css  v5.1  — RED ARMOUR EDITION
+   ══════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ══════════════════════════════════════════════════════════
+   LEAVE CARD TOPBAR & ACTION BUTTONS
+   ══════════════════════════════════════════════════════════ */
+
+.lc-view { margin-top: 0; padding-top: 0; }
+
+.lc-topbar {
+  display         : flex;
+  align-items     : center;
+  justify-content : space-between;
+  flex-wrap       : wrap;
+  gap             : 10px;
+  margin-bottom   : 10px;
+  padding         : 10px 0 6px 0;
+}
+
+.lc-topbar-actions {
+  display         : flex;
+  align-items     : center;
+  justify-content : flex-end;
+  gap             : 10px;
+  flex            : 1;
+}
+
+.lc-back-btn,
+.lc-print-btn,
+.lc-dl-btn {
+  display         : inline-flex;
+  align-items     : center;
+  justify-content : center;
+  gap             : 7px;
+  height          : 38px;
+  padding         : 0 20px;
+  border          : none;
+  border-radius   : 10px;
+  font-family     : 'Inter', sans-serif;
+  font-size       : 12px;
+  font-weight     : 700;
+  letter-spacing  : .06em;
+  text-transform  : uppercase;
+  cursor          : pointer;
+  white-space     : nowrap;
+  transition      : background .18s, transform .15s, box-shadow .18s;
+  position        : relative;
+  overflow        : hidden;
+}
+
+.lc-back-btn {
+  background : #3c1a1a;
+  color      : #ffffff;
+  box-shadow : 0 2px 8px rgba(60,26,26,.30);
+  flex-shrink: 0;
+}
+.lc-back-btn:hover {
+  background : #5a2020;
+  transform  : translateY(-1px);
+  box-shadow : 0 4px 14px rgba(60,26,26,.40);
+}
+.lc-back-btn:active { transform: translateY(0); }
+
+.lc-print-btn {
+  background : #1e3a6e;
+  color      : #ffffff;
+  box-shadow : 0 2px 8px rgba(30,58,110,.30);
+}
+.lc-print-btn:hover {
+  background : #12276a;
+  transform  : translateY(-1px);
+  box-shadow : 0 4px 14px rgba(30,58,110,.40);
+}
+.lc-print-btn:active { transform: translateY(0); }
+
+.lc-dl-btn {
+  background : #4e1d95;
+  color      : #ffffff;
+  box-shadow : 0 2px 8px rgba(78,29,149,.30);
+  min-width  : 148px;
+}
+.lc-dl-btn:hover:not(:disabled) {
+  background : #3b1483;
+  transform  : translateY(-1px);
+  box-shadow : 0 4px 14px rgba(78,29,149,.42);
+}
+.lc-dl-btn:active:not(:disabled) { transform: translateY(0); }
+.lc-dl-btn:disabled {
+  opacity : .72;
+  cursor  : not-allowed;
+}
+
+@keyframes lc-spin {
+  to { transform: rotate(360deg); }
+}
+.lc-spinner {
+  display       : inline-block;
+  width         : 13px;
+  height        : 13px;
+  border        : 2px solid rgba(255,255,255,.35);
+  border-top    : 2px solid #ffffff;
+  border-radius : 50%;
+  animation     : lc-spin .65s linear infinite;
+  flex-shrink   : 0;
+}
+.lc-btn-icon {
+  font-size   : 14px;
+  line-height : 1;
+  flex-shrink : 0;
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   RED ARMOUR PROFILE CARD
+   ══════════════════════════════════════════════════════════ */
+
+.lc-profile-card {
+  background    : #0d0505;
+  border        : 1.5px solid #8b1a1a;
+  border-radius : 14px;
+  overflow      : hidden;
+  margin-bottom : 20px;
+  box-shadow    :
+    0 0 0 1px rgba(192,57,43,.35),
+    0 8px 40px rgba(139,0,0,.45),
+    0 2px 0 rgba(255,255,255,.04) inset,
+    inset 0 0 60px rgba(139,0,0,.08);
+  position      : relative;
+}
+
+.lc-profile-card::before {
+  content    : '';
+  position   : absolute;
+  inset      : 0;
+  border-radius: 14px;
+  background :
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 38px,
+      rgba(139,0,0,.06) 38px,
+      rgba(139,0,0,.06) 39px
+    );
+  pointer-events: none;
+  z-index    : 0;
+}
+
+.lc-profile-header {
+  background      : linear-gradient(135deg,
+    #1a0000 0%,
+    #5a0808 20%,
+    #8b1414 45%,
+    #a01a1a 55%,
+    #7a1010 75%,
+    #3d0606 100%);
+  color           : #ffffff;
+  padding         : 18px 24px;
+  display         : flex;
+  align-items     : center;
+  justify-content : center;
+  gap             : 16px;
+  font-family     : 'Rajdhani', 'Inter', sans-serif;
+  font-size       : 15px;
+  font-weight     : 700;
+  letter-spacing  : .18em;
+  text-transform  : uppercase;
+  text-align      : center;
+  position        : relative;
+  overflow        : hidden;
+  border-bottom   : 3px solid #c0392b;
+}
+
+.lc-profile-header::before {
+  content    : '';
+  position   : absolute;
+  inset      : 0;
+  background :
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 44px,
+      rgba(0,0,0,.08) 44px,
+      rgba(0,0,0,.08) 45px
+    ),
+    linear-gradient(180deg,
+      rgba(255,255,255,.10) 0%,
+      transparent 40%,
+      rgba(0,0,0,.18) 100%);
+  pointer-events : none;
+}
+
+.lc-profile-header::after {
+  content    : '';
+  position   : absolute;
+  inset      : 0;
+  background : linear-gradient(
+    115deg,
+    transparent 25%,
+    rgba(255,210,160,.07) 50%,
+    transparent 75%
+  );
+  pointer-events : none;
+}
+
+.lc-profile-header > * { position: relative; z-index: 1; }
+
+.lc-ph-logo {
+  width         : 42px;
+  height        : 42px;
+  border-radius : 50%;
+  object-fit    : contain;
+  background    : rgba(255,255,255,.12);
+  flex-shrink   : 0;
+  border        : 2px solid rgba(255,255,255,.25);
+  box-shadow    : 0 2px 8px rgba(0,0,0,.4);
+}
+
+.lc-profile-emblem {
+  display         : inline-flex;
+  align-items     : center;
+  justify-content : center;
+  width           : 34px;
+  height          : 34px;
+  border-radius   : 8px;
+  background      : rgba(0,0,0,.3);
+  border          : 1px solid rgba(255,255,255,.15);
+  font-size       : 16px;
+  flex-shrink     : 0;
+}
+
+/* ── Grid rows inside profile ── */
+.lc-profile-grid { padding: 0; position: relative; z-index: 1; }
+
+.lc-pf-row {
+  display       : grid;
+  border-bottom : 1px solid rgba(139,0,0,.25);
+  background    : linear-gradient(180deg,
+    rgba(30,5,5,.92) 0%,
+    rgba(20,3,3,.88) 100%);
+}
+.lc-pf-row:nth-child(even) {
+  background    : linear-gradient(180deg,
+    rgba(22,3,3,.95) 0%,
+    rgba(14,2,2,.90) 100%);
+}
+.lc-pf-row:last-child { border-bottom: none; }
+
+.lc-pf-4col { grid-template-columns: repeat(4,1fr); }
+.lc-pf-3col { grid-template-columns: repeat(3,1fr); }
+.lc-pf-2col { grid-template-columns: repeat(2,1fr); }
+.lc-pf-1col { grid-template-columns: 1fr; }
+
+.lc-pf {
+  padding      : 12px 18px;
+  border-right : 1px solid rgba(139,0,0,.22);
+  position     : relative;
+}
+.lc-pf:last-child { border-right: none; }
+
+.lc-pf::before {
+  content    : '';
+  position   : absolute;
+  top        : 6px;
+  left       : 6px;
+  width      : 4px;
+  height     : 4px;
+  border-radius: 50%;
+  background : rgba(192,57,43,.35);
+}
+
+.lc-pf-label {
+  font-size      : 9px;
+  font-weight    : 700;
+  color          : #e07060;
+  letter-spacing : .12em;
+  text-transform : uppercase;
+  margin-bottom  : 4px;
+  font-family    : 'Rajdhani', 'Inter', sans-serif;
+}
+
+/* FIX: removed text-shadow — was causing messy shadow behind text */
+.lc-pf-value {
+  font-size   : 13.5px;
+  font-weight : 600;
+  color       : #f5e8e0;
+  font-family : 'Inter', sans-serif;
+}
+
+.lc-pf-value:empty::after,
+.lc-pf-value[data-empty]::after {
+  content : '—';
+  color   : rgba(255,255,255,.2);
+}
+
+.lc-era-bar   { margin-bottom: 10px; display: flex; justify-content: flex-end; }
+.lc-era-btn {
+  background    : #f0f4ff;
+  color         : #3730a3;
+  border        : 1px solid #c7d2fe;
+  font-size     : 12px;
+  font-weight   : 600;
+  padding       : 7px 16px;
+  border-radius : 8px;
+  cursor        : pointer;
+}
+.lc-era-btn:hover { background: #e0e7ff; }
+
+
+/* ══════════════════════════════════════════════════════════
+   ALL CAPS
+   ══════════════════════════════════════════════════════════ */
+/* Exclude login page inputs from uppercase */
+/* All text inputs uppercase EXCEPT login and edit forms */
+input[type="text"],
+input:not([type]),
+input[type="search"],
+input[type="tel"] {
+  text-transform: uppercase;
+}
+
+/* Login page — no uppercase (user types naturally) */
+#s-login input {
+  text-transform: none !important;
+}
+
+/* Edit/entry form inputs — show stored value as-is while editing */
+.lc-ef input,
+.lc-ef select {
+  text-transform: none !important;
+}
+
+/* Display outputs always uppercase */
+.lc-pf-value,
+.lc-emp-name,
+.pi span,
+.pl-td-name {
+  text-transform: uppercase;
+}
+
+/* ══════════════════════════════════════════════════════════
+   LEAVE ENTRY FORM
+   ══════════════════════════════════════════════════════════ */
+
+.lc-entry-card {
+  background    : #ffffff;
+  border        : 1px solid #e2e8f0;
+  border-radius : 14px;
+  overflow      : hidden;
+  margin-bottom : 16px;
+  box-shadow    : 0 4px 24px rgba(0,0,0,.13),
+                  0 1px 0 rgba(255,255,255,.04) inset,
+                  0 0 0 1px rgba(139,0,0,.18);
+}
+
+.lc-entry-header {
+  background     : linear-gradient(135deg, #2d1010 0%, #5a1a00 100%);
+  color          : #ffffff;
+  padding        : 11px 20px;
+  font-size      : 11.5px;
+  font-weight    : 800;
+  letter-spacing : .12em;
+  text-transform : uppercase;
+  text-align     : center;
+}
+
+.lc-entry-body { padding: 18px 20px 14px; }
+.lc-entry-row  { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 12px; }
+.lc-entry-row2 { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+
+.lc-ef { display: flex; flex-direction: column; gap: 4px; min-width: 110px; }
+
+.lc-ef label {
+  font-size      : 9.5px;
+  font-weight    : 700;
+  color          : #6b7280;
+  letter-spacing : .07em;
+  text-transform : uppercase;
+}
+
+.lc-ef input,
+.lc-ef select {
+  border        : 1px solid #d1d5db;
+  border-radius : 8px;
+  padding       : 7px 10px;
+  font-size     : 12.5px;
+  color         : #1a1a2e;
+  background    : #ffffff;
+  outline       : none;
+  transition    : border .15s;
+  font-family   : inherit;
+}
+.lc-ef input:focus,
+.lc-ef select:focus { border-color: #6b1010; }
+
+.lc-ef-wide { min-width: 160px; flex: 1; }
+.lc-ef-sm   { min-width: 100px; max-width: 130px; }
+.lc-ef-date { min-width: 170px; }
+
+.lc-date-wrap { display: flex; flex-direction: column; gap: 5px; }
+.lc-date-row  { position: relative; display: flex; align-items: center; gap: 4px; }
+.lc-date-row .date-text { flex: 1; }
+
+.lc-date-row .date-pick-hidden {
+  position          : absolute;
+  right             : 0;
+  top               : 0;
+  width             : 36px;
+  height            : 36px;
+  opacity           : 0;
+  pointer-events    : none;
+  border            : none;
+  padding           : 0;
+  margin            : 0;
+  background        : transparent;
+  -webkit-appearance: none;
+  appearance        : none;
+  z-index           : 0;
+}
+
+.lc-cal-btn {
+  background    : #f3f4f6;
+  border        : 1px solid #d1d5db;
+  border-radius : 8px;
+  padding       : 6px 8px;
+  cursor        : pointer;
+  font-size     : 13px;
+  line-height   : 1;
+  flex-shrink   : 0;
+}
+.lc-cal-btn:hover { background: #e5e7eb; }
+
+.lc-period-btns { display: flex; gap: 4px; }
+
+.lc-per-btn {
+  flex          : 1;
+  padding       : 4px 0;
+  font-size     : 10.5px;
+  font-weight   : 700;
+  letter-spacing: .04em;
+  border        : 1px solid #d1d5db;
+  border-radius : 6px;
+  background    : #f9fafb;
+  color         : #374151;
+  cursor        : pointer;
+  transition    : all .12s;
+}
+.lc-per-btn:hover  { background: #f3f4f6; border-color: #9ca3af; }
+.lc-per-active     { background: #6b1010 !important; color: #fff !important; border-color: #6b1010 !important; }
+
+.lc-save-btn {
+  background    : var(--rd, #8b0000);
+  color         : #ffffff;
+  font-weight   : 700;
+  font-size     : 12px;
+  letter-spacing: .08em;
+  padding       : 9px 22px;
+  border-radius : 8px;
+  border        : none;
+  cursor        : pointer;
+  margin-left   : auto;
+  transition    : background .15s;
+  white-space   : nowrap;
+}
+.lc-save-btn:hover    { background: #a01010; }
+.lc-save-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+.lc-cancel-edit-btn {
+  background    : #e5e7eb;
+  color         : #374151;
+  font-weight   : 600;
+  font-size     : 11.5px;
+  padding       : 9px 16px;
+  border-radius : 8px;
+  border        : none;
+  cursor        : pointer;
+  transition    : background .12s;
+  white-space   : nowrap;
+}
+.lc-cancel-edit-btn:hover { background: #d1d5db; }
+
+.lc-err { color: #dc2626; font-size: 11px; align-self: center; flex: 1; }
+
+
+/* ══════════════════════════════════════════════════════════
+   LEAVE CARDS PAGE — Employee List
+   ══════════════════════════════════════════════════════════ */
+
+.lc-list-card {
+  background    : var(--cd);
+  border-radius : 14px;
+  box-shadow    : var(--sh);
+  border        : 1px solid var(--br);
+  margin-bottom : 20px;
+  overflow      : hidden;
+}
+
+.lc-list-topbar {
+  display         : flex;
+  align-items     : center;
+  justify-content : space-between;
+  padding         : 14px 22px 8px;
+  gap             : 16px;
+}
+.lc-list-hint { font-size: 12px; color: var(--mu); }
+
+.lc-filter-bar {
+  display   : flex;
+  flex-wrap : wrap;
+  gap       : 8px;
+  padding   : 0 22px 14px;
+}
+
+.lc-pill {
+  height              : 32px;
+  padding             : 0 14px;
+  border              : 1.5px solid var(--br);
+  border-radius       : 20px;
+  background          : white;
+  color               : var(--cha);
+  font-size           : 11.5px;
+  font-family         : 'Inter', sans-serif;
+  font-weight         : 500;
+  cursor              : pointer;
+  outline             : none;
+  transition          : border-color .15s, background .15s;
+  appearance          : none;
+  -webkit-appearance  : none;
+  background-image    : url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7a8d'/%3E%3C/svg%3E");
+  background-repeat   : no-repeat;
+  background-position : right 10px center;
+  padding-right       : 28px;
+}
+.lc-pill:focus { border-color: var(--g3); }
+
+.lc-action-bar {
+  display     : flex;
+  flex-wrap   : wrap;
+  gap         : 10px;
+  padding     : 0 22px 16px;
+  align-items : center;
+}
+.lc-action-left  { display: flex; gap: 10px; flex-wrap: wrap; }
+.lc-action-right { display: flex; gap: 10px; flex-wrap: wrap; margin-left: auto; }
+
+.lc-count-badge {
+  display         : inline-flex;
+  align-items     : center;
+  justify-content : center;
+  background      : rgba(255,255,255,.25);
+  border-radius   : 12px;
+  min-width       : 22px;
+  height          : 18px;
+  padding         : 0 6px;
+  font-size       : 10px;
+  font-weight     : 700;
+  margin-left     : 4px;
+}
+
+.lc-btn-print {
+  height        : 36px;
+  padding       : 0 18px;
+  background    : #1e3a6e;
+  color         : #ffffff;
+  border        : none;
+  border-radius : 8px;
+  font-size     : 11.5px;
+  font-weight   : 700;
+  font-family   : 'Inter', sans-serif;
+  letter-spacing: .04em;
+  cursor        : pointer;
+  display       : inline-flex;
+  align-items   : center;
+  gap           : 4px;
+  transition    : background .15s;
+  white-space   : nowrap;
+}
+.lc-btn-print:hover { background: #12276a; }
+
+.lc-btn-dl {
+  height        : 36px;
+  padding       : 0 18px;
+  background    : #4e1d95;
+  color         : #ffffff;
+  border        : none;
+  border-radius : 8px;
+  font-size     : 11.5px;
+  font-weight   : 700;
+  font-family   : 'Inter', sans-serif;
+  letter-spacing: .04em;
+  cursor        : pointer;
+  display       : inline-flex;
+  align-items   : center;
+  gap           : 4px;
+  transition    : background .15s;
+  white-space   : nowrap;
+}
+.lc-btn-dl:hover { background: #3b1483; }
+
+.lc-btn-accrual {
+  height        : 36px;
+  padding       : 0 16px;
+  background    : #166534;
+  color         : #ffffff;
+  border        : none;
+  border-radius : 8px;
+  font-size     : 11px;
+  font-weight   : 700;
+  font-family   : 'Inter', sans-serif;
+  letter-spacing: .03em;
+  cursor        : pointer;
+  display       : inline-flex;
+  align-items   : center;
+  gap           : 4px;
+  transition    : background .15s;
+  white-space   : nowrap;
+}
+.lc-btn-accrual:hover { background: #14532d; }
+
+.lc-btn-force {
+  height        : 36px;
+  padding       : 0 16px;
+  background    : var(--g2);
+  color         : #ffffff;
+  border        : none;
+  border-radius : 8px;
+  font-size     : 11px;
+  font-weight   : 700;
+  font-family   : 'Inter', sans-serif;
+  letter-spacing: .03em;
+  cursor        : pointer;
+  display       : inline-flex;
+  align-items   : center;
+  gap           : 4px;
+  transition    : background .15s;
+  white-space   : nowrap;
+}
+.lc-btn-force:hover { background: var(--g3); }
+
+.lc-emp-list  { border-top: 1px solid var(--dv); }
+
+.lc-emp-row {
+  display       : flex;
+  align-items   : center;
+  gap           : 14px;
+  padding       : 13px 22px;
+  border-bottom : 1px solid var(--dv);
+  cursor        : pointer;
+  transition    : background .13s;
+  background    : white;
+}
+.lc-emp-row:last-child { border-bottom: none; }
+.lc-emp-row:hover      { background: var(--g4); }
+
+.lc-emp-badge {
+  display       : inline-block;
+  padding       : 3px 11px;
+  border-radius : 20px;
+  font-size     : 10.5px;
+  font-weight   : 600;
+  flex-shrink   : 0;
+  white-space   : nowrap;
+}
+.lc-badge-t  { background: #ddeeff; color: #1e3a6e; border: 1px solid #b8d4f8; }
+.lc-badge-tr { background: #ede9fe; color: #4c1d95; border: 1px solid #c4b5fd; }
+.lc-badge-nt { background: var(--g4); color: var(--g1); border: 1px solid var(--gd); }
+
+.lc-emp-name   { flex: 1; font-size: 13px; font-weight: 600; color: var(--cha); }
+.lc-emp-id     { font-size: 12px; color: var(--mu); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+.lc-status-icon{ font-size: 16px; flex-shrink: 0; }
+
+.lc-emp-empty {
+  padding    : 32px;
+  text-align : center;
+  color      : var(--mu);
+  font-size  : 13px;
+}
+
+.lc-list-footer {
+  padding     : 10px 22px;
+  font-size   : 11.5px;
+  color       : var(--mu);
+  border-top  : 1px solid var(--dv);
+  background  : #fafafa;
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   CONVERSION ERA UI
+   ══════════════════════════════════════════════════════════ */
+
+.era-wrapper { margin-bottom: 20px; }
+
+.era-old-toggle {
+  display       : flex;
+  align-items   : center;
+  gap           : 10px;
+  padding       : 9px 16px;
+  background    : var(--g4);
+  border        : 1px solid var(--gd);
+  border-radius : 10px;
+  cursor        : pointer;
+  font-size     : 11.5px;
+  font-weight   : 600;
+  color         : var(--g1);
+  user-select   : none;
+  transition    : background .15s;
+}
+.era-old-toggle:hover { background: var(--gd); }
+.era-old-toggle .era-arrow {
+  display    : inline-block;
+  transition : transform .25s;
+  font-size  : 13px;
+  transform  : rotate(-90deg);
+}
+.era-old-toggle.open .era-arrow { transform: rotate(0deg); }
+
+.era-old-body      { display: none; margin-top: 8px; }
+.era-old-body.open { display: block; }
+
+.era-fwd-row { background: linear-gradient(90deg,var(--au2),#fff9f0) !important; border-top: 2px solid var(--au) !important; }
+.era-fwd-row td { font-weight: 700 !important; color: var(--au) !important; font-style: italic; }
+
+
+/* ══════════════════════════════════════════════════════════
+   ERA TABLE WRAPPER
+   ══════════════════════════════════════════════════════════ */
+
+.era-wrapper {
+  width         : 100%;
+  box-sizing    : border-box;
+}
+
+.tw {
+  width         : 100%;
+  overflow-x    : auto;
+  border-radius : 0 0 10px 10px;
+}
+
+.tw table {
+  width            : 100%;
+  border-collapse  : collapse;
+  table-layout     : fixed;
+}
+
+/* Column widths are defined in leavecard-styles.js — no overrides here */
+
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  .lc-pf-4col { grid-template-columns: repeat(2,1fr); }
+  .lc-pf-3col { grid-template-columns: repeat(2,1fr); }
+  .lc-entry-row { flex-direction: column; }
+  .lc-ef-wide { min-width: 100%; }
+  .lc-topbar-actions { justify-content: flex-end; }
+}
+
+@media (max-width: 700px) {
+  .lc-pf-2col,
+  .lc-pf-3col,
+  .lc-pf-4col { grid-template-columns: 1fr; }
+  .lc-topbar  { flex-wrap: wrap; gap: 8px; }
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   PRINT — leavecard-specific overrides
+   ══════════════════════════════════════════════════════════ */
+
+@media print {
+  .lc-view        { margin-top: 0 !important; padding-top: 0 !important; }
+  .lc-topbar      { display: none !important; }
+
+  .lc-profile-header {
+    background                : linear-gradient(90deg,#1a0505,#6b1010) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust        : exact !important;
+    padding                   : 8px 14px !important;
+    font-size                 : 9px !important;
+    justify-content           : center !important;
+    text-align                : center !important;
+  }
+  .lc-profile-card {
+    border             : 1pt solid #c0392b !important;
+    border-radius      : 6pt !important;
+    margin-bottom      : 6pt !important;
+    box-shadow         : none !important;
+    page-break-inside  : avoid !important;
+    overflow           : visible !important;
+    background         : #fff !important;
+  }
+  .lc-pf-row {
+    background: #fff !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+  }
+  .lc-pf-row:nth-child(even) { background: #fdf5f5 !important; }
+  .lc-profile-grid { padding: 0 !important; }
+  .lc-pf      { padding: 5px 10px !important; border-right: 1px solid #e0e0e0 !important; }
+  .lc-pf-label{ font-size: 6.5px !important; color: #8b1a1a !important; }
+  .lc-pf-value{ font-size: 9px !important; color: #1a0505 !important; text-shadow: none !important; }
+  .lc-pf::before { display: none !important; }
+
+  .lc-era-bar,
+  .lc-entry-card { display: none !important; }
+
+  .era-fwd-row    { background: #fff9f0 !important; page-break-inside: avoid !important; }
+  .era-fwd-row td { color: #8a5a0a !important; font-weight: 700 !important; }
+
+  .era-old-body   { display: block !important; }
+  .era-old-toggle { display: none !important; }
+
+  .lc-spinner { display: none !important; }
+}
+

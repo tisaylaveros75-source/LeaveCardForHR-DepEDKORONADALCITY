@@ -1,0 +1,602 @@
+/* ============================================================
+   SDO Koronadal City — Leave Card System
+   print.css  v5.3  — RED ARMOUR EDITION
+
+   FIXES v5.3:
+   ✅ Soft rounded corners matching UI on all era wrappers,
+      profile card, banners — just like the screen UI
+   ✅ Era banners: full red armour gradient preserved
+   ✅ Column widths FIXED — uses explicit nth-child(11) / (12)
+      instead of nth-last-child to avoid selector conflicts:
+        SO# 4% | PERIOD 13% | 8 nums 5.5% each | REMARKS 39% | ACTION hidden
+   ✅ Header text wraps cleanly — no vertical letter stacking
+   ✅ Profile card white with soft shadow + rounded corners
+   ✅ No blank first page, all eras print
+   ============================================================ */
+
+
+/* ══════════════════════════════════════════════════════════
+   SHARED EXPORT STYLES  (used by both @media print AND
+   the #lc-export-root clone injected by print-download.js)
+   ══════════════════════════════════════════════════════════ */
+
+#lc-export-root {
+  display    : none;
+  position   : absolute;
+  left       : -9999px;
+  top        : 0;
+  width      : 820px;
+  background : #ffffff;
+  z-index    : -9999;
+  overflow   : visible;
+  font-family: 'Inter', Arial, sans-serif;
+  font-size  : 9pt;
+  color      : #1e2530;
+}
+#lc-export-root.active { display: block; }
+
+.lc-export-doc {
+  width      : 100%;
+  background : #fff;
+  padding    : 0;
+  margin     : 0;
+}
+
+/* ─── Letterhead — CENTERED ─────────────────────────────── */
+.lc-letterhead {
+  display        : flex;
+  align-items    : center;
+  justify-content: center;
+  gap            : 16px;
+  padding        : 12px 20px 10px;
+  border-bottom  : 2.5px solid #8b1a1a;
+  margin-bottom  : 0;
+  text-align     : center;
+}
+.lc-letterhead-logo {
+  width        : 68px;
+  height       : 68px;
+  border-radius: 50%;
+  flex-shrink  : 0;
+  object-fit   : cover;
+  border       : 2px solid #c0392b;
+  box-shadow   : 0 2px 8px rgba(0,0,0,.25);
+}
+.lc-letterhead-text { text-align: center; line-height: 1.4; }
+.lc-letterhead-gov {
+  font-size: 7.5pt; font-weight: 400; color: #555;
+  letter-spacing: 0.05em; text-transform: uppercase;
+}
+.lc-letterhead-agency {
+  font-size: 14pt; font-weight: 800; color: #1a0505; letter-spacing: 0.02em;
+}
+.lc-letterhead-sub {
+  font-size: 8pt; font-weight: 500; color: #666; font-style: italic;
+}
+
+/* ─── Doc banner ─────────────────────────────────────────── */
+.lc-doc-banner {
+  display        : flex;
+  align-items    : center;
+  justify-content: center;
+  gap            : 14px;
+  padding        : 12px 20px;
+  margin-bottom  : 10px;
+  background     : linear-gradient(135deg, #1a0505 0%, #6b1010 50%, #8b1a1a 100%);
+  border-top     : 3px solid #c0392b;
+  border-bottom  : 1px solid #701414;
+}
+.lc-doc-banner-logo {
+  width: 40px; height: 40px; border-radius: 50%;
+  flex-shrink: 0; border: 2px solid rgba(255,255,255,.35); object-fit: cover;
+}
+.lc-doc-banner-title {
+  font-size: 11pt; font-weight: 800; color: #fff;
+  letter-spacing: 0.12em; text-transform: uppercase; text-align: center;
+}
+
+/* ─── Profile grid ───────────────────────────────────────── */
+.lc-profile-card {
+  border         : 1.5px solid #c0392b;
+  border-radius  : 10px;
+  margin-bottom  : 12px;
+  overflow       : hidden;
+  page-break-inside: avoid;
+  background     : #fff;
+  box-shadow     : 0 4px 18px rgba(139,0,0,0.18), 0 1px 0 rgba(255,255,255,0.04) inset;
+}
+.lc-profile-grid { padding: 0; }
+.lc-pf-row { display: grid; border-bottom: 0.5pt solid #e8d0d0; background: #fff; }
+.lc-pf-row:nth-child(even) { background: #fdf5f5; }
+.lc-pf-row:last-child { border-bottom: none; }
+.lc-pf-4col { grid-template-columns: repeat(4,1fr); }
+.lc-pf-3col { grid-template-columns: repeat(3,1fr); }
+.lc-pf-2col { grid-template-columns: repeat(2,1fr); }
+.lc-pf-1col { grid-template-columns: 1fr; }
+.lc-pf { padding: 8px 14px; border-right: 0.5pt solid #e8d0d0; }
+.lc-pf:last-child { border-right: none; }
+.lc-pf-label {
+  font-size: 6.5pt; font-weight: 700; color: #8b1a1a;
+  letter-spacing: 0.09em; text-transform: uppercase; margin-bottom: 3px;
+}
+.lc-pf-value { font-size: 10pt; font-weight: 600; color: #1a0505; text-shadow: none; }
+
+/* ─── Era wrapper in export ──────────────────────────────── */
+.lc-export-era {
+  margin-bottom    : 14px;
+  border           : 1.5px solid rgba(139,0,0,0.5);
+  border-radius    : 10px;
+  overflow         : hidden;
+  page-break-inside: auto;
+  width            : 100%;
+  box-sizing       : border-box;
+  box-shadow       : 0 4px 20px rgba(0,0,0,0.28), 0 0 0 1px rgba(139,0,0,0.3);
+}
+
+/* ─── Era banner ─────────────────────────────────────────── */
+.lc-export-era-banner {
+  display        : flex;
+  align-items    : center;
+  gap            : 12px;
+  padding        : 9px 16px;
+  background     : linear-gradient(135deg, #5a0a0a 0%, #7a1010 30%, #8b1a1a 60%, #6b0f0f 100%);
+  border-top     : 3px solid #c0392b;
+  border-bottom  : 1px solid rgba(192,57,43,0.3);
+  page-break-after: avoid;
+}
+.lc-export-era-banner--initial {
+  background  : linear-gradient(135deg, #0d2b12 0%, #143d1a 30%, #1a4d20 60%, #102612 100%) !important;
+  border-top  : 3px solid #27ae60 !important;
+  border-bottom: 1px solid rgba(39,174,96,0.25) !important;
+}
+.lc-export-era-icon  { font-size: 16px; flex-shrink: 0; }
+.lc-export-era-title {
+  font-size: 9pt; font-weight: 800; color: #fff;
+  letter-spacing: 0.1em; text-transform: uppercase; flex: 1;
+}
+.lc-export-era-badge-from {
+  font-size: 7.5pt; font-weight: 700; padding: 2px 8px; border-radius: 4px;
+  background: rgba(231,76,60,.25); color: #f1948a; border: 1px solid rgba(231,76,60,.4);
+}
+.lc-export-era-badge-to {
+  font-size: 7.5pt; font-weight: 700; padding: 2px 8px; border-radius: 4px;
+  background: rgba(39,174,96,.25); color: #82e0aa; border: 1px solid rgba(39,174,96,.4);
+}
+.lc-export-era-arrow { color: rgba(255,220,180,.5); font-size: 11pt; }
+.lc-export-era-count { font-size: 7.5pt; color: rgba(255,220,180,.45); font-style: italic; }
+
+/* ─── Table inside export era ────────────────────────────── */
+.lc-export-era .tw {
+  overflow: visible !important; max-height: none !important;
+  width: 100% !important; display: block !important;
+}
+.lc-export-era table {
+  width: 100%; border-collapse: collapse;
+  table-layout: fixed; font-size: 8.5pt;
+}
+.lc-export-era thead { display: table-header-group; }
+
+.lc-export-era thead tr:first-child th {
+  background: #1a0000; color: #fff;
+  font-size: 6.5pt; font-weight: 800; padding: 5px 4px; text-align: center;
+  border: 0.5pt solid #5a2a2a; text-transform: uppercase; letter-spacing: 0.02em;
+  white-space: normal; word-break: break-word; line-height: 1.3; overflow: visible;
+}
+.lc-export-era thead th.tha { background: #8b1a1a; color: #fff; border-color: #701414; }
+.lc-export-era thead th.thb { background: #1e3a6e; color: #fff; border-color: #243f7a; }
+
+.lc-export-era thead tr:nth-child(2) th {
+  font-size: 6pt; font-weight: 700; padding: 4px 2px; text-align: center;
+  border: 0.5pt solid #ccc; white-space: normal; word-break: break-word;
+  line-height: 1.2; overflow: visible;
+}
+.lc-export-era thead th.ths.tha { background: #fff0f0; color: #8b1a1a; }
+.lc-export-era thead th.ths.thb { background: #eff4ff; color: #1e3a6e; }
+
+.lc-export-era tbody td {
+  border: 0.5pt solid #ccc; padding: 5px 3px; font-size: 8pt;
+  text-align: center; vertical-align: middle;
+  white-space: normal; word-break: break-word; line-height: 1.4; overflow: visible;
+}
+.lc-export-era tbody tr:nth-child(even) td { background: #fdf5f5; }
+
+.lc-export-era .bc  { background: #fffde7; font-weight: 800; color: #6b4a10; }
+.lc-export-era .rdc { color: #b91c1c; font-weight: 700; }
+.lc-export-era .nc  { font-family: 'Courier New', monospace; white-space: nowrap; }
+.lc-export-era .period-cell {
+  text-align: left; padding-left: 5px; font-weight: 600; line-height: 1.4;
+  white-space: normal; word-break: break-word; font-size: 7.5pt; overflow: visible;
+}
+.lc-export-era .prd-date { display: block; font-weight: 700; font-size: 7.5pt; }
+.lc-export-era .remarks-cell {
+  text-align: left; padding: 5px 7px; font-size: 7.5pt;
+  white-space: normal; word-break: break-word; line-height: 1.5; overflow: visible;
+}
+.lc-export-era .era-fwd-row td {
+  background: #fff9e6 !important; color: #7a5000 !important;
+  font-weight: 700 !important; font-style: italic !important;
+  font-size: 7.5pt !important; border-color: #d4a843 !important; padding: 5px 3px !important;
+}
+.lc-export-era .era-fwd-row { border-top: 1.5pt solid #b07d2c !important; }
+
+/* ══════════════════════════════════════════════
+   EXPORT COLUMN WIDTHS — 11 cols (no action col)
+   col 1  SO#     :  4%
+   col 2  PERIOD  : 13%
+   col 3-10 nums  :  5.5% each = 44%
+   col 11 REMARKS : 39%
+   ══════════════════════════════════════════════ */
+.lc-export-era table th:nth-child(1),
+.lc-export-era table td:nth-child(1)   { width: 1.3%;   min-width: 0; }
+.lc-export-era table th:nth-child(2),
+.lc-export-era table td:nth-child(2)   { width: 1%;  min-width: 0; }
+.lc-export-era table th:nth-child(3),
+.lc-export-era table td:nth-child(3),
+.lc-export-era table th:nth-child(4),
+.lc-export-era table td:nth-child(4),
+.lc-export-era table th:nth-child(5),
+.lc-export-era table td:nth-child(5),
+.lc-export-era table th:nth-child(6),
+.lc-export-era table td:nth-child(6),
+.lc-export-era table th:nth-child(7),
+.lc-export-era table td:nth-child(7),
+.lc-export-era table th:nth-child(8),
+.lc-export-era table td:nth-child(8),
+.lc-export-era table th:nth-child(9),
+.lc-export-era table td:nth-child(9),
+.lc-export-era table th:nth-child(10),
+.lc-export-era table td:nth-child(10)  { width: 2%; min-width: 0; }
+.lc-export-era table th:nth-child(11),
+.lc-export-era table td:nth-child(11)  { width: 110%; text-align: left; padding-left: 7px; }
+
+/* ─── Footer ─────────────────────────────────────────────── */
+.lc-export-footer {
+  margin-top: 28px; padding-top: 12px; border-top: 1px solid #ccc;
+  display: flex; justify-content: flex-end;
+  font-size: 8pt; color: #555; font-style: italic;
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   @MEDIA PRINT
+   ══════════════════════════════════════════════════════════ */
+@media print {
+
+  *, *::before, *::after {
+    -webkit-print-color-adjust : exact !important;
+    print-color-adjust          : exact !important;
+    color-adjust                : exact !important;
+    box-sizing                  : border-box !important;
+  }
+
+  @page {
+    size   : 8.5in 14in portrait;
+    margin : 10mm 9mm 12mm 9mm;
+  }
+
+  html, body {
+    margin: 0 !important; padding: 0 !important;
+    background: #ffffff !important; font-size: 9pt !important;
+    font-family: 'Inter', 'Arial', sans-serif !important;
+    width: 100% !important; min-width: 0 !important; max-width: none !important;
+  }
+
+  .ca  { padding: 0 !important; margin: 0 !important; max-width: 100% !important; width: 100% !important; }
+  .lc-view { margin-top: 0 !important; padding-top: 0 !important; }
+
+  /* ── Hide ALL chrome ── */
+  #s-login, .topbar, .sidebar, .sb-overlay, .no-print,
+  button, input, select, textarea,
+  .lc-topbar, .lc-topbar-actions, .lc-back-btn, .lc-dl-btn, .lc-print-btn,
+  .lc-entry-card, .lc-entry-header, .lc-entry-body,
+  .lc-era-bar, .lc-era-btn, .era-banner-shine, .era-chevron-wrap,
+  .era-del-btn, .era-chevron,
+  .row-menu-btn, .row-menu-dd, .row-menu-wrap,
+  [data-delera], [data-edit-rec], [data-del-rec], [data-insert-after],
+  .dash-hero, .dash-stats, .dash-why, .dash-devs, .dash-panel,
+  #lcBackBtn, .lc-list-topbar, .lc-filter-bar, .lc-action-bar,
+  .lc-list-footer, .lc-status-icon, .lc-add-conv-btn,
+  #pg-user .ch button { display: none !important; }
+
+  /* Hide initial era BANNER only (table still prints) */
+  .era-banner--first { display: none !important; }
+
+  /* Conversion era banners — full red armour styling */
+  .era-banner:not(.era-banner--first) {
+    display          : flex !important;
+    align-items      : center !important;
+    padding          : 7pt 14pt !important;
+    background       : linear-gradient(135deg, #5a0a0a 0%, #7a1010 30%, #8b1a1a 60%, #6b0f0f 100%) !important;
+    border-top       : 3pt solid #c0392b !important;
+    border-bottom    : 1pt solid rgba(192,57,43,0.3) !important;
+    page-break-after : avoid !important;
+    min-height       : 32pt !important;
+  }
+
+  #s-app   { display: block !important; }
+  .page    { display: none !important; }
+  .page.on { display: block !important; padding: 0 !important; }
+  .card    { border: none !important; border-radius: 0 !important; box-shadow: none !important; margin-bottom: 0 !important; }
+
+  /* Era panels always open */
+  .era-collapse-body {
+    max-height: none !important; opacity: 1 !important;
+    overflow: visible !important; display: block !important;
+  }
+
+  /* ── Era wrapper — SOFT ROUNDED EDGES matching UI ── */
+  .era-wrapper {
+    display           : block !important;
+    margin-bottom     : 12pt !important;
+    border            : 1.5pt solid rgba(139,0,0,0.5) !important;
+    border-radius     : 10pt !important;
+    overflow          : hidden !important;
+    page-break-inside : auto !important;
+    width             : 100% !important;
+    box-sizing        : border-box !important;
+    box-shadow        : 0 4px 16px rgba(0,0,0,0.22), 0 0 0 1pt rgba(139,0,0,0.3) !important;
+  }
+
+  /* Era icon pill */
+  .era-icon-pill {
+    display: inline-flex !important; align-items: center !important;
+    justify-content: center !important;
+    width: 26pt !important; height: 26pt !important;
+    border-radius: 6pt !important;
+    background: rgba(0,0,0,0.25) !important;
+    border: 1pt solid rgba(255,255,255,0.15) !important;
+    margin-right: 8pt !important; font-size: 12pt !important; flex-shrink: 0 !important;
+  }
+  .era-label-text {
+    font-size: 8.5pt !important; font-weight: 800 !important;
+    color: #f5d7c8 !important; letter-spacing: 0.08em !important;
+    text-transform: uppercase !important; text-shadow: none !important;
+  }
+  .era-from-badge {
+    font-size: 7.5pt !important; font-weight: 700 !important;
+    padding: 2pt 7pt !important; border-radius: 4pt !important;
+    background: rgba(231,76,60,.25) !important; color: #f1948a !important;
+    border: 0.5pt solid rgba(231,76,60,.5) !important;
+  }
+  .era-to-badge {
+    font-size: 7.5pt !important; font-weight: 700 !important;
+    padding: 2pt 7pt !important; border-radius: 4pt !important;
+    background: rgba(39,174,96,.25) !important; color: #82e0aa !important;
+    border: 0.5pt solid rgba(39,174,96,.5) !important;
+  }
+  .era-record-count { display: none !important; }
+
+  /* ── Letterhead ── */
+  .lc-letterhead {
+    display: flex !important; align-items: center !important;
+    justify-content: center !important; gap: 14pt !important;
+    padding: 10pt 14pt !important; border-bottom: 2pt solid #8b1a1a !important;
+    margin-bottom: 10pt !important; text-align: center !important;
+  }
+  .lc-letterhead-logo {
+    width: 56pt !important; height: 56pt !important;
+    border-radius: 50% !important; flex-shrink: 0 !important; border: 2pt solid #c0392b !important;
+  }
+  .lc-letterhead-text { text-align: center !important; }
+  .lc-letterhead-gov   { font-size: 7pt !important; color: #555 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; }
+  .lc-letterhead-agency { font-size: 13pt !important; font-weight: 800 !important; color: #1a0505 !important; }
+  .lc-letterhead-sub   { font-size: 8pt !important; color: #555 !important; font-style: italic !important; }
+
+  /* ── Doc banner ── */
+  .lc-doc-banner {
+    display: flex !important; align-items: center !important;
+    justify-content: center !important; gap: 12pt !important;
+    padding: 9pt 14pt !important;
+    background: linear-gradient(135deg, #1a0505, #6b1010, #8b1a1a) !important;
+    border-top: 2.5pt solid #c0392b !important; border-bottom: 1pt solid #701414 !important;
+    margin-bottom: 10 !important;
+  }
+  .lc-doc-banner-title {
+    font-size: 10pt !important; font-weight: 800 !important; color: #fff !important;
+    letter-spacing: 0.12em !important; text-transform: uppercase !important; text-align: center !important;
+  }
+
+  /* ── Profile card — soft edges ── */
+  /* ── Profile card — RED ARMOUR (matches PDF download) ── */
+  .lc-profile-card {
+    border: 1.5pt solid #8b1a1a !important;
+    border-radius: 10pt !important;
+    box-shadow: 0 0 0 1pt rgba(192,57,43,.35), 0 8pt 40pt rgba(139,0,0,.45) !important;
+    margin-top: 14pt !important;        /* ← THIS is the gap you want */
+    margin-bottom: 10pt !important;
+    page-break-inside: avoid !important;
+    overflow: hidden !important;
+    background: #0d0505 !important;
+  }
+  .lc-profile-header {
+    background: linear-gradient(135deg,
+      #1a0000 0%, #5a0808 20%, #8b1414 45%,
+      #a01a1a 55%, #7a1010 75%, #3d0606 100%) !important;
+    color: #ffffff !important;
+    padding: 14pt 20pt !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 14pt !important;
+    font-size: 12pt !important;
+    font-weight: 800 !important;
+    letter-spacing: .14em !important;
+    text-transform: uppercase !important;
+    text-align: center !important;
+    border-bottom: 3pt solid #c0392b !important;
+  }
+  .lc-pf-row {
+    background: linear-gradient(180deg,
+      rgba(30,5,5,.92) 0%, rgba(20,3,3,.88) 100%) !important;
+    border-bottom: 1pt solid rgba(139,0,0,.25) !important;
+  }
+  .lc-pf-row:nth-child(even) {
+    background: linear-gradient(180deg,
+      rgba(22,3,3,.95) 0%, rgba(14,2,2,.90) 100%) !important;
+  }
+  .lc-pf-row:last-child { border-bottom: none !important; }
+  .lc-pf-4col { grid-template-columns: repeat(4,1fr) !important; }
+  .lc-pf-3col { grid-template-columns: repeat(3,1fr) !important; }
+  .lc-pf-2col { grid-template-columns: repeat(2,1fr) !important; }
+  .lc-pf-1col { grid-template-columns: 1fr !important; }
+  .lc-pf { padding: 5pt 9pt !important; border-right: 1pt solid rgba(139,0,0,.22) !important; }
+  .lc-pf:last-child { border-right: none !important; }
+  .lc-pf::before { display: none !important; }
+  .lc-pf-label {
+    font-size: 6pt !important; font-weight: 700 !important;
+    color: #e07060 !important;
+    letter-spacing: 0.10em !important; text-transform: uppercase !important;
+    margin-bottom: 2pt !important;
+  }
+  .lc-pf-value {
+    font-size: 9.5pt !important; font-weight: 600 !important;
+    color: #f5e8e0 !important; text-shadow: none !important;
+  }
+
+  /* ── Table wrappers ── */
+  .tw {
+    overflow: visible !important; max-height: none !important;
+    width: 100% !important; display: block !important; margin-bottom: 0 !important;
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100% !important; border-collapse: collapse !important;
+    table-layout: fixed !important; font-size: 8pt !important;
+    page-break-inside: auto !important;
+  }
+  thead { display: table-header-group !important; }
+  tfoot { display: table-footer-group !important; }
+  tbody tr { page-break-inside: avoid !important; }
+
+  /* Header row 1 */
+  thead tr:first-child th {
+    background: #1a0000 !important; color: #fff !important;
+    font-size: 6.5pt !important; font-weight: 800 !important;
+    padding: 5pt 4pt !important; text-align: center !important;
+    border: 0.5pt solid #5a2a2a !important; text-transform: uppercase !important;
+    letter-spacing: 0.02em !important; line-height: 1.3 !important;
+    white-space: normal !important; word-break: break-word !important; overflow: visible !important;
+  }
+  thead th.tha { background: #8b1a1a !important; color: #fff !important; border-color: #701414 !important; }
+  thead th.thb { background: #1e3a6e !important; color: #fff !important; border-color: #243f7a !important; }
+
+  /* Header row 2 */
+  thead tr:nth-child(2) th {
+    font-size: 6pt !important; font-weight: 700 !important;
+    padding: 4pt 2pt !important; text-align: center !important;
+    border: 0.5pt solid #ccc !important;
+    white-space: normal !important; word-break: break-word !important;
+    line-height: 1.2 !important; overflow: visible !important;
+  }
+  thead th.ths.tha { background: #4a0808 !important; color: #ffb8b8 !important; }
+  thead th.ths.thb { background: #0c1f48 !important; color: #a8c4ff !important; }
+
+  /* Body cells */
+  tbody td {
+    border: 0.5pt solid #ccc !important; padding: 5pt 3pt !important;
+    font-size: 8pt !important; text-align: center !important; vertical-align: middle !important;
+    white-space: normal !important; word-break: break-word !important;
+    line-height: 1.4 !important; overflow: visible !important;
+  }
+
+  .bc   { background: #fffde7 !important; font-weight: 800 !important; color: #6b4a10 !important; }
+  .rdc  { color: #b91c1c !important; font-weight: 700 !important; }
+  .nc   { font-family: 'Courier New', monospace !important; white-space: nowrap !important; }
+  .period-cell {
+    text-align: left !important; padding-left: 5pt !important;
+    font-size: 7.5pt !important; font-weight: 600 !important;
+    white-space: normal !important; word-break: break-word !important;
+    line-height: 1.4 !important; overflow: visible !important;
+  }
+  .prd-date { display: block !important; font-size: 7.5pt !important; font-weight: 700 !important; }
+  .remarks-cell {
+    text-align: left !important; padding: 5pt 7pt !important;
+    font-size: 7.5pt !important; white-space: normal !important;
+    word-break: break-word !important; line-height: 1.5 !important; overflow: visible !important;
+  }
+
+  tbody tr:nth-child(even) td { background: #fdf5f5 !important; }
+
+  .era-fwd-row { background: #fff9e6 !important; border-top: 1.5pt solid #b07d2c !important; page-break-inside: avoid !important; }
+  .era-fwd-row td {
+    background: #fff9e6 !important; color: #7a5000 !important;
+    font-weight: 700 !important; font-style: italic !important;
+    font-size: 7.5pt !important; border-color: #d4a843 !important; padding: 5pt 3pt !important;
+  }
+
+  /* ══════════════════════════════════════════════
+     PRINT COLUMN WIDTHS
+     12 cols in screen table: SO#, Period, 4×SetA, 4×SetB, Remarks, Action
+     col 1  SO#     :  4%
+     col 2  PERIOD  : 13%
+     col 3-10 nums  :  5.5% each = 44%
+     col 11 REMARKS : 35%
+     col 12 ACTION  : HIDDEN
+     ══════════════════════════════════════════════ */
+  .tw table th:nth-child(1),
+  .tw table td:nth-child(1)   { width: 4% !important;   overflow: visible !important; }
+  .tw table th:nth-child(2),
+  .tw table td:nth-child(2)   { width: 13% !important;  overflow: visible !important; }
+  .tw table th:nth-child(3),
+  .tw table td:nth-child(3),
+  .tw table th:nth-child(4),
+  .tw table td:nth-child(4),
+  .tw table th:nth-child(5),
+  .tw table td:nth-child(5),
+  .tw table th:nth-child(6),
+  .tw table td:nth-child(6),
+  .tw table th:nth-child(7),
+  .tw table td:nth-child(7),
+  .tw table th:nth-child(8),
+  .tw table td:nth-child(8),
+  .tw table th:nth-child(9),
+  .tw table td:nth-child(9),
+  .tw table th:nth-child(10),
+  .tw table td:nth-child(10)  { width: 5.5% !important; overflow: visible !important; }
+  /* REMARKS — explicit col 11 */
+  .tw table th:nth-child(11),
+  .tw table td:nth-child(11)  { width: 35% !important;  text-align: left !important; padding-left: 6pt !important; overflow: visible !important; }
+  /* ACTION — explicit col 12, hidden */
+  .tw table th:nth-child(12),
+  .tw table td:nth-child(12)  { display: none !important; }
+
+  /* ── Employee self-view ── */
+  #pg-user .card  { border: none !important; box-shadow: none !important; border-radius: 0 !important; }
+  #pg-user .ch    { display: flex !important; padding: 7pt 12pt !important; font-size: 8pt !important; font-weight: 700 !important; letter-spacing: 0.06em !important; }
+  #pg-user .ch.grn { background: linear-gradient(100deg, #1a0000, #8b1a1a) !important; color: #fff !important; }
+  #pg-user .cb    { padding: 6pt 10pt !important; }
+  #pg-user .pg    { display: grid !important; grid-template-columns: repeat(4,1fr) !important; gap: 6pt !important; border: 0.5pt solid #ddd !important; margin-bottom: 6pt !important; }
+  #pg-user .pi    { padding: 4pt 7pt !important; border-right: 0.5pt solid #e0e0e0 !important; }
+  #pg-user .pi:last-child { border-right: none !important; }
+  #pg-user .pi label { font-size: 6.5pt !important; font-weight: 700 !important; color: #8b1a1a !important; letter-spacing: 0.07em !important; text-transform: uppercase !important; }
+  #pg-user .pi span  { font-size: 9pt !important; font-weight: 600 !important; color: #111 !important; border-bottom: none !important; padding-bottom: 0 !important; }
+
+  /* ── Leave cards list ── */
+  #pg-cards .lc-list-card { border: none !important; box-shadow: none !important; border-radius: 0 !important; }
+  #pg-cards .ch    { display: flex !important; padding: 7pt 12pt !important; font-size: 9pt !important; font-weight: 800 !important; letter-spacing: 0.1em !important; }
+  #pg-cards .ch.grn { background: linear-gradient(100deg, #1a0000, #8b1a1a) !important; color: #fff !important; }
+  .lc-emp-list    { border-top: 0.5pt solid #ccc !important; display: block !important; width: 100% !important; }
+  .lc-emp-row     { display: flex !important; align-items: center !important; gap: 10pt !important; padding: 5pt 10pt !important; border-bottom: 0.5pt solid #e8e8e8 !important; background: #fff !important; page-break-inside: avoid !important; }
+  .lc-emp-row:nth-child(even) { background: #fdf5f5 !important; }
+  .lc-emp-badge   { font-size: 7.5pt !important; font-weight: 700 !important; padding: 2pt 8pt !important; border-radius: 20pt !important; flex-shrink: 0 !important; white-space: nowrap !important; }
+  .lc-badge-t     { background: #ddeeff !important; color: #1e3a6e !important; }
+  .lc-badge-tr    { background: #ede9fe !important; color: #4c1d95 !important; }
+  .lc-badge-nt    { background: #fdf0f0 !important; color: #4a0a0a !important; }
+  .lc-emp-name    { flex: 1 !important; font-size: 9pt !important; font-weight: 600 !important; color: #1e2530 !important; }
+  .lc-emp-id      { font-family: 'Courier New', monospace !important; font-size: 8pt !important; color: #6b7a8d !important; flex-shrink: 0 !important; }
+  .ch             { color: #fff !important; padding: 7pt 12pt !important; font-size: 8pt !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: 0.06em !important; }
+  .ch.grn         { background: linear-gradient(100deg, #1a0000, #8b1a1a) !important; }
+  .ch.amber       { background: linear-gradient(100deg, #3d1800, #8c4a10) !important; }
+  .ch.navy        { background: linear-gradient(100deg, #0c1f48, #1e3a6e) !important; }
+
+  /* ── lc-printing mode ── */
+  body.lc-printing #s-app { display: none !important; }
+  body.lc-printing #lc-export-root {
+    display: block !important; position: static !important;
+    left: auto !important; top: auto !important;
+    width: 100% !important; visibility: visible !important;
+    z-index: auto !important; overflow: visible !important;
+  }
+
+} /* end @media print */

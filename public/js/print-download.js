@@ -1,0 +1,1818 @@
+/* ============================================================
+   SDO Koronadal City — Leave Card System
+   print-download.js  v8.0  — RED ARMOUR REFORGED
+
+   CHANGES v8.0:
+   • SPECTACULAR 3D Red Armour overlay during PDF generation
+   • Ghost/glitch after print FIXED — iframe removed cleanly
+   • PDF table headers: smooth rounded top, no "pasted" look
+   • Era banners: employees see only conversion info, not "era" labels
+   • Buttons: 3D forged-steel red armour with live pulse & shimmer
+   • Each page PDF header: seamless integrated look
+   ============================================================ */
+
+'use strict';
+
+/* ─────────────────────────────────────────────────────────────
+   0.  HELPERS
+   ───────────────────────────────────────────────────────────── */
+function esc(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+function eu(s) {
+  if (!s) return '';
+  return esc(String(s).toUpperCase());
+}
+
+/* ─────────────────────────────────────────────────────────────
+   1.  PAGE LAYOUT CONSTANTS
+   ───────────────────────────────────────────────────────────── */
+const PDF_ROWS_PAGE1 = 18;
+const PDF_ROWS_PAGEN = 36;
+const PAGE_W_MM = 215.9;
+const PAGE_H_MM = 355.6;
+
+/* ─────────────────────────────────────────────────────────────
+   2.  RESOLVE CURRENT EMPLOYEE
+   ───────────────────────────────────────────────────────────── */
+function resolveCurrentEmp() {
+  if (!window.state || !window.state.db) return null;
+  return window.state.db.find(e => e.id === window.state.curId) || null;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   3.  LOGO — load as base64
+   ───────────────────────────────────────────────────────────── */
+let _logoBase64 = null;
+async function getLogoBase64() {
+  if (_logoBase64) return _logoBase64;
+  try {
+    const res  = await fetch('/img/sdo.jpg');
+    if (!res.ok) throw new Error('Logo fetch failed');
+    const blob = await res.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = () => { _logoBase64 = reader.result; resolve(reader.result); };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch { return ''; }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   4.  NUMBER FORMATTER
+   ───────────────────────────────────────────────────────────── */
+function fmtNum(v) {
+  if (!v && v !== 0) return '';
+  const n = +v;
+  if (isNaN(n) || n === 0) return '';
+  if (n % 1 === 0) return String(n);
+  return parseFloat(n.toFixed(3)).toString();
+}
+
+/* ─────────────────────────────────────────────────────────────
+   5.  DATE FORMATTER
+   ───────────────────────────────────────────────────────────── */
+function fmtDateEx(raw) {
+  if (!raw) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw.trim())) {
+    const [y, m, d] = raw.trim().split('-');
+    return `${m}/${d}/${y}`;
+  }
+  return raw;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   6.  TABLE HEADER HTML
+   ───────────────────────────────────────────────────────────── */
+function buildTableHeader() {
+  return `
+    <colgroup>
+      <col style="width:4%"/>
+      <col style="width:13%"/>
+      <col style="width:5.5%"/>
+      <col style="width:5.5%"/>
+      <col style="width:5.5%"/>
+      <col style="width:5.5%"/>
+      <col style="width:5.5%"/>
+      <col style="width:5.5%"/>
+      <col style="width:5.5%"/>
+      <col style="width:5.5%"/>
+      <col style="width:38%"/>
+    </colgroup>
+    <thead>
+      <tr>
+        <th rowspan="2">SO #</th>
+        <th rowspan="2">PERIOD</th>
+        <th class="tha" colspan="4">STUDY / VACATION / FORCE PERSONAL / SPECIAL LEAVE</th>
+        <th class="thb" colspan="4">SICK / MATERNITY / PATERNITY LEAVE</th>
+        <th rowspan="2" style="text-align:left;padding-left:6px;">REMARKS / NATURE OF ACTION</th>
+      </tr>
+      <tr>
+        <th class="ths tha">EARNED</th>
+        <th class="ths tha">ABS W/P</th>
+        <th class="ths tha">BALANCE</th>
+        <th class="ths tha">W/O P</th>
+        <th class="ths thb">EARNED</th>
+        <th class="ths thb">ABS W/P</th>
+        <th class="ths thb">BALANCE</th>
+        <th class="ths thb">W/O P</th>
+      </tr>
+    </thead>`;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   7.  PERIOD CELL
+   ───────────────────────────────────────────────────────────── */
+function buildPeriodCell(r) {
+  const fromStr = fmtDateEx(r.from || '');
+  const toStr   = fmtDateEx(r.to   || '');
+  const fpTag   = (r.fromPeriod === 'AM' || r.fromPeriod === 'PM')
+    ? ` <span class="ampm-tag">(${r.fromPeriod})</span>` : '';
+  const tpTag   = (r.toPeriod === 'AM' || r.toPeriod === 'PM')
+    ? ` <span class="ampm-tag">(${r.toPeriod})</span>` : '';
+
+  function normPrd(p) {
+    if (!p) return '';
+    p = p.trim();
+    if (/^\d{4}$/.test(p)) return p;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(p)) {
+      const [y, m, d] = p.split('-');
+      return `${m}/${d}/${y}`;
+    }
+    return p.toUpperCase();
+  }
+
+  let html = '';
+  if (r.prd) html += `<span class="date-range">${esc(normPrd(r.prd))}</span>`;
+  if (fromStr && toStr && fromStr !== toStr) {
+    html += `<span class="date-range">${esc(fromStr)}${fpTag} &ndash; ${esc(toStr)}${tpTag}</span>`;
+  } else if (fromStr) {
+    html += `<span class="date-range">${esc(fromStr)}${fpTag}</span>`;
+  }
+  return html;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   8.  BUILD ONE DATA ROW
+   ───────────────────────────────────────────────────────────── */
+function buildTableRow(r) {
+  const ae = fmtNum(r.setA_earned  || 0), aa = fmtNum(r.setA_abs_wp  || 0);
+  const ab = fmtNum(r.setA_balance || 0), aw = fmtNum(r.setA_wop     || 0);
+  const be = fmtNum(r.setB_earned  || 0), ba = fmtNum(r.setB_abs_wp  || 0);
+  const bb = fmtNum(r.setB_balance || 0), bw = fmtNum(r.setB_wop     || 0);
+  const remarksTxt = [
+    (r.action || '').toUpperCase(),
+    r.spec ? `(${String(r.spec).toUpperCase()})` : '',
+  ].filter(Boolean).join(' ');
+  return `
+    <tr class="data-row">
+      <td class="nc so-cell">${esc(r.so || '')}</td>
+      <td class="period-cell">${buildPeriodCell(r)}</td>
+      <td class="nc num-cell">${ae}</td>
+      <td class="nc num-cell">${aa}</td>
+      <td class="bc num-cell">${ab}</td>
+      <td class="nc num-cell${aw ? ' rdc' : ''}">${aw}</td>
+      <td class="nc num-cell">${be}</td>
+      <td class="nc num-cell">${ba}</td>
+      <td class="bc num-cell">${bb}</td>
+      <td class="nc num-cell${bw ? ' rdc' : ''}">${bw}</td>
+      <td class="remarks-cell">${esc(remarksTxt)}</td>
+    </tr>`;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   9.  FORWARD-BALANCE ROW
+       NOTE: Employees see the conversion info (from→to status),
+       NOT internal "era" labels. Only relevant transition shown.
+   ───────────────────────────────────────────────────────────── */
+function buildFwdRow(conv) {
+  const bv = fmtNum(conv.fwdBV || 0);
+  const bs = fmtNum(conv.fwdBS || 0);
+  // Show conversion context (visible to employee) but not "ERA" wording
+  const fromLbl = (conv.fromStatus || '').toUpperCase();
+  const toLbl   = (conv.toStatus   || '').toUpperCase();
+  const convLabel = fromLbl && toLbl
+    ? `&#8618; CARRIED OVER FROM ${fromLbl} TO ${toLbl}`
+    : fromLbl
+      ? `&#8618; CARRIED OVER FROM ${fromLbl}`
+      : `&#8618; CARRIED OVER BALANCE`;
+  return `
+    <tr class="era-fwd-row">
+      <td colspan="2" class="fwd-label-cell">${convLabel}</td>
+      <td class="fwd-num-cell"></td>
+      <td class="fwd-num-cell"></td>
+      <td class="bc fwd-num-cell">${bv}</td>
+      <td class="fwd-num-cell"></td>
+      <td class="fwd-num-cell"></td>
+      <td class="fwd-num-cell"></td>
+      <td class="bc fwd-num-cell">${bs}</td>
+      <td class="fwd-num-cell"></td>
+      <td class="remarks-cell fwd-remarks-cell"></td>
+    </tr>`;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   10.  FLATTEN ALL RECORDS
+   ───────────────────────────────────────────────────────────── */
+function flattenRecords(emp) {
+  const records = emp.records || [];
+  const flat = [];
+  let eraIdx = 0;
+  let cur = { conv: null, recs: [] };
+
+  function pushSeg(seg, isFirst) {
+    if (!isFirst && seg.conv) {
+      flat.push({ type: 'fwd', payload: seg.conv, eraIdx, isFirstEra: isFirst });
+    }
+    seg.recs.forEach(r => {
+      flat.push({ type: 'data', payload: r, eraIdx, isFirstEra: isFirst });
+    });
+    eraIdx++;
+  }
+
+  for (const r of records) {
+    if (r._conversion) { pushSeg(cur, eraIdx === 0); cur = { conv: r, recs: [] }; }
+    else cur.recs.push(r);
+  }
+  pushSeg(cur, eraIdx === 0);
+  return flat;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   11.  BUILD TABLE BODY from flat slice
+   ───────────────────────────────────────────────────────────── */
+function buildTableBody(flatSlice) {
+  if (flatSlice.length === 0) {
+    return `<tr class="data-row"><td colspan="11" class="empty-row-cell">NO RECORDS IN THIS ERA.</td></tr>`;
+  }
+  return flatSlice.map(item => {
+    if (item.type === 'fwd') return buildFwdRow(item.payload);
+    return buildTableRow(item.payload);
+  }).join('');
+}
+
+/* ─────────────────────────────────────────────────────────────
+   11b.  PROFILE FIELD HELPER
+   ───────────────────────────────────────────────────────────── */
+function pf(lbl, val) {
+  return `
+    <div class="lc-pf">
+      <div class="lc-pf-label">${esc(lbl)}</div>
+      <div class="lc-pf-value">${eu(val) || '&mdash;'}</div>
+    </div>`;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   12.  BUILD LETTERHEAD + PROFILE CARD HTML
+   ───────────────────────────────────────────────────────────── */
+function buildHeaderSection(emp, logoSrc) {
+  const records = emp.records || [];
+  const lastConv = [...records].reverse().find(r => r._conversion);
+  const currentEraStatus = (lastConv ? lastConv.toStatus : emp.status) || '';
+  const categoryLabel = currentEraStatus
+    ? `&#9632; ${currentEraStatus.toUpperCase()} PERSONNEL LEAVE RECORD`
+    : '&#9632; NON-TEACHING PERSONNEL LEAVE RECORD';
+
+  const logoImgLetterhead = logoSrc
+    ? `<img class="lc-letterhead-logo" src="${logoSrc}" alt="SDO Logo"/>` : '';
+  const logoImgHeader = logoSrc
+    ? `<img class="lc-doc-banner-logo" src="${logoSrc}" alt="SDO Logo"/>` : '';
+
+  return `
+    <div class="lc-letterhead">
+      ${logoImgLetterhead}
+      <div class="lc-letterhead-text">
+        <div class="lc-letterhead-gov">Republic of the Philippines &bull; Department of Education</div>
+        <div class="lc-letterhead-agency">SDO City of Koronadal &mdash; Region XII</div>
+        <div class="lc-letterhead-sub">Schools Division Office &mdash; Employee Leave Record</div>
+      </div>
+    </div>
+    <div class="lc-profile-card">
+      <div class="lc-profile-header">
+        ${logoImgHeader}
+        <span>${categoryLabel}</span>
+      </div>
+      <div class="lc-profile-grid">
+        <div class="lc-pf-row lc-pf-4col">
+          ${pf('SURNAME', emp.surname || '')}
+          ${pf('GIVEN NAME', emp.given || '')}
+          ${pf('SUFFIX', emp.suffix || '')}
+          ${pf('MATERNAL SURNAME', emp.maternal || '')}
+        </div>
+        <div class="lc-pf-row lc-pf-4col">
+          ${pf('SEX', emp.sex || '')}
+          ${pf('CIVIL STATUS', emp.civil || '')}
+          ${pf('DATE OF BIRTH', fmtDateEx(emp.dob || ''))}
+          ${pf('PLACE OF BIRTH', emp.pob || '')}
+        </div>
+        <div class="lc-pf-row lc-pf-2col">
+          ${pf('PRESENT ADDRESS', emp.addr || '')}
+          ${pf('NAME OF SPOUSE', emp.spouse || '')}
+        </div>
+        <div class="lc-pf-row lc-pf-2col">
+          ${pf('EDUCATIONAL QUALIFICATION', emp.edu || '')}
+          ${pf('C.S. ELIGIBILITY: KIND OF EXAM', emp.elig || '')}
+        </div>
+        <div class="lc-pf-row lc-pf-4col">
+          ${pf('RATING', emp.rating || '')}
+          ${pf('TIN NUMBER', emp.tin || '')}
+          ${pf('PLACE OF EXAM', emp.pexam || '')}
+          ${pf('DATE OF EXAM', fmtDateEx(emp.dexam || ''))}
+        </div>
+        <div class="lc-pf-row lc-pf-3col">
+          ${pf('EMPLOYEE NUMBER', emp.id || '')}
+          ${pf('DATE OF ORIGINAL APPOINTMENT', fmtDateEx(emp.appt || ''))}
+          ${pf('POSITION', emp.pos || '')}
+        </div>
+        <div class="lc-pf-row lc-pf-1col">
+          ${pf('SCHOOL / OFFICE', emp.school || '')}
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   13.  BUILD A SINGLE PAGE HTML
+        Page 0: letterhead + profile + table
+        Page 1+: seamless continuation header + table
+        NOTE: No "INITIAL ERA" or "ERA" labels — only conversion rows
+   ───────────────────────────────────────────────────────────── */
+function buildPageHTML(pageNum, flatSlice, emp, logoSrc, totalPages) {
+  const tableSection = `
+    <div class="lc-export-era">
+      <div class="lc-table-cap">
+        <div class="lc-table-cap-line"></div>
+        <div class="lc-table-cap-badge">&#9632; Leave Record</div>
+        <div class="lc-table-cap-line"></div>
+      </div>
+      <div class="tw">
+        <table>
+          ${buildTableHeader()}
+          <tbody>
+            ${buildTableBody(flatSlice)}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+
+  let body = '';
+  if (pageNum === 0) {
+    body = buildHeaderSection(emp, logoSrc) + tableSection;
+  } else {
+    const logoImgBanner = logoSrc
+      ? `<img class="cont-logo" src="${logoSrc}" alt="SDO Logo"/>` : '';
+    const surname  = (emp.surname || '').toUpperCase();
+    const given    = (emp.given   || '').toUpperCase();
+    // For continuation pages, the continuation header IS the cap —
+    // wrap it together with the table inside one rounded era box
+    body = `
+      <div class="lc-export-era">
+        <div class="continuation-header">
+          <div class="cont-left">
+            ${logoImgBanner}
+            <div class="cont-agency-block">
+              <div class="cont-agency">SDO City of Koronadal &mdash; Region XII</div>
+              <div class="cont-sub">Employee Leave Record &mdash; ${surname}, ${given}</div>
+            </div>
+          </div>
+          <div class="cont-page-badge">
+            <span class="cont-page-num">${pageNum + 1}</span>
+            <span class="cont-page-of">of ${totalPages}</span>
+          </div>
+        </div>
+        <div class="tw">
+          <table>
+            ${buildTableHeader()}
+            <tbody>
+              ${buildTableBody(flatSlice)}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<style>${SHARED_CSS}</style>
+</head>
+<body><div class="lc-export-doc">${body}</div></body>
+</html>`;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   14.  SLICE FLAT ROWS INTO PAGES
+   ───────────────────────────────────────────────────────────── */
+function sliceIntoPages(flat) {
+  const pages = [];
+  if (flat.length === 0) { pages.push([]); return pages; }
+  pages.push(flat.slice(0, PDF_ROWS_PAGE1));
+  let offset = PDF_ROWS_PAGE1;
+  while (offset < flat.length) {
+    pages.push(flat.slice(offset, offset + PDF_ROWS_PAGEN));
+    offset += PDF_ROWS_PAGEN;
+  }
+  return pages;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   15.  RENDER ONE PAGE → ArrayBuffer
+   ───────────────────────────────────────────────────────────── */
+const PDF_OPT_BASE = {
+  margin:      [10, 5, 20, 5],
+  image:       { type: 'jpeg', quality: 0.99 },
+  html2canvas: {
+    scale:           2,
+    useCORS:         true,
+    logging:         false,
+    letterRendering: true,
+    allowTaint:      true,
+    backgroundColor: '#ffffff',
+    scrollX: 0, scrollY: 0, x: 0, y: 0,
+    windowHeight: 99999, windowWidth: 794, width: 794,
+  },
+  jsPDF: {
+    unit: 'mm', format: [215.9, 355.6],
+    orientation: 'portrait', compress: true,
+  },
+  pagebreak: { mode: [] },
+};
+
+function renderPageToArrayBuffer(htmlStr) {
+  return new Promise((resolve, reject) => {
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = [
+      'position:fixed','left:-9999px','top:0',
+      'width:794px','background:#fff',
+      'z-index:-9999','visibility:hidden',
+    ].join(';');
+    wrapper.innerHTML = htmlStr;
+    document.body.appendChild(wrapper);
+    setTimeout(() => {
+      const target = wrapper.querySelector('.lc-export-doc') || wrapper;
+      html2pdf()
+        .set(PDF_OPT_BASE)
+        .from(target)
+        .outputPdf('arraybuffer')
+        .then(buf => { wrapper.remove(); resolve(buf); })
+        .catch(err => { wrapper.remove(); reject(err); });
+    }, 700);
+  });
+}
+
+/* ─────────────────────────────────────────────────────────────
+   15b.  MERGE BUFFERS with pdf-lib
+   ───────────────────────────────────────────────────────────── */
+let _pdfLib = null;
+function loadPdfLib() {
+  if (_pdfLib) return Promise.resolve(_pdfLib);
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';
+    s.onload  = () => { _pdfLib = window.PDFLib; resolve(_pdfLib); };
+    s.onerror = () => reject(new Error('Failed to load pdf-lib from CDN.'));
+    document.head.appendChild(s);
+  });
+}
+
+async function mergePageBuffers(buffers) {
+  const PDFLib = await loadPdfLib();
+  const merged = await PDFLib.PDFDocument.create();
+  for (const buf of buffers) {
+    const src   = await PDFLib.PDFDocument.load(buf);
+    const pages = await merged.copyPages(src, src.getPageIndices());
+    pages.forEach(p => merged.addPage(p));
+  }
+  return merged.save();
+}
+
+/* ─────────────────────────────────────────────────────────────
+   16.  SHARED CSS  — Red Armour Reforged v8.0
+   ───────────────────────────────────────────────────────────── */
+const SHARED_CSS = `
+
+*, *::before, *::after {
+  box-sizing: border-box; margin: 0; padding: 0;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+html, body {
+  width: 794px; margin: 0 auto; padding: 0;
+  background: #ffffff;
+  font-family: 'Barlow', Arial, Helvetica, sans-serif;
+  font-size: 9pt; color: #1e2530;
+}
+.lc-export-doc { width: 776px; background: #fff; padding: 0; margin: 0 auto; }
+
+/* ── Seamless Continuation Header — lives INSIDE .lc-export-era ── */
+.continuation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 10px 14px;
+  background: linear-gradient(135deg,
+    #1a0000 0%, #5a0808 20%, #8b1414 45%,
+    #a01a1a 58%, #7a1010 78%, #3d0606 100%);
+  /* no border-radius — era box clips it */
+  border-bottom: 2.5px solid #c0392b;
+  margin-bottom: 0;
+  box-shadow: inset 0 1px 0 rgba(255,80,80,.12);
+}
+.cont-left {
+  display: flex; align-items: center; gap: 12px;
+}
+.cont-logo {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.25);
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0,0,0,.5);
+  flex-shrink: 0;
+}
+.cont-agency-block { display: flex; flex-direction: column; gap: 2px; }
+.cont-agency {
+  font-family: 'Barlow Condensed', Arial, sans-serif;
+  font-size: 10pt; font-weight: 800; color: #fff;
+  letter-spacing: .08em; text-shadow: 0 1px 4px rgba(0,0,0,.4);
+}
+.cont-sub {
+  font-family: 'Barlow', Arial, sans-serif;
+  font-size: 7pt; font-weight: 500;
+  color: rgba(255,200,180,.75); font-style: italic;
+}
+.cont-page-badge {
+  display: flex; flex-direction: column; align-items: center;
+  background: rgba(0,0,0,.35);
+  border: 1px solid rgba(255,80,80,.3);
+  border-radius: 6px;
+  padding: 4px 10px;
+  min-width: 44px;
+}
+.cont-page-num {
+  font-family: 'Barlow Condensed', Arial, sans-serif;
+  font-size: 18pt; font-weight: 800; color: #ff8080;
+  line-height: 1; text-shadow: 0 0 10px rgba(255,60,60,.5);
+}
+.cont-page-of {
+  font-family: 'Barlow', Arial, sans-serif;
+  font-size: 5.5pt; font-weight: 600; color: rgba(255,180,180,.6);
+  text-transform: uppercase; letter-spacing: .08em;
+}
+
+/* ═══════════════════════════════════════════════════
+   LETTERHEAD
+   ═══════════════════════════════════════════════════ */
+.lc-letterhead {
+  display: flex; align-items: center; justify-content: center;
+  gap: 16px; padding: 14px 20px 12px;
+  border-bottom: 3px solid #8b1a1a; margin-bottom: 0;
+  text-align: center;
+  background: linear-gradient(180deg, #fff8f8 0%, #ffffff 100%);
+}
+.lc-letterhead-logo {
+  width: 68px; height: 68px; border-radius: 50%; flex-shrink: 0;
+  object-fit: cover; border: 2.5px solid #c0392b;
+  box-shadow: 0 3px 12px rgba(139,26,26,.35), 0 0 0 4px rgba(192,57,43,.10);
+}
+.lc-letterhead-text  { text-align: center; line-height: 1.45; }
+.lc-letterhead-gov   {
+  font-size: 6.5pt; font-weight: 500; color: #888;
+  letter-spacing: .12em; text-transform: uppercase;
+  font-family: 'Barlow Condensed', Arial, sans-serif;
+}
+.lc-letterhead-agency{
+  font-size: 15pt; font-weight: 800; color: #1a0505;
+  font-family: 'Barlow Condensed', Arial, sans-serif; letter-spacing: .04em;
+}
+.lc-letterhead-sub   {
+  font-size: 7.5pt; font-weight: 500; color: #777; font-style: italic;
+  font-family: 'Barlow', Arial, sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════
+   PROFILE CARD
+   ═══════════════════════════════════════════════════ */
+.lc-profile-card {
+  background: #0d0505; border: 1.5px solid #8b1a1a;
+  border-radius: 10px; overflow: hidden;
+  margin-top: 12px; margin-bottom: 0;
+  box-shadow: 0 0 0 1px rgba(192,57,43,.35),
+    0 6px 32px rgba(139,0,0,.40),
+    inset 0 1px 0 rgba(255,100,100,.08);
+}
+.lc-profile-header {
+  background: linear-gradient(135deg,
+    #1a0000 0%, #5a0808 18%, #8b1414 42%,
+    #a01a1a 55%, #7a1010 74%, #3d0606 100%);
+  color: #ffffff; padding: 15px 22px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; font-size: 11.5pt; font-weight: 800;
+  letter-spacing: .16em; text-transform: uppercase; text-align: center;
+  border-bottom: 3px solid #c0392b;
+  font-family: 'Barlow Condensed', Arial, sans-serif;
+  text-shadow: 0 1px 4px rgba(0,0,0,.5);
+}
+.lc-doc-banner-logo {
+  width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,.30); object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0,0,0,.4);
+}
+.lc-profile-grid { padding: 0; }
+.lc-pf-row {
+  display: grid; border-bottom: 1px solid rgba(139,0,0,.28);
+  background: linear-gradient(180deg, rgba(30,5,5,.93) 0%, rgba(20,3,3,.89) 100%);
+}
+.lc-pf-row:nth-child(even) {
+  background: linear-gradient(180deg, rgba(24,4,4,.96) 0%, rgba(15,2,2,.91) 100%);
+}
+.lc-pf-row:last-child { border-bottom: none; }
+.lc-pf-4col { grid-template-columns: repeat(4,1fr); }
+.lc-pf-3col { grid-template-columns: repeat(3,1fr); }
+.lc-pf-2col { grid-template-columns: repeat(2,1fr); }
+.lc-pf-1col { grid-template-columns: 1fr; }
+.lc-pf { padding: 9px 14px; border-right: 1px solid rgba(139,0,0,.22); }
+.lc-pf:last-child { border-right: none; }
+.lc-pf-label {
+  font-size: 5.5pt; font-weight: 700; color: #e07060;
+  letter-spacing: .12em; text-transform: uppercase; margin-bottom: 3px;
+  font-family: 'Barlow Condensed', Arial, sans-serif;
+}
+.lc-pf-value {
+  font-size: 9.5pt; font-weight: 600; color: #f5e8e0;
+  text-transform: uppercase; font-family: 'Barlow', Arial, sans-serif;
+  word-break: break-word; overflow-wrap: break-word;
+}
+
+/* ═══════════════════════════════════════════════════
+   ERA / TABLE WRAPPER
+   The outer box is the rounded card. A "bridge cap" div
+   sits on top of the table to create the seamless gradient
+   connection from profile card → table header. This is the
+   ONLY reliable way to get rounded tops with border-collapse.
+   ═══════════════════════════════════════════════════ */
+.lc-export-era {
+  border-radius: 10px;
+  overflow: hidden;          /* clips the table corners */
+  margin-top: 12px;
+  margin-bottom: 14px;
+  border: 1.5px solid rgba(139,0,0,.60);
+  page-break-inside: auto;
+  width: 100%; box-sizing: border-box;
+  box-shadow:
+    0 0 0 1px rgba(80,0,0,.18),
+    0 6px 28px rgba(0,0,0,.28),
+    0 2px 8px rgba(139,0,0,.22);
+}
+
+/* Bridge cap — the gradient header that connects profile card
+   to the table. Sits flush above the thead, fully inside the
+   rounded era box so corners are clipped cleanly. */
+.lc-table-cap {
+  width: 100%;
+  padding: 10px 14px 8px;
+  background: linear-gradient(160deg,
+    #1a0000 0%, #5a0808 18%, #8b1414 42%,
+    #a01a1a 56%, #7a1010 76%, #3d0606 100%);
+  border-bottom: 2.5px solid #c0392b;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* subtle inner highlight at top */
+  box-shadow: inset 0 1px 0 rgba(255,100,80,.14);
+}
+.lc-table-cap-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg,
+    rgba(255,80,60,.0) 0%,
+    rgba(255,80,60,.3) 40%,
+    rgba(255,80,60,.0) 100%);
+}
+.lc-table-cap-badge {
+  font-family: 'Barlow Condensed', Arial, sans-serif;
+  font-size: 6.5pt; font-weight: 800;
+  color: rgba(255,180,160,.55);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tw { overflow: visible; width: 100%; display: block; }
+
+/* ═══════════════════════════════════════════════════
+   TABLE
+   border-collapse:collapse is kept (required for correct
+   borders) — rounded corners are handled by .lc-export-era
+   overflow:hidden above. The cap div takes care of the
+   visual top so thead doesn't need border-radius at all.
+   ═══════════════════════════════════════════════════ */
+table {
+  width: 100% !important; border-collapse: collapse !important;
+  table-layout: fixed !important;
+  font-size: 7.8pt; font-family: 'Barlow', Arial, sans-serif;
+}
+thead { display: table-header-group; }
+thead tr:first-child th {
+  background: #1e0505; color: #fff;
+  font-size: 6.5pt; font-weight: 800; padding: 8px 4px 6px;
+  text-align: center;
+  /* no top border — cap div provides the visual edge */
+  border-top: none !important;
+  border-left: .5pt solid #5a2a2a;
+  border-right: .5pt solid #5a2a2a;
+  border-bottom: .5pt solid #5a2a2a;
+  text-transform: uppercase; letter-spacing: .04em;
+  white-space: normal; word-break: break-word; line-height: 1.3;
+  font-family: 'Barlow Condensed', Arial, sans-serif;
+}
+
+thead th.tha {
+  background: linear-gradient(180deg, #991f1f 0%, #7a1414 100%);
+  color: #ffe4e4; border-color: #701414;
+}
+thead th.thb {
+  background: linear-gradient(180deg, #1e3d78 0%, #162e5c 100%);
+  color: #cce0ff; border-color: #243f7a;
+}
+thead tr:nth-child(2) th {
+  font-size: 6pt; font-weight: 700; padding: 4px 3px;
+  text-align: center; border: .5pt solid #ccc;
+  white-space: normal; word-break: break-word; line-height: 1.2;
+  font-family: 'Barlow Condensed', Arial, sans-serif; letter-spacing: .04em;
+}
+thead th.ths.tha {
+  background: linear-gradient(180deg, #5a1010 0%, #420a0a 100%);
+  color: #ffb8b8;
+}
+thead th.ths.thb {
+  background: linear-gradient(180deg, #0f2550 0%, #0a1a3a 100%);
+  color: #a8c4ff;
+}
+
+/* ═══════════════════════════════════════════════════
+   TBODY
+   ═══════════════════════════════════════════════════ */
+tbody tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+tbody td {
+  border: .5pt solid #d4b8b8; padding: 5pt 3pt;
+  font-size: 7.8pt; text-align: center; vertical-align: middle;
+  white-space: normal; word-break: break-word; overflow-wrap: break-word;
+  overflow: visible; line-height: 1.45; text-transform: uppercase;
+  font-family: 'Barlow', Arial, sans-serif;
+}
+tbody tr:nth-child(even) td {
+  background: linear-gradient(180deg, #fdf5f5 0%, #faf0f0 100%);
+}
+tbody tr:nth-child(odd) td { background: #ffffff; }
+
+.bc {
+  background: linear-gradient(180deg, #fffde7 0%, #fff8d6 100%) !important;
+  font-weight: 800 !important; color: #6b4a10 !important;
+  font-family: 'Barlow Condensed', monospace, Arial, sans-serif !important;
+  font-size: 8.5pt !important; letter-spacing: .02em;
+}
+.rdc { color: #b91c1c !important; font-weight: 700 !important; background: #fff5f5 !important; }
+.nc {
+  font-family: 'Barlow Condensed', 'Courier New', monospace !important;
+  white-space: nowrap !important; text-transform: uppercase !important; font-size: 8pt !important;
+}
+.so-cell { font-size: 7pt !important; padding: 5px 2px !important; color: #555 !important; }
+.num-cell { padding: 5px 3px !important; font-size: 8pt !important; }
+.period-cell {
+  text-align: left !important; padding: 5pt 6pt !important;
+  font-weight: 600 !important; line-height: 1.45 !important;
+  white-space: normal !important; word-break: break-word !important;
+  overflow-wrap: break-word !important; overflow: visible !important;
+  font-size: 7.5pt !important; text-transform: uppercase !important;
+}
+.date-range {
+  display: block; font-size: 7.5pt; font-weight: 700; line-height: 1.4;
+  font-family: 'Barlow Condensed', Arial, sans-serif;
+  letter-spacing: .02em; color: inherit; text-transform: uppercase;
+}
+.ampm-tag {
+  font-size: 5.5pt; color: #aaa; font-weight: 500;
+  font-family: 'Barlow', Arial, sans-serif;
+}
+.remarks-cell {
+  text-align: left !important; padding: 5pt 8pt !important;
+  font-size: 7.5pt !important; white-space: normal !important;
+  word-break: break-word !important; overflow-wrap: break-word !important;
+  overflow: visible !important; line-height: 1.55 !important;
+  text-transform: uppercase !important; font-family: 'Barlow', Arial, sans-serif !important;
+  color: #2a1a1a !important; min-width: 0 !important;
+}
+.empty-row-cell {
+  text-align: center !important; padding: 12px !important;
+  color: #bbb !important; font-style: italic !important; font-size: 7.5pt !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   FORWARD BALANCE ROW (Conversion — employee-visible)
+   ═══════════════════════════════════════════════════ */
+.era-fwd-row { border-top: 2pt solid #c9a227 !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+.fwd-label-cell {
+  text-align: left !important; padding: 6px 10px !important;
+  font-style: italic !important; font-size: 7.5pt !important;
+  background: linear-gradient(90deg, #fff9e0 0%, #fffbe8 100%) !important;
+  color: #7a5000 !important; font-weight: 700 !important;
+  font-family: 'Barlow Condensed', Arial, sans-serif !important;
+  border-color: #d4a843 !important; letter-spacing: .04em !important;
+  white-space: normal !important; word-break: break-word !important;
+  overflow-wrap: break-word !important; overflow: visible !important;
+}
+.fwd-num-cell {
+  background: #fff9e0 !important; color: #7a5000 !important;
+  font-weight: 700 !important; font-style: italic !important;
+  font-size: 7.5pt !important; border-color: #d4a843 !important;
+  padding: 5pt 3pt !important; text-align: center !important;
+  font-family: 'Barlow Condensed', monospace, Arial, sans-serif !important;
+}
+.fwd-remarks-cell { background: #fff9e0 !important; border-color: #d4a843 !important; }
+
+/* Column widths */
+table col:nth-child(1)  { width: 4%   !important; }
+table col:nth-child(2)  { width: 13%  !important; }
+table col:nth-child(3)  { width: 5.5% !important; }
+table col:nth-child(4)  { width: 5.5% !important; }
+table col:nth-child(5)  { width: 5.5% !important; }
+table col:nth-child(6)  { width: 5.5% !important; }
+table col:nth-child(7)  { width: 5.5% !important; }
+table col:nth-child(8)  { width: 5.5% !important; }
+table col:nth-child(9)  { width: 5.5% !important; }
+table col:nth-child(10) { width: 5.5% !important; }
+table col:nth-child(11) { width: 38%  !important; }
+
+table th:nth-child(1), table td:nth-child(1) { width: 4%   !important; }
+table th:nth-child(2), table td:nth-child(2) { width: 13%  !important; }
+table th:nth-child(3),  table td:nth-child(3),
+table th:nth-child(4),  table td:nth-child(4),
+table th:nth-child(5),  table td:nth-child(5),
+table th:nth-child(6),  table td:nth-child(6),
+table th:nth-child(7),  table td:nth-child(7),
+table th:nth-child(8),  table td:nth-child(8),
+table th:nth-child(9),  table td:nth-child(9),
+table th:nth-child(10), table td:nth-child(10) { width: 5.5% !important; }
+table th:nth-child(11), table td:nth-child(11) {
+  width: 38% !important; text-align: left !important; padding-left: 8px !important;
+}
+
+@media print {
+  tr, .data-row, .era-fwd-row { page-break-inside: avoid !important; break-inside: avoid !important; }
+  td, th { overflow: visible !important; overflow-wrap: break-word !important; word-break: break-word !important; }
+  .remarks-cell { overflow: visible !important; }
+}
+  /* ═══════════════════════════════════════════════════
+   PRINT PERFORMANCE — strip expensive visuals
+   Browser renders these for every page during preview.
+   Removing them cuts preview time from minutes to seconds.
+   ═══════════════════════════════════════════════════ */
+@media print {
+  /* Kill all box-shadows — biggest offender */
+  *, *::before, *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+    filter: none !important;
+  }
+
+  /* Flatten gradients to solid colours — second biggest offender */
+  .lc-profile-header,
+  .continuation-header,
+  .lc-table-cap {
+    background: #5a0808 !important;
+  }
+
+  .lc-pf-row,
+  .lc-pf-row:nth-child(even) {
+    background: #1a0404 !important;
+  }
+
+  thead tr:first-child th     { background: #1e0505 !important; }
+  thead th.tha                { background: #7a1414 !important; }
+  thead th.thb                { background: #162e5c !important; }
+  thead th.ths.tha            { background: #420a0a !important; }
+  thead th.ths.thb            { background: #0a1a3a !important; }
+
+  tbody tr:nth-child(even) td { background: #faf0f0 !important; }
+  tbody tr:nth-child(odd)  td { background: #ffffff !important; }
+
+  .bc  { background: #fff8d6 !important; }
+  .rdc { background: #fff5f5 !important; }
+  .fwd-label-cell,
+  .fwd-num-cell,
+  .fwd-remarks-cell           { background: #fff9e0 !important; }
+
+  /* Remove rounded corners — browser has to clip-calculate them per page */
+  .lc-export-era,
+  .lc-profile-card            { border-radius: 0 !important; }
+}
+`;
+
+/* ─────────────────────────────────────────────────────────────
+   17.  BUILD FULL STANDALONE PAGE  (for PRINT only)
+        Era banners shown to editors only in print view
+   ───────────────────────────────────────────────────────────── */
+function buildExportHTML(emp, logoSrc) {
+  const records = emp.records || [];
+  const lastConv = [...records].reverse().find(r => r._conversion);
+  const currentEraStatus = (lastConv ? lastConv.toStatus : emp.status) || '';
+  const categoryLabel = currentEraStatus
+    ? `&#9632; ${currentEraStatus.toUpperCase()} PERSONNEL LEAVE RECORD`
+    : '&#9632; NON-TEACHING PERSONNEL LEAVE RECORD';
+
+  const logoImgLetterhead = logoSrc
+    ? `<img class="lc-letterhead-logo" src="${logoSrc}" alt="SDO Logo"/>` : '';
+  const logoImgHeader = logoSrc
+    ? `<img class="lc-doc-banner-logo" src="${logoSrc}" alt="SDO Logo"/>` : '';
+
+  const segments = [];
+  let cur = { conv: null, recs: [] };
+  for (const r of records) {
+    if (r._conversion) { segments.push(cur); cur = { conv: r, recs: [] }; }
+    else cur.recs.push(r);
+  }
+  segments.push(cur);
+
+  const erasHtml = segments.map((seg, si) => {
+    const isFirst = si === 0;
+    const fwdRow = (!isFirst && seg.conv) ? buildFwdRow(seg.conv) : '';
+    const dataRows = seg.recs.map(r => buildTableRow(r)).join('');
+    const emptyRow = seg.recs.length === 0
+      ? `<tr class="data-row"><td colspan="11" class="empty-row-cell">NO RECORDS IN THIS ERA.</td></tr>` : '';
+    return `
+      <div class="lc-export-era">
+        <div class="lc-table-cap">
+          <div class="lc-table-cap-line"></div>
+          <div class="lc-table-cap-badge">&#9632; Leave Record</div>
+          <div class="lc-table-cap-line"></div>
+        </div>
+        <div class="tw">
+          <table>
+            ${buildTableHeader()}
+            <tbody>${fwdRow}${dataRows}${emptyRow}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="lc-export-doc">
+      <div class="lc-letterhead">
+        ${logoImgLetterhead}
+        <div class="lc-letterhead-text">
+          <div class="lc-letterhead-gov">Republic of the Philippines &bull; Department of Education</div>
+          <div class="lc-letterhead-agency">SDO City of Koronadal &mdash; Region XII</div>
+          <div class="lc-letterhead-sub">Schools Division Office &mdash; Employee Leave Record</div>
+        </div>
+      </div>
+      <div class="lc-profile-card">
+        <div class="lc-profile-header">
+          ${logoImgHeader}
+          <span>${categoryLabel}</span>
+        </div>
+        <div class="lc-profile-grid">
+          <div class="lc-pf-row lc-pf-4col">
+            ${pf('SURNAME', emp.surname || '')}
+            ${pf('GIVEN NAME', emp.given || '')}
+            ${pf('SUFFIX', emp.suffix || '')}
+            ${pf('MATERNAL SURNAME', emp.maternal || '')}
+          </div>
+          <div class="lc-pf-row lc-pf-4col">
+            ${pf('SEX', emp.sex || '')}
+            ${pf('CIVIL STATUS', emp.civil || '')}
+            ${pf('DATE OF BIRTH', fmtDateEx(emp.dob || ''))}
+            ${pf('PLACE OF BIRTH', emp.pob || '')}
+          </div>
+          <div class="lc-pf-row lc-pf-2col">
+            ${pf('PRESENT ADDRESS', emp.addr || '')}
+            ${pf('NAME OF SPOUSE', emp.spouse || '')}
+          </div>
+          <div class="lc-pf-row lc-pf-2col">
+            ${pf('EDUCATIONAL QUALIFICATION', emp.edu || '')}
+            ${pf('C.S. ELIGIBILITY: KIND OF EXAM', emp.elig || '')}
+          </div>
+          <div class="lc-pf-row lc-pf-4col">
+            ${pf('RATING', emp.rating || '')}
+            ${pf('TIN NUMBER', emp.tin || '')}
+            ${pf('PLACE OF EXAM', emp.pexam || '')}
+            ${pf('DATE OF EXAM', fmtDateEx(emp.dexam || ''))}
+          </div>
+          <div class="lc-pf-row lc-pf-3col">
+            ${pf('EMPLOYEE NUMBER', emp.id || '')}
+            ${pf('DATE OF ORIGINAL APPOINTMENT', fmtDateEx(emp.appt || ''))}
+            ${pf('POSITION', emp.pos || '')}
+          </div>
+          <div class="lc-pf-row lc-pf-1col">
+            ${pf('SCHOOL / OFFICE', emp.school || '')}
+          </div>
+        </div>
+      </div>
+      ${erasHtml}
+    </div>`;
+}
+
+function buildFullPage(emp, logoSrc) {
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<style>${SHARED_CSS}</style>
+</head>
+<body>${buildExportHTML(emp, logoSrc)}</body>
+</html>`;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   18.  IFRAME HELPER — no arbitrary delay, resolves on load
+   ───────────────────────────────────────────────────────────── */
+function createCaptureIframe(htmlContent) {
+  return new Promise((resolve) => {
+    const old = document.getElementById('lc-capture-iframe');
+    if (old) old.remove();
+
+    const iframe = document.createElement('iframe');
+    iframe.id = 'lc-capture-iframe';
+    iframe.style.cssText = [
+      'position:fixed','left:0','top:0',
+      'width:794px','height:100%',
+      'border:none','z-index:99999',
+      'visibility:hidden','pointer-events:none',
+    ].join(';');
+
+    document.body.appendChild(iframe);
+    iframe.onload = () => resolve(iframe); // ← no setTimeout at all
+    iframe.contentDocument.open();
+    iframe.contentDocument.write(htmlContent);
+    iframe.contentDocument.close();
+  });
+}
+
+/* ─────────────────────────────────────────────────────────────
+   18b.  PRE-WARMER — call this when an employee card opens.
+         Silently builds the print iframe in the background so
+         clicking Print is truly instant.
+   ───────────────────────────────────────────────────────────── */
+let _readyIframe   = null;
+let _readyForEmpId = null;
+
+async function lcPrimeForPrint(emp) {
+  if (!emp) return;
+  // Already primed for this exact employee
+  if (_readyIframe && _readyForEmpId === emp.id
+      && document.body.contains(_readyIframe)) return;
+
+  // Discard stale iframe
+  if (_readyIframe) { try { _readyIframe.remove(); } catch (_) {} _readyIframe = null; }
+
+  const logoSrc  = await getLogoBase64(); // already cached after pre-warm on load
+  const fullPage = buildFullPage(emp, logoSrc);
+  _readyIframe   = await createCaptureIframe(fullPage);
+  _readyForEmpId = emp.id;
+}
+window.lcPrimeForPrint = lcPrimeForPrint;
+/* ─────────────────────────────────────────────────────────────
+   ██████████████████████████████████████████████████████████
+   19.  RED ARMOUR LOADING OVERLAY — 3D Forged Steel Edition
+        Shows during PDF generation. Jaw-dropping.
+   ██████████████████████████████████████████████████████████
+   ───────────────────────────────────────────────────────────── */
+const OVERLAY_STYLES = `
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;600&display=swap');
+
+  #lc-armour-overlay {
+    position: fixed; inset: 0; z-index: 999999;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at center,
+      rgba(60,0,0,.97) 0%,
+      rgba(15,0,0,.99) 60%,
+      rgba(0,0,0,1) 100%);
+    backdrop-filter: blur(8px);
+    animation: overlay-in .35s cubic-bezier(.22,1,.36,1) both;
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+  @keyframes overlay-in {
+    from { opacity:0; backdrop-filter:blur(0px); }
+    to   { opacity:1; backdrop-filter:blur(8px); }
+  }
+
+  /* ── background hex grid ── */
+  #lc-armour-overlay::before {
+    content:'';
+    position:absolute; inset:0;
+    background-image:
+      repeating-linear-gradient(60deg, rgba(139,26,26,.07) 0, rgba(139,26,26,.07) 1px, transparent 0, transparent 50%),
+      repeating-linear-gradient(120deg, rgba(139,26,26,.07) 0, rgba(139,26,26,.07) 1px, transparent 0, transparent 50%),
+      repeating-linear-gradient(0deg, rgba(139,26,26,.07) 0, rgba(139,26,26,.07) 1px, transparent 0, transparent 50%);
+    background-size: 40px 70px, 40px 70px, 40px 70px;
+    animation: grid-pan 8s linear infinite;
+  }
+  @keyframes grid-pan { to { background-position: 40px 70px, 40px 70px, 40px 70px; } }
+
+  /* ── scanning light sweep ── */
+  #lc-armour-overlay::after {
+    content:'';
+    position:absolute; inset:0;
+    background: linear-gradient(105deg,
+      transparent 0%, transparent 40%,
+      rgba(255,80,60,.04) 50%,
+      transparent 60%, transparent 100%);
+    background-size: 200% 100%;
+    animation: scan-sweep 2.8s ease-in-out infinite;
+  }
+  @keyframes scan-sweep {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -100% 0; }
+  }
+
+  .lc-armour-card {
+    position: relative; z-index: 1;
+    width: 420px;
+    background: linear-gradient(160deg,
+      rgba(35,3,3,.95) 0%,
+      rgba(22,2,2,.98) 50%,
+      rgba(12,1,1,1)   100%);
+    border: 1px solid rgba(192,57,43,.5);
+    border-radius: 20px;
+    padding: 44px 40px 40px;
+    box-shadow:
+      0 0 0 1px rgba(255,80,60,.08),
+      0 0 60px rgba(139,0,0,.6),
+      0 0 120px rgba(139,0,0,.3),
+      0 40px 80px rgba(0,0,0,.9),
+      inset 0 1px 0 rgba(255,120,100,.12),
+      inset 0 -1px 0 rgba(0,0,0,.5);
+    overflow: hidden;
+  }
+
+  /* inner bevel lines */
+  .lc-armour-card::before {
+    content:'';
+    position:absolute; inset:8px;
+    border-radius:14px;
+    border: 1px solid rgba(192,57,43,.15);
+    pointer-events:none;
+  }
+
+  /* corner rivets */
+  .lc-armour-rivets {
+    position:absolute; inset:0; pointer-events:none;
+  }
+  .lc-armour-rivets span {
+    position:absolute; width:8px; height:8px; border-radius:50%;
+    background: radial-gradient(circle at 35% 35%,
+      #ff6040 0%, #991010 60%, #4a0808 100%);
+    box-shadow: 0 0 6px rgba(255,80,60,.5), inset 0 1px 0 rgba(255,200,180,.2);
+  }
+  .lc-armour-rivets span:nth-child(1) { top:14px; left:14px; }
+  .lc-armour-rivets span:nth-child(2) { top:14px; right:14px; }
+  .lc-armour-rivets span:nth-child(3) { bottom:14px; left:14px; }
+  .lc-armour-rivets span:nth-child(4) { bottom:14px; right:14px; }
+
+  /* emblem ring */
+  .lc-armour-emblem {
+    width:72px; height:72px;
+    border-radius:50%;
+    margin:0 auto 24px;
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .lc-armour-emblem::before {
+    content:'';
+    position:absolute; inset:-4px;
+    border-radius:50%;
+    background: conic-gradient(
+      from 0deg,
+      #8b1a1a 0deg, #e53e3e 60deg,
+      #8b1a1a 120deg, #c0392b 180deg,
+      #8b1a1a 240deg, #e53e3e 300deg, #8b1a1a 360deg);
+    animation: ring-rotate 4s linear infinite;
+  }
+  @keyframes ring-rotate { to { transform: rotate(360deg); } }
+  .lc-armour-emblem::after {
+    content:'';
+    position:absolute; inset:-1px;
+    border-radius:50%;
+    background: radial-gradient(circle, rgba(15,1,1,1) 60%, transparent 100%);
+  }
+  .lc-armour-emblem-inner {
+    position:relative; z-index:1;
+    width:64px; height:64px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%,
+      #5a0e0e 0%, #2d0606 50%, #0d0101 100%);
+    display:flex; align-items:center; justify-content:center;
+    font-size:28px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,.8), inset 0 -1px 2px rgba(255,80,60,.1);
+  }
+
+  /* title */
+  .lc-armour-title {
+    text-align:center;
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:20pt; font-weight:900;
+    letter-spacing:.18em;
+    color:#fff;
+    text-transform:uppercase;
+    text-shadow: 0 0 20px rgba(255,60,40,.6), 0 2px 4px rgba(0,0,0,.8);
+    margin-bottom:4px;
+  }
+  .lc-armour-sub {
+    text-align:center;
+    font-family:'Barlow', sans-serif;
+    font-size:8pt; font-weight:300;
+    color:rgba(255,160,140,.5);
+    letter-spacing:.25em;
+    text-transform:uppercase;
+    margin-bottom:32px;
+  }
+
+  /* progress track */
+  .lc-armour-progress-wrap {
+    margin-bottom:24px;
+    position:relative;
+  }
+  .lc-armour-progress-track {
+    width:100%;height:6px;
+    background:rgba(139,26,26,.25);
+    border-radius:3px;
+    overflow:hidden;
+    position:relative;
+    box-shadow: inset 0 1px 4px rgba(0,0,0,.6), 0 0 0 1px rgba(139,26,26,.3);
+  }
+  .lc-armour-progress-fill {
+    height:100%;
+    background: linear-gradient(90deg,
+      #7a1010 0%, #c0392b 35%, #e53e3e 50%, #c0392b 65%, #7a1010 100%);
+    background-size:200% 100%;
+    border-radius:3px;
+    width:0%;
+    transition: width .4s cubic-bezier(.4,0,.2,1);
+    animation: fill-shimmer 1.5s ease-in-out infinite;
+    position:relative;
+  }
+  @keyframes fill-shimmer {
+    0%,100% { background-position:0% 0; }
+    50%      { background-position:200% 0; }
+  }
+  .lc-armour-progress-glow {
+    position:absolute; right:0; top:50%;
+    transform:translateY(-50%);
+    width:20px; height:20px; border-radius:50%;
+    background: radial-gradient(circle, rgba(255,80,60,.8) 0%, transparent 70%);
+    filter:blur(3px);
+    transition: right .4s cubic-bezier(.4,0,.2,1);
+    pointer-events:none;
+  }
+
+  /* status text */
+  .lc-armour-status-row {
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin-bottom:20px;
+  }
+  .lc-armour-status {
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:10pt; font-weight:700;
+    color:#e07060; letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+  .lc-armour-pct {
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:16pt; font-weight:800;
+    color:#ff6040;
+    text-shadow: 0 0 12px rgba(255,80,60,.4);
+  }
+
+  /* steps */
+  .lc-armour-steps {
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .lc-armour-step {
+    display:flex; align-items:center; gap:12px;
+    padding:8px 12px; border-radius:8px;
+    background:rgba(139,26,26,.08);
+    border:1px solid rgba(139,26,26,.12);
+    transition: all .3s ease;
+  }
+  .lc-armour-step.active {
+    background: rgba(139,26,26,.22);
+    border-color: rgba(192,57,43,.4);
+    box-shadow: 0 0 20px rgba(139,0,0,.3);
+  }
+  .lc-armour-step.done {
+    background: rgba(46,204,113,.06);
+    border-color: rgba(46,204,113,.2);
+  }
+  .lc-armour-step-icon {
+    width:24px; height:24px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    font-size:12px;
+    background: rgba(0,0,0,.4);
+    border: 1px solid rgba(139,26,26,.3);
+    color: rgba(255,100,80,.4);
+    transition: all .3s ease;
+  }
+  .lc-armour-step.active .lc-armour-step-icon {
+    background: rgba(139,26,26,.4);
+    border-color: rgba(255,80,60,.6);
+    color: #ff8060;
+    box-shadow: 0 0 10px rgba(255,60,40,.3);
+    animation: step-pulse .8s ease-in-out infinite alternate;
+  }
+  @keyframes step-pulse {
+    from { box-shadow: 0 0 6px rgba(255,60,40,.2); }
+    to   { box-shadow: 0 0 16px rgba(255,60,40,.5); }
+  }
+  .lc-armour-step.done .lc-armour-step-icon {
+    background: rgba(46,204,113,.2);
+    border-color: rgba(46,204,113,.4);
+    color: #4eda8c;
+  }
+  .lc-armour-step-label {
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:9.5pt; font-weight:700; letter-spacing:.06em;
+    text-transform:uppercase; color:rgba(255,160,140,.35);
+    transition: color .3s ease;
+    flex:1;
+  }
+  .lc-armour-step.active .lc-armour-step-label { color:#e07060; }
+  .lc-armour-step.done  .lc-armour-step-label  { color:rgba(100,220,160,.6); }
+  .lc-armour-step-detail {
+    font-family:'Barlow', sans-serif;
+    font-size:7pt; color:rgba(255,100,80,.4);
+    transition: color .3s ease;
+    text-align:right; white-space:nowrap;
+  }
+  .lc-armour-step.active .lc-armour-step-detail { color:rgba(255,120,80,.65); }
+  .lc-armour-step.done  .lc-armour-step-detail  { color:rgba(80,200,140,.55); }
+
+  /* cancel btn */
+  .lc-armour-cancel {
+    margin-top:24px; width:100%;
+    display:none;
+    align-items:center; justify-content:center; gap:8px;
+    padding:10px 20px;
+    background:transparent;
+    border:1px solid rgba(139,26,26,.25);
+    border-radius:8px;
+    color:rgba(255,120,100,.45);
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:9pt; font-weight:600; letter-spacing:.1em;
+    text-transform:uppercase; cursor:pointer;
+    transition: all .25s;
+  }
+  .lc-armour-cancel:hover {
+    background:rgba(139,26,26,.15);
+    border-color:rgba(192,57,43,.45);
+    color:rgba(255,140,120,.7);
+  }
+
+  /* ── out animation ── */
+  #lc-armour-overlay.lc-overlay-out {
+    animation: overlay-out .4s cubic-bezier(.55,0,1,.45) both;
+  }
+  @keyframes overlay-out {
+    from { opacity:1; transform:scale(1); }
+    to   { opacity:0; transform:scale(.97); }
+  }
+`;
+
+let _overlayEl = null;
+let _overlayProgressFill = null;
+let _overlayProgressGlow = null;
+let _overlayStatus = null;
+let _overlayPct = null;
+let _overlaySteps = [];
+
+const OVERLAY_STEPS = [
+  { label: 'Forging armour plates',     detail: 'Building layout…',       icon: '⚙' },
+  { label: 'Rendering pages',           detail: 'Capturing visuals…',     icon: '🖼' },
+  { label: 'Welding into document',     detail: 'Merging pages…',         icon: '🔗' },
+  { label: 'Sealing the PDF',           detail: 'Finalising file…',       icon: '🛡' },
+];
+
+function showArmourOverlay() {
+  // Inject styles once
+  if (!document.getElementById('lc-armour-styles')) {
+    const st = document.createElement('style');
+    st.id = 'lc-armour-styles';
+    st.textContent = OVERLAY_STYLES;
+    document.head.appendChild(st);
+  }
+
+  // Remove any existing overlay
+  const old = document.getElementById('lc-armour-overlay');
+  if (old) old.remove();
+
+  const stepsHtml = OVERLAY_STEPS.map((s, i) => `
+    <div class="lc-armour-step" id="lc-step-${i}">
+      <div class="lc-armour-step-icon" id="lc-step-icon-${i}">${s.icon}</div>
+      <div class="lc-armour-step-label">${s.label}</div>
+      <div class="lc-armour-step-detail" id="lc-step-detail-${i}">${s.detail}</div>
+    </div>
+  `).join('');
+
+  const el = document.createElement('div');
+  el.id = 'lc-armour-overlay';
+  el.innerHTML = `
+    <div class="lc-armour-card">
+      <div class="lc-armour-rivets">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="lc-armour-emblem">
+        <div class="lc-armour-emblem-inner">🛡</div>
+      </div>
+      <div class="lc-armour-title">Generating</div>
+      <div class="lc-armour-sub">SDO Leave Card System</div>
+      <div class="lc-armour-progress-wrap">
+        <div class="lc-armour-progress-track">
+          <div class="lc-armour-progress-fill" id="lc-prog-fill"></div>
+        </div>
+        <div class="lc-armour-progress-glow" id="lc-prog-glow"></div>
+      </div>
+      <div class="lc-armour-status-row">
+        <div class="lc-armour-status" id="lc-overlay-status">Preparing…</div>
+        <div class="lc-armour-pct" id="lc-overlay-pct">0%</div>
+      </div>
+      <div class="lc-armour-steps">${stepsHtml}</div>
+    </div>`;
+  document.body.appendChild(el);
+
+  _overlayEl          = el;
+  _overlayProgressFill = document.getElementById('lc-prog-fill');
+  _overlayProgressGlow = document.getElementById('lc-prog-glow');
+  _overlayStatus       = document.getElementById('lc-overlay-status');
+  _overlayPct          = document.getElementById('lc-overlay-pct');
+  _overlaySteps        = OVERLAY_STEPS.map((_, i) => ({
+    el:     document.getElementById(`lc-step-${i}`),
+    detail: document.getElementById(`lc-step-detail-${i}`),
+  }));
+
+  setOverlayProgress(0, 'Preparing armour…', -1);
+}
+
+function setOverlayProgress(pct, statusText, activeStep) {
+  if (!_overlayEl) return;
+  const p = Math.max(0, Math.min(100, pct));
+  if (_overlayProgressFill) _overlayProgressFill.style.width = p + '%';
+  if (_overlayProgressGlow) _overlayProgressGlow.style.right = (100 - p) + '%';
+  if (_overlayStatus) _overlayStatus.textContent = statusText || '';
+  if (_overlayPct)    _overlayPct.textContent    = Math.round(p) + '%';
+
+  _overlaySteps.forEach((s, i) => {
+    s.el.classList.remove('active','done');
+    if (i < activeStep)      { s.el.classList.add('done'); s.detail.textContent = '✓ Done'; }
+    else if (i === activeStep){ s.el.classList.add('active'); }
+  });
+}
+
+function hideArmourOverlay() {
+  if (!_overlayEl) return;
+  _overlayEl.classList.add('lc-overlay-out');
+  setTimeout(() => { if (_overlayEl) { _overlayEl.remove(); _overlayEl = null; } }, 420);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   20.  PRINT — instant: uses pre-warmed iframe if ready
+   ───────────────────────────────────────────────────────────── */
+async function lcPrint() {
+  const emp = resolveCurrentEmp();
+  if (!emp) { alert('No employee leave card is currently open.'); return; }
+
+  // Grab pre-warmed iframe if it matches the current employee
+  let iframe = (_readyIframe && _readyForEmpId === emp.id
+                && document.body.contains(_readyIframe))
+    ? _readyIframe : null;
+
+  // Clear reference immediately so cleanup doesn't double-remove
+  _readyIframe   = null;
+  _readyForEmpId = null;
+
+  if (!iframe) {
+    // Fallback: build now (only happens if prime hasn't finished yet)
+    const logoSrc = await getLogoBase64();
+    iframe = await createCaptureIframe(buildFullPage(emp, logoSrc));
+  }
+
+  iframe.contentWindow.focus();
+  iframe.contentWindow.print(); // ← opens dialog immediately
+
+  const cleanup = () => {
+    try { iframe.remove(); } catch (_) {}
+    lcPrimeForPrint(emp); // re-prime silently for the next print
+  };
+  iframe.contentWindow.addEventListener('afterprint', cleanup, { once: true });
+  setTimeout(cleanup, 1500); // safety fallback
+}
+window.lcPrint = lcPrint;
+
+/* ─────────────────────────────────────────────────────────────
+   21.  DOWNLOAD PDF  v8.0 — Red Armour Edition
+   ───────────────────────────────────────────────────────────── */
+async function lcDownloadPDF(emp) {
+  if (typeof html2pdf === 'undefined') {
+    alert(
+      'html2pdf not loaded.\n\nAdd to <head>:\n\n' +
+      '<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\/script>'
+    );
+    return;
+  }
+
+  if (!emp || !emp.id) {
+    const resolved = resolveCurrentEmp();
+    if (!resolved) { alert('No employee leave card is currently open.'); return; }
+    emp = resolved;
+  }
+
+  // Button lockout
+  const dlBtn = document.querySelector('.lc-dl-btn');
+  let origHTML = '', origWidth = '';
+  if (dlBtn) {
+    origHTML  = dlBtn.innerHTML;
+    origWidth = dlBtn.style.width;
+    dlBtn.disabled    = true;
+    dlBtn.style.width = dlBtn.offsetWidth + 'px';
+    dlBtn.innerHTML   = '🛡 &nbsp;Forging PDF…';
+    dlBtn.style.opacity = '0.7';
+  }
+
+  // Show the epic overlay
+  showArmourOverlay();
+  setOverlayProgress(5, 'Summoning the forge…', 0);
+
+  try {
+    const logoSrc = await getLogoBase64();
+    setOverlayProgress(12, 'Loading insignia…', 0);
+
+    // 1. Flatten + slice
+    const flat       = flattenRecords(emp);
+    const pageSlices = sliceIntoPages(flat);
+    const totalPages = pageSlices.length;
+    setOverlayProgress(18, `Laying out ${totalPages} page${totalPages>1?'s':''}…`, 0);
+
+    // 2. Render each page
+    const buffers = [];
+    for (let i = 0; i < pageSlices.length; i++) {
+      const pct = 20 + Math.round((i / pageSlices.length) * 50);
+      setOverlayProgress(pct, `Rendering page ${i+1} of ${totalPages}…`, 1);
+      const html = buildPageHTML(i, pageSlices[i], emp, logoSrc, totalPages);
+      const buf  = await renderPageToArrayBuffer(html);
+      buffers.push(buf);
+    }
+
+    // 3. Merge
+    setOverlayProgress(72, 'Welding pages together…', 2);
+    const mergedBytes = await mergePageBuffers(buffers);
+
+    // 4. Download
+    setOverlayProgress(92, 'Sealing the document…', 3);
+    const surname  = (emp.surname || 'RECORD').toUpperCase().replace(/\s+/g, '_');
+    const given    = (emp.given   || '').toUpperCase().replace(/\s+/g, '_');
+    const filename = `LeaveCard_${surname}_${given}.pdf`;
+
+    const blob = new Blob([mergedBytes], { type: 'application/pdf' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 3000);
+
+    setOverlayProgress(100, 'PDF ready — download started!', 3);
+    await new Promise(r => setTimeout(r, 900));
+
+  } catch (err) {
+    console.error('[print-download] PDF error:', err);
+    alert('PDF generation failed: ' + err.message);
+  } finally {
+    hideArmourOverlay();
+    if (dlBtn) {
+      dlBtn.disabled    = false;
+      dlBtn.innerHTML   = origHTML || dlBtn.innerHTML;
+      dlBtn.style.width = origWidth || '';
+      dlBtn.style.opacity = '';
+    }
+  }
+}
+window.lcDownloadPDF = lcDownloadPDF;
+
+/* ─────────────────────────────────────────────────────────────
+   22.  RED ARMOUR BUTTON INJECTION
+        Upgrades .lc-dl-btn and .lc-print-btn to 3D forged steel
+   ───────────────────────────────────────────────────────────── */
+const BUTTON_CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&display=swap');
+
+/* ── Download Button ── */
+.lc-dl-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 26px 12px 22px;
+  font-family: 'Barlow Condensed', sans-serif !important;
+  font-size: 11pt !important;
+  font-weight: 800 !important;
+  letter-spacing: .14em !important;
+  text-transform: uppercase;
+  color: #fff !important;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  overflow: hidden;
+  outline: none;
+  transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s ease;
+
+  /* 3D forged steel base */
+  background: linear-gradient(160deg,
+    #6b0e0e 0%, #8b1a1a 15%, #c0392b 40%,
+    #e53e3e 55%, #c0392b 70%, #8b1a1a 85%, #5a0808 100%);
+
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.12) inset,
+    0 -2px 0 rgba(0,0,0,.5) inset,
+    2px 0 0 rgba(255,120,100,.08) inset,
+    -2px 0 0 rgba(0,0,0,.3) inset,
+    0 6px 0 #5a0606,
+    0 7px 0 #3d0404,
+    0 8px 16px rgba(139,0,0,.6),
+    0 16px 40px rgba(139,0,0,.25),
+    0 0 0 1px rgba(192,57,43,.6);
+
+  text-shadow: 0 1px 3px rgba(0,0,0,.6);
+}
+
+.lc-dl-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,.12) 0%,
+    rgba(255,255,255,.03) 45%,
+    transparent 100%);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* shimmer sweep */
+.lc-dl-btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%; height: 100%;
+  background: linear-gradient(105deg,
+    transparent 0%,
+    rgba(255,255,255,.15) 50%,
+    transparent 100%);
+  animation: btn-shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes btn-shimmer {
+  0%,80%,100% { left: -100%; opacity:0; }
+  40%         { left: 120%;  opacity:1; }
+}
+
+.lc-dl-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.15) inset,
+    0 -2px 0 rgba(0,0,0,.5) inset,
+    2px 0 0 rgba(255,120,100,.1) inset,
+    -2px 0 0 rgba(0,0,0,.3) inset,
+    0 8px 0 #5a0606,
+    0 9px 0 #3d0404,
+    0 12px 28px rgba(139,0,0,.7),
+    0 24px 50px rgba(139,0,0,.3),
+    0 0 0 1px rgba(220,60,40,.8);
+}
+
+.lc-dl-btn:active {
+  transform: translateY(4px);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.1) inset,
+    0 -1px 0 rgba(0,0,0,.4) inset,
+    0 2px 0 #5a0606,
+    0 3px 0 #3d0404,
+    0 4px 12px rgba(139,0,0,.5),
+    0 0 0 1px rgba(192,57,43,.6);
+}
+
+.lc-dl-btn:disabled {
+  cursor: not-allowed;
+  filter: saturate(.5) brightness(.7);
+}
+
+/* ── Print Button ── */
+.lc-print-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 26px 12px 22px;
+  font-family: 'Barlow Condensed', sans-serif !important;
+  font-size: 11pt !important;
+  font-weight: 800 !important;
+  letter-spacing: .14em !important;
+  text-transform: uppercase;
+  color: #e8e0ff !important;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  overflow: hidden;
+  outline: none;
+  transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s ease;
+
+  background: linear-gradient(160deg,
+    #0d1a3a 0%, #1a2d6b 18%, #1e3d88 40%,
+    #2251b3 55%, #1e3d88 70%, #1a2d6b 85%, #0a1530 100%);
+
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.12) inset,
+    0 -2px 0 rgba(0,0,0,.5) inset,
+    2px 0 0 rgba(100,140,255,.08) inset,
+    -2px 0 0 rgba(0,0,0,.3) inset,
+    0 6px 0 #0a1530,
+    0 7px 0 #060e22,
+    0 8px 16px rgba(30,61,136,.6),
+    0 16px 40px rgba(30,61,136,.25),
+    0 0 0 1px rgba(34,81,179,.6);
+
+  text-shadow: 0 1px 3px rgba(0,0,0,.6);
+}
+
+.lc-print-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,.12) 0%,
+    rgba(255,255,255,.03) 45%,
+    transparent 100%);
+  border-radius: inherit;
+  pointer-events: none;
+}
+.lc-print-btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%; height: 100%;
+  background: linear-gradient(105deg,
+    transparent 0%,
+    rgba(255,255,255,.12) 50%,
+    transparent 100%);
+  animation: btn-shimmer 3.4s 1.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.lc-print-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.15) inset,
+    0 -2px 0 rgba(0,0,0,.5) inset,
+    0 8px 0 #0a1530,
+    0 9px 0 #060e22,
+    0 12px 28px rgba(30,61,136,.7),
+    0 24px 50px rgba(30,61,136,.3),
+    0 0 0 1px rgba(60,100,220,.8);
+}
+
+.lc-print-btn:active {
+  transform: translateY(4px);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.1) inset,
+    0 2px 0 #0a1530,
+    0 3px 0 #060e22,
+    0 4px 12px rgba(30,61,136,.5),
+    0 0 0 1px rgba(34,81,179,.6);
+}
+`;
+
+function injectButtonStyles() {
+  if (document.getElementById('lc-btn-styles')) return;
+  const st = document.createElement('style');
+  st.id = 'lc-btn-styles';
+  st.textContent = BUTTON_CSS;
+  document.head.appendChild(st);
+}
+getLogoBase64();
+/* ─────────────────────────────────────────────────────────────
+   23.  BUTTON WIRING
+   ───────────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', injectButtonStyles);
+// Also inject immediately in case DOM is already ready
+injectButtonStyles();
+
+document.addEventListener('click', function (e) {
+  if (e.target.closest('.lc-dl-btn')) {
+    e.stopImmediatePropagation();
+    lcDownloadPDF();
+    return;
+  }
+  if (e.target.closest('.lc-print-btn')) {
+    e.stopImmediatePropagation();
+    lcPrint();
+  }
+}, true);
