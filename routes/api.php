@@ -39,4 +39,10 @@ Route::middleware('web')->prefix('')->group(function () {
     Route::post('/compute_balances',        [LeaveCardApiController::class, 'computeBalances']);
     Route::post('/validate_leave',          [LeaveCardApiController::class, 'validateLeave']);
     Route::get('/fix_all_sort_orders', [LeaveCardApiController::class, 'fixAllSortOrders']);
+    // ── LEAVE APPLICATIONS ──
+Route::post('/submit_leave_application',   [LeaveCardApiController::class, 'submitLeaveApplication']);
+Route::get('/get_leave_applications',      [LeaveCardApiController::class, 'getLeaveApplications']);
+Route::get('/get_my_leave_applications',   [LeaveCardApiController::class, 'getMyLeaveApplications']);
+Route::post('/review_leave_application',   [LeaveCardApiController::class, 'reviewLeaveApplication']);
+Route::post('/delete_leave_application',   [LeaveCardApiController::class, 'deleteLeaveApplication']);
 });

@@ -235,8 +235,9 @@ if (p === 'home') {
     if (state.isSchoolAdmin) renderSAPersonnelList();
     else                     renderPersonnelList();
 }
-  if (p === 'cards')   renderLeaveCards();
-  if (p === 'user')    renderUserPage();
+  if (p === 'cards')       renderLeaveCards();
+if (p === 'user')        renderUserPage();
+if (p === 'submissions') renderSubmissionsPage();
 }
 window.setPage = setPage;
 
@@ -520,10 +521,11 @@ function renderSidebar() {
   } else {
     navItems = `<div class="sb-item" data-page="home"><span class="sb-icon">🏠</span>Dashboard</div>`;
     if (canEncode) {
-      navItems += `
-        <div class="sb-item" data-page="list"><span class="sb-icon">👥</span>Personnel List</div>
-        <div class="sb-item" data-page="cards"><span class="sb-icon">📋</span>Leave Cards</div>`;
-    }
+  navItems += `
+    <div class="sb-item" data-page="list"><span class="sb-icon">👥</span>Personnel List</div>
+    <div class="sb-item" data-page="cards"><span class="sb-icon">📋</span>Leave Cards</div>
+    <div class="sb-item" data-page="submissions"><span class="sb-icon">📨</span>Submissions</div>`;
+}
   }
 
   sb.innerHTML = `
@@ -632,8 +634,8 @@ function renderLeaveCards() {
 
   filterCardList();
 
-  document.getElementById('lcPrintAll')?.addEventListener('click', () => window.print());
-  document.getElementById('lcDownloadAll')?.addEventListener('click', () => alert('PDF export coming soon'));
+// Handled by bulk-export.js via event delegation — do not wire here
+//   document.getElementById('lcDownloadAll')?.addEventListener('click', () => alert('PDF export coming soon'));
   document.getElementById('lcPostAccrual')?.addEventListener('click', () => postMonthlyAccrual());
   document.getElementById('lcPostForce')?.addEventListener('click',   () => postMandatoryLeave());
 }

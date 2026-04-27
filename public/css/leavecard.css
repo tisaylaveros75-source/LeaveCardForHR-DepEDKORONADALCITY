@@ -120,16 +120,22 @@
 
 .lc-profile-card {
   background    : #0d0505;
-  border        : 1.5px solid #8b1a1a;
+  border        : 1.5px solid #a01a1a;
   border-radius : 14px;
   overflow      : hidden;
   margin-bottom : 20px;
   box-shadow    :
-    0 0 0 1px rgba(192,57,43,.35),
-    0 8px 40px rgba(139,0,0,.45),
-    0 2px 0 rgba(255,255,255,.04) inset,
-    inset 0 0 60px rgba(139,0,0,.08);
+    inset 0 1px 0 rgba(255,200,160,.14),
+    inset 0 -2px 6px rgba(0,0,0,.55),
+    inset 2px 0 0 rgba(255,100,80,.06),
+    inset -2px 0 0 rgba(0,0,0,.3),
+    0 6px 0 #5a0606,
+    0 7px 0 #3d0404,
+    0 10px 32px rgba(139,0,0,.60),
+    0 20px 50px rgba(139,0,0,.28),
+    0 0 0 1px rgba(192,57,43,.55);
   position      : relative;
+  transition    : box-shadow .25s, transform .25s;
 }
 
 .lc-profile-card::before {
@@ -151,12 +157,13 @@
 
 .lc-profile-header {
   background      : linear-gradient(135deg,
-    #1a0000 0%,
-    #5a0808 20%,
-    #8b1414 45%,
-    #a01a1a 55%,
-    #7a1010 75%,
-    #3d0606 100%);
+    #0d0000  0%,
+    #3d0606 15%,
+    #7a1010 40%,
+    #b01818 50%,
+    #8b1414 60%,
+    #3d0606 85%,
+    #120202 100%);
   color           : #ffffff;
   padding         : 18px 24px;
   display         : flex;
@@ -172,6 +179,11 @@
   position        : relative;
   overflow        : hidden;
   border-bottom   : 3px solid #c0392b;
+  box-shadow      :
+    inset 0 1px 0 rgba(255,200,160,.18),
+    inset 0 -2px 6px rgba(0,0,0,.5),
+    0 4px 0 #3d0404,
+    0 6px 14px rgba(0,0,0,.55);
 }
 
 .lc-profile-header::before {
@@ -746,6 +758,7 @@ input[type="tel"] {
   table-layout     : fixed;
 }
 
+
 /* Column widths are defined in leavecard-styles.js — no overrides here */
 
 
@@ -817,4 +830,53 @@ input[type="tel"] {
 
   .lc-spinner { display: none !important; }
 }
+/* ── Armoured Profile Card on leave card page ── */
+.cb {
+  background: linear-gradient(160deg, #0d0303 0%, #1a0505 60%, #120404 100%) !important;
+  border-bottom: 2px solid rgba(139,26,26,.35);
+  padding: 0 !important;
+}
 
+.cb .pg {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+}
+
+.cb .pg .pi {
+  padding: 12px 18px;
+  border-right: 1px solid rgba(139,0,0,.22);
+  border-bottom: 1px solid rgba(139,0,0,.18);
+  position: relative;
+}
+.cb .pg .pi:last-child { border-right: none; }
+.cb .pg .pi:nth-child(4n) { border-right: none; }
+
+.cb .pg .pi::before {
+  content: '';
+  position: absolute; top: 8px; left: 7px;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: rgba(192,57,43,.4);
+}
+
+.cb .pg .pi label {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  color: #e07060 !important;
+  letter-spacing: .12em !important;
+  text-transform: uppercase !important;
+  margin-bottom: 4px !important;
+  display: block;
+  font-family: 'Rajdhani', 'Inter', sans-serif;
+}
+
+.cb .pg .pi span {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #f5e8e0 !important;
+  text-transform: uppercase !important;
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+  display: block;
+  word-break: break-word;
+}

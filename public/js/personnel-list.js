@@ -100,7 +100,6 @@ function renderPersonnelList() {
       <div class="pl-header">
         <div class="pl-header-left">
           <div class="pl-header-title">👥 Personnel Registry</div>
-          ${canAdmin ? `<button class="pl-btn-register" id="plAddEmpBtn">＋ Register New Personnel</button>` : ''}
         </div>
         <div class="pl-header-right">
           <div class="pl-search-wrap">
@@ -115,7 +114,9 @@ function renderPersonnelList() {
       <div class="pl-filter-bar">
         <div class="pl-filter-spacer pl-fcol-rownum"></div>
         <div class="pl-filter-spacer pl-fcol-empid"></div>
-        <div class="pl-filter-spacer pl-fcol-name"></div>
+        <div class="pl-fcol-name" style="display:flex;align-items:center;padding:0 6px;">
+          ${canAdmin ? `<button class="pl-btn-register" id="plAddEmpBtn" style="height:30px;font-size:10.5px;padding:0 12px;background:linear-gradient(135deg,#3d0808,#8b1a1a);border:none;color:#fff;border-radius:5px;font-weight:700;cursor:pointer;white-space:nowrap;letter-spacing:.04em;text-transform:uppercase;">＋ Register New Personnel</button>` : ''}
+        </div>
         <div class="pl-fcol-cat">
           <select class="pl-select" id="plCatFilter">
             <option value="">All Categories</option>

@@ -1,7 +1,7 @@
 /* ============================================================
    SDO Koronadal City — Leave Card System
    accounts.js — Account Management Modal & Profile Logic
-   RED ARMOURED EDITION — Wider, stunning, shocking effects
+   RED ARMOURED EDITION — Unified, readable, stunning
    ============================================================ */
 
 'use strict';
@@ -17,257 +17,294 @@ function injectAccFormStyle() {
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
 /* ── ADMIN PROFILE MODAL — Extra wide ── */
-#adminProfMo .mb {
-  max-width: 860px !important;
-  width: 97% !important;
-}
+#adminProfMo .mb { max-width: 860px !important; width: 97% !important; }
+#encProfMo .mb   { max-width: 560px !important; width: 96% !important; }
+#saProfMo .mb    { max-width: 560px !important; width: 96% !important; }
 
-/* ── ENCODER PROFILE MODAL ── */
-#encProfMo .mb {
-  max-width: 560px !important;
-  width: 96% !important;
-}
-
-/* ── SCHOOL ADMIN PROFILE MODAL (in accounts.js version) ── */
-#saProfMo .mb {
-  max-width: 560px !important;
-  width: 96% !important;
-}
-
-/* ── My Profile section inside admin modal ── */
-.arm-myprofile-box {
-  background: rgba(255,255,255,.03);
-  border: 1px solid rgba(139,26,26,.35);
-  border-radius: 14px; padding: 22px 26px; margin-bottom: 6px;
+/* ── Profile Hero ── */
+.arm-prof-hero {
+  background: linear-gradient(135deg, #3a0000 0%, #6b0a0a 25%, #9b1515 55%, #7a0e0e 80%, #2a0000 100%);
+  border-radius: 16px; padding: 32px 34px; margin-bottom: 20px;
   position: relative; overflow: hidden;
+  box-shadow: 0 12px 48px rgba(139,26,26,.55), inset 0 2px 0 rgba(255,120,80,.15), inset 0 -2px 0 rgba(0,0,0,.4);
+  border: 1px solid rgba(220,60,40,.35);
+}
+.arm-prof-hero::before {
+  content: ''; position: absolute; inset: 0;
+  background-image:
+    repeating-linear-gradient(90deg, transparent, transparent 48px, rgba(255,255,255,.02) 48px, rgba(255,255,255,.02) 49px),
+    repeating-linear-gradient(0deg,  transparent, transparent 48px, rgba(255,255,255,.02) 48px, rgba(255,255,255,.02) 49px);
+  pointer-events: none;
+}
+.arm-prof-hero::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,140,80,.7) 30%, rgba(255,80,60,.9) 50%, rgba(255,140,80,.7) 70%, transparent 100%);
+  pointer-events: none;
+}
+.arm-prof-hero-role {
+  font-size: 11px; font-weight: 800; letter-spacing: 3px;
+  text-transform: uppercase; color: rgba(255,200,130,.9);
+  margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  position: relative; z-index: 1;
+}
+.arm-prof-pulse {
+  width: 7px; height: 7px; border-radius: 50%; background: #ff7050;
+  animation: arm-pulse 2s infinite; box-shadow: 0 0 8px rgba(255,100,60,.7);
+}
+@keyframes arm-pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%     { opacity:.5; transform:scale(1.7); }
+}
+.arm-prof-hero-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2rem; font-weight: 900;
+  line-height: 1.1; margin-bottom: 10px;
+  background: linear-gradient(90deg, #ffe0b0 0%, #ffb060 35%, #ff7040 65%, #ffb060 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  filter: drop-shadow(0 3px 12px rgba(255,80,30,.5));
+  position: relative; z-index: 1;
+}
+.arm-prof-hero-id {
+  font-size: 13px; color: rgba(255,210,160,.8);
+  letter-spacing: 1px; position: relative; z-index: 1;
+  background: rgba(0,0,0,.25); display: inline-block;
+  padding: 4px 14px; border-radius: 20px;
+  border: 1px solid rgba(255,120,60,.2);
+}
+
+/* ── My Profile section ── */
+.arm-myprofile-box {
+  background: linear-gradient(160deg, rgba(80,5,5,.45) 0%, rgba(35,5,5,.55) 100%);
+  border: 1px solid rgba(200,48,48,.3);
+  border-radius: 16px; padding: 24px 28px; margin-bottom: 6px;
+  position: relative; overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,.3), inset 0 0 60px rgba(139,26,26,.08);
 }
 .arm-myprofile-box::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, #8b1a1a, #d43030, #8b1a1a); opacity: .6;
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, transparent, #c83030 20%, #ff5030 50%, #c83030 80%, transparent);
+  box-shadow: 0 0 12px rgba(220,48,30,.6);
 }
 .arm-myprofile-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px 22px;
 }
 
-/* ── Section label inside modal body ── */
+/* ── Section Labels ── */
 .arm-section-label {
-  font-size: 10px; font-weight: 800; letter-spacing: 2px;
-  text-transform: uppercase; color: rgba(255,160,100,.5);
-  padding: 16px 0 10px;
-  border-bottom: 1px solid rgba(139,26,26,.25);
-  margin-bottom: 14px;
-  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 800; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(255,180,120,.95);
+  padding: 18px 0 12px;
+  border-bottom: 1px solid rgba(180,40,30,.35);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
 }
 .arm-section-label::before {
-  content: ''; display: inline-block; width: 12px; height: 2px;
-  background: #8b1a1a; border-radius: 2px; flex-shrink: 0;
+  content: ''; display: inline-block; width: 18px; height: 3px;
+  background: linear-gradient(90deg, #c83030, #ff6040);
+  border-radius: 3px; flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(200,48,48,.6);
 }
 
 /* ── Add account buttons row ── */
-.arm-add-btn-row { margin-top: 12px; }
+.arm-add-btn-row { margin-top: 14px; }
 
+/* ── VALID STATE — green glow like employee no. ── */
+  #registerMo .f input.field-ok,
+  #registerMo .f select.field-ok,
+  #registerMo .f .rm-combo-input.field-ok {
+    border-color: #4ade80 !important;
+    background: #f0fff4 !important;
+    color: #14532d !important;
+  }
+  #registerMo .f input.field-err,
+  #registerMo .f select.field-err,
+  #registerMo .f .rm-combo-input.field-err {
+    border-color: #f87171 !important;
+    background: #fff1f1 !important;
+  }
+
+  /* ── FIX: bottom inputs not clipped by sticky footer ── */
+  #registerMo .md {
+    padding-bottom: 100px !important;
+  }
+
+  /* ── FIX: email field bottom line — remove stray border ── */
+  #registerMo #reg_email {
+    border-bottom: 1.5px solid rgba(180,40,20,.4) !important;
+  }
+  #registerMo .f > div {
+    display: flex;
+    align-items: stretch;
+  }
+    
 /* ── Inline form slot ── */
 .acc-inline-form {
-  background: rgba(255,255,255,.03) !important;
-  border: 1.5px solid rgba(139,26,26,.4) !important;
-  border-radius: 12px !important;
-  padding: 20px 24px !important;
+  background: linear-gradient(160deg, rgba(60,5,5,.5) 0%, rgba(25,3,3,.6) 100%) !important;
+  border: 1.5px solid rgba(200,50,30,.4) !important;
+  border-radius: 14px !important;
+  padding: 22px 26px !important;
   margin-top: 14px !important;
-  animation: accFormIn .2s ease both;
+  animation: accFormIn .22s ease both;
   position: relative; overflow: hidden;
 }
 .acc-inline-form::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(139,26,26,.6), transparent);
+  background: linear-gradient(90deg, transparent, rgba(200,80,40,.7), transparent);
 }
 @keyframes accFormIn {
   from { opacity:0; transform:translateY(-8px); }
   to   { opacity:1; transform:none; }
 }
 .acc-inline-form-title {
-  font-size: 10px; font-weight: 800; letter-spacing: 1.8px;
-  text-transform: uppercase; color: rgba(255,160,100,.55); margin-bottom: 14px;
+  font-size: 11px; font-weight: 800; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(255,170,110,.8); margin-bottom: 16px;
 }
 .acc-inline-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px;
 }
 
-/* ── Account table ── */
-.arm-acc-table {
-  width: 100%; font-size: 12px; border-collapse: collapse; margin-top: 8px;
-}
-.arm-acc-table thead tr {
-  background: rgba(139,26,26,.2);
-}
-.arm-acc-table thead th {
-  padding: 9px 12px; text-align: left; font-size: 10px; font-weight: 700;
-  letter-spacing: .8px; text-transform: uppercase;
-  color: rgba(255,160,100,.6); border-bottom: 1px solid rgba(139,26,26,.35);
-}
-.arm-acc-table tbody tr {
-  border-bottom: 1px solid rgba(139,26,26,.15);
-  transition: background .15s;
-}
-.arm-acc-table tbody tr:hover { background: rgba(139,26,26,.08); }
-.arm-acc-table tbody td {
-  padding: 9px 12px; color: rgba(255,220,180,.8); vertical-align: middle;
-}
-.arm-acc-empty {
-  font-size: 12px; color: rgba(255,180,130,.35);
-  padding: 12px 0 4px; font-style: italic;
-}
-
-/* ── Inline form inputs — always black text on white ── */
+/* ── ALL inputs inside accounts modal — white bg, black text ── */
+.arm-myprofile-box input,
+.arm-myprofile-box select,
 .acc-inline-form input,
 .acc-inline-form select,
-.acc-inline-form textarea {
+#encProfMo .f input,
+#encProfMo .f select,
+#saProfMo .f input,
+#saProfMo .f select {
   background: #ffffff !important;
-  color: #111111 !important;
-  border: 1px solid rgba(139,26,26,.45) !important;
-  border-radius: 8px !important;
-  padding: 9px 12px !important;
-  font-size: 12.5px !important;
+  color: #1a0505 !important;
+  border: 1.5px solid rgba(180,40,20,.4) !important;
+  border-radius: 9px !important;
+  padding: 11px 14px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
   width: 100%; box-sizing: border-box;
+  transition: border-color .2s, box-shadow .2s;
+  text-transform: none !important;
 }
-.acc-inline-form input::placeholder { color: #aaaaaa !important; }
-.acc-inline-form input:focus,
-.acc-inline-form select:focus {
-  border-color: rgba(220,80,60,.7) !important;
-  box-shadow: 0 0 0 3px rgba(139,26,26,.2) !important;
-  outline: none;
-}
-.acc-inline-form select option { background: #ffffff; color: #111111; }
-
-/* ── My Profile box inputs — black text ── */
-.arm-myprofile-box input,
-.arm-myprofile-box select {
-  background: #ffffff !important;
-  color: #111111 !important;
-  border: 1px solid rgba(139,26,26,.45) !important;
-  border-radius: 8px !important;
-  padding: 9px 12px !important;
-  font-size: 12.5px !important;
-  width: 100%; box-sizing: border-box;
-}
-.arm-myprofile-box input::placeholder { color: #aaaaaa !important; }
-.arm-myprofile-box input:focus,
-.arm-myprofile-box select:focus {
-  border-color: rgba(220,80,60,.7) !important;
-  box-shadow: 0 0 0 3px rgba(139,26,26,.2) !important;
-  outline: none;
-}
-
-/* ── Profile modal (encoder/SA) inputs — black text ── */
-#encProfMo .f input, #encProfMo .f select,
-#saProfMo  .f input, #saProfMo  .f select {
-  background: #ffffff !important;
-  color: #111111 !important;
-}
+.arm-myprofile-box input::placeholder,
+.acc-inline-form input::placeholder,
 #encProfMo .f input::placeholder,
-#saProfMo  .f input::placeholder { color: #aaaaaa !important; }
+#saProfMo .f input::placeholder {
+  color: #999 !important; font-weight: 400 !important;
+  text-transform: none !important;
+}
+.arm-myprofile-box input:focus,
+.arm-myprofile-box select:focus,
+.acc-inline-form input:focus,
+.acc-inline-form select:focus,
+#encProfMo .f input:focus,
+#saProfMo .f input:focus {
+  background: #ffffff !important;
+  color: #1a0505 !important;
+  border-color: rgba(200,50,30,.8) !important;
+  box-shadow: 0 0 0 3px rgba(180,30,20,.2) !important;
+  outline: none;
+}
 
-/* ── My Profile — save button pulse ── */
+/* ── Labels inside profile/form ── */
+.arm-myprofile-box .f label,
+.acc-inline-form .f label,
+#encProfMo .f label,
+#saProfMo .f label {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: rgba(255,190,140,.9) !important;
+  letter-spacing: .5px !important;
+  text-transform: uppercase !important;
+}
+
+/* ── Eye button — always visible ── */
+.pw-wrap .eye-btn {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: rgba(139,26,26,.7) !important;
+  border: 1px solid rgba(200,60,40,.6) !important;
+  border-radius: 7px !important;
+  padding: 4px 9px !important; font-size: 16px !important;
+  cursor: pointer; color: #1a0000 !important;
+  opacity: 1 !important; line-height: 1;
+  transition: background .15s, transform .15s; z-index: 10;
+}
+.pw-wrap .eye-btn:hover {
+  background: rgba(180,30,10,.9) !important;
+  color: #fff !important;
+  transform: translateY(-50%) scale(1.12);
+}
+
+/* ── Account table — armoured ── */
+.arm-acc-table {
+  width: 100%; font-size: 13px; border-collapse: separate;
+  border-spacing: 0; margin-top: 10px;
+  border: 1px solid rgba(200,50,30,.35);
+  border-radius: 12px; overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,.4), 0 0 0 1px rgba(200,60,40,.25);
+}
+.arm-acc-table thead tr {
+  background: linear-gradient(135deg, #5a0a0a 0%, #7a1212 60%, #6b0f0f 100%);
+}
+.arm-acc-table thead th {
+  padding: 13px 16px; text-align: left;
+  font-size: 11.5px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+  color: rgba(255,220,160,1); border-bottom: 2px solid rgba(200,60,40,.5);
+  text-shadow: 0 1px 4px rgba(0,0,0,.4);
+}
+.arm-acc-table tbody tr {
+  background: rgba(255,255,255,.03);
+  border-bottom: 1px solid rgba(180,40,30,.2);
+  transition: background .18s;
+}
+.arm-acc-table tbody tr:nth-child(even) { background: rgba(139,26,26,.1); }
+.arm-acc-table tbody tr:hover           { background: rgba(200,50,30,.18) !important; }
+.arm-acc-table tbody tr:last-child td   { border-bottom: none; }
+.arm-acc-table tbody td {
+  padding: 14px 16px; color: rgba(255,240,215,1);
+  vertical-align: middle; font-size: 13.5px;
+  border-bottom: 1px solid rgba(180,40,30,.15);
+}
+.arm-acc-empty {
+  font-size: 13px; color: rgba(255,180,130,.5);
+  padding: 16px 0 6px; font-style: italic;
+}
+
+/* ── Password mask ── */
+.pw-mask {
+  color: rgba(255,210,160,.9); font-size: 13px; letter-spacing: 3px; font-weight: 700;
+}
+.pw-eye-btn {
+  background: rgba(139,26,26,.4) !important;
+  border: 1px solid rgba(200,80,50,.4) !important;
+  border-radius: 6px !important;
+  cursor: pointer; font-size: 15px;
+  opacity: 1; padding: 3px 8px; line-height: 1;
+  filter: brightness(10) !important;
+  transition: background .15s, transform .15s;
+}
+.pw-eye-btn:hover {
+  background: rgba(200,50,30,.6) !important;
+  filter: none !important;
+  transform: scale(1.1);
+}
+
+/* ── Info box ── */
+.arm-info-box {
+  background: linear-gradient(135deg, rgba(100,40,5,.35), rgba(180,90,10,.15));
+  border: 1px solid rgba(240,140,30,.3);
+  border-radius: 12px; padding: 18px 22px; margin-top: 18px;
+  display: flex; align-items: flex-start; gap: 14px;
+  box-shadow: inset 0 1px 0 rgba(255,180,60,.1), 0 4px 16px rgba(0,0,0,.25);
+}
+.arm-info-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+.arm-info-text { font-size: 14px; color: rgba(255,215,150,.95); line-height: 1.8; }
+
+/* ── Save button pulse ── */
 @keyframes arm-save-pulse {
   0%,100% { box-shadow: 0 4px 18px rgba(139,26,26,.5); }
   50%     { box-shadow: 0 6px 28px rgba(200,50,30,.75); }
 }
 #mypSave:not(:disabled) { animation: arm-save-pulse 2.5s ease-in-out infinite; }
 
-/* ── Profile hero (Encoder / School Admin) ── */
-.arm-prof-hero {
-  background: linear-gradient(135deg, #5a0a0a 0%, #7a1010 30%, #8b1a1a 65%, #6b0f0f 100%);
-  border-radius: 14px; padding: 28px 30px; margin-bottom: 20px;
-  position: relative; overflow: hidden;
-  box-shadow: 0 8px 32px rgba(139,26,26,.35), inset 0 1px 0 rgba(255,180,120,.1);
-  border: 1px solid rgba(180,60,60,.3);
-}
-.arm-prof-hero::after {
-  content: '';
-  position: absolute; inset: 0;
-  background-image:
-    repeating-linear-gradient(90deg, transparent, transparent 48px, rgba(255,255,255,.015) 48px, rgba(255,255,255,.015) 49px),
-    repeating-linear-gradient(0deg, transparent, transparent 48px, rgba(255,255,255,.015) 48px, rgba(255,255,255,.015) 49px);
-  pointer-events: none;
-}
-.arm-prof-hero-role {
-  font-size: 9px; font-weight: 700; letter-spacing: 2.5px;
-  text-transform: uppercase; color: rgba(255,200,140,.45);
-  margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
-}
-.arm-prof-pulse {
-  width: 6px; height: 6px; border-radius: 50%; background: #f09070;
-  animation: arm-pulse 2s infinite; box-shadow: 0 0 6px rgba(240,144,112,.6);
-}
-@keyframes arm-pulse {
-  0%,100% { opacity:1; transform:scale(1); }
-  50%     { opacity:.5; transform:scale(1.6); }
-}
-.arm-prof-hero-name {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 1.8rem; font-weight: 900; color: #fff;
-  line-height: 1.1; margin-bottom: 6px;
-  background: linear-gradient(90deg,#ffd0a0,#f0a060,#e08050);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  filter: drop-shadow(0 2px 8px rgba(200,80,40,.4));
-  position: relative; z-index: 1;
-}
-.arm-prof-hero-id {
-  font-size: 11px; color: rgba(255,200,150,.4);
-  letter-spacing: .5px; position: relative; z-index: 1;
-}
-
-/* ── Readonly in profile modal ── */
-.arm-readonly-label {
-  font-size: 10px; font-weight: 700; letter-spacing: .6px;
-  text-transform: uppercase; color: rgba(255,160,100,.45); margin-bottom: 6px; display: block;
-}
-.arm-readonly-val {
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(139,26,26,.3);
-  border-radius: 8px; padding: 10px 14px;
-  font-size: 13px; color: rgba(255,220,180,.75);
-  display: block; width: 100%; box-sizing: border-box;
-}
-
-/* ── Info box ── */
-.arm-info-box {
-  background: linear-gradient(135deg, rgba(120,53,15,.2), rgba(217,119,6,.08));
-  border: 1px solid rgba(217,119,6,.25);
-  border-radius: 12px; padding: 16px 20px; margin-top: 18px;
-  display: flex; align-items: flex-start; gap: 12px;
-}
-.arm-info-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
-.arm-info-text { font-size: 12px; color: rgba(253,186,116,.8); line-height: 1.65; }
-
-/* ── Photo confetti (from school-admin.js style) ── */
-.arm-photo-confetti {
-  position: fixed; width: 8px; height: 8px; border-radius: 50%;
-  pointer-events: none; z-index: 99999;
-  animation: arm-confetti-fly .8s cubic-bezier(.22,1,.36,1) forwards;
-}
-@keyframes arm-confetti-fly {
-  0%   { transform:translate(0,0) scale(1) rotate(0deg); opacity:1; }
-  100% { transform:translate(var(--cx),var(--cy)) scale(0) rotate(var(--cr,360deg)); opacity:0; }
-}
-@keyframes arm-sparkle-ring {
-  0%   { transform:scale(.5); opacity:1; }
-  100% { transform:scale(2.5); opacity:0; }
-}
-.arm-sparkle-ring {
-  position: absolute; inset: -4px; border-radius: 50%;
-  border: 3px solid rgba(220,80,50,.7); pointer-events: none;
-  animation: arm-sparkle-ring .6s ease-out forwards; z-index: 5;
-}
-.arm-star-burst {
-  position: fixed; font-size: 18px; pointer-events: none; z-index: 99999;
-  animation: arm-star-up .8s cubic-bezier(.22,1,.36,1) forwards;
-}
-@keyframes arm-star-up {
-  0%   { opacity:1; transform:translateY(0) scale(1); }
-  100% { opacity:0; transform:translateY(var(--sy,-80px)) scale(1.8) rotate(var(--sr,30deg)); }
-}
-
-/* ── Firework ── */
+/* ── Firework effect ── */
 .arm-firework {
   position: fixed; width: 6px; height: 6px; border-radius: 50%;
   pointer-events: none; z-index: 99999;
@@ -278,42 +315,9 @@ function injectAccFormStyle() {
   100% { transform:translate(var(--fx),var(--fy)) scale(0); opacity:0; }
 }
 
-
-/* ── Inline form inputs — white bg, black text ── */
-.acc-inline-form .f input,
-.acc-inline-form .f select,
-.acc-inline-form input,
-.acc-inline-form select {
-  background: #ffffff !important;
-  color: #111111 !important;
-  border: 1px solid rgba(139,26,26,.45) !important;
-}
-.acc-inline-form input::placeholder { color: #999999 !important; }
-.acc-inline-form .f input:focus,
-.acc-inline-form .f select:focus,
-.acc-inline-form input:focus,
-.acc-inline-form select:focus {
-  border-color: rgba(180,30,20,.9) !important;
-  box-shadow: 0 0 0 3px rgba(139,26,26,.2) !important;
-  outline: none;
-}
-/* ── My Profile box inputs ── */
-.arm-myprofile-box input,
-.arm-myprofile-box select {
-  background: #ffffff !important;
-  color: #111111 !important;
-  border: 1px solid rgba(139,26,26,.45) !important;
-}
-.arm-myprofile-box input::placeholder { color: #999999 !important; }
-.arm-myprofile-box input:focus,
-.arm-myprofile-box select:focus {
-  border-color: rgba(180,30,20,.9) !important;
-  box-shadow: 0 0 0 3px rgba(139,26,26,.2) !important;
-  outline: none;
-}
 /* ── Error in inline forms ── */
 .aif_err_text, .saf_err_text {
-  color: #f87171; font-size: 11px; min-height: 16px; padding: 2px 0;
+  color: #f87171; font-size: 12px; min-height: 16px; padding: 3px 0;
 }
 `;
   document.head.appendChild(s);
@@ -362,7 +366,7 @@ function renderAccountList(accounts, role) {
         ${accounts.map(a => `
           <tr>
             <td>${_escA(a.name)}</td>
-            <td style="opacity:.7;">${_escA(a.login_id)}</td>
+            <td style="opacity:.8;">${_escA(a.login_id)}</td>
             <td>
               <div style="display:flex;align-items:center;gap:8px;">
                 <span class="pw-mask" data-pw="${_escA(a.password || '')}">••••••••</span>
@@ -398,7 +402,7 @@ function renderSAAccountList(saList) {
         ${saList.map(sa => `
           <tr>
             <td>${_escA(sa.name)}</td>
-            <td style="opacity:.7;">${_escA(sa.login_id)}</td>
+            <td style="opacity:.8;">${_escA(sa.login_id)}</td>
             <td>
               <div style="display:flex;align-items:center;gap:8px;">
                 <span class="pw-mask" data-pw="${_escA(sa.password || '')}">••••••••</span>
@@ -427,20 +431,22 @@ function renderAccInlineForm(acc, role) {
       <div class="acc-inline-grid">
         <div class="f" style="margin:0;">
           <label>Full Name *</label>
-          <input id="aif_name" value="${_escA(acc?.name || '')}"/>
+          <input id="aif_name" value="${_escA(acc?.name || '')}" autocomplete="off"/>
         </div>
         <div class="f" style="margin:0;">
           <label>Login Email *</label>
-          <input id="aif_email" value="${_escA(acc?.login_id || '')}"/>
+          <input id="aif_email" value="${_escA(acc?.login_id || '')}" autocomplete="off"/>
         </div>
-        <div class="f" style="margin:0;grid-column:1/-1;position:relative;">
-          <label>Password ${isEdit ? '<span style="font-weight:400;opacity:.5;font-size:10px;">(blank = keep current)</span>' : '*'}</label>
-          <input id="aif_pw" type="password" placeholder="${isEdit ? 'Leave blank to keep current' : 'Enter password'}" style="padding-right:38px!important;"/>
-          <button class="eye-btn" id="aif_eye" tabindex="-1" type="button" style="position:absolute;right:8px;bottom:9px;">👁</button>
+        <div class="f" style="margin:0;grid-column:1/-1;">
+          <label>Password ${isEdit ? '<span style="font-weight:400;opacity:.5;font-size:11px;">(blank = keep current)</span>' : '*'}</label>
+          <div class="pw-wrap">
+            <input id="aif_pw" type="password" placeholder="${isEdit ? 'Leave blank to keep current' : 'Enter password'}"/>
+            <button class="eye-btn" id="aif_eye" tabindex="-1" type="button">👁</button>
+          </div>
         </div>
       </div>
       <div id="aif_err" class="aif_err_text" style="margin-top:8px;"></div>
-      <div style="margin-top:14px;display:flex;gap:10px;justify-content:flex-end;">
+      <div style="margin-top:16px;display:flex;gap:10px;justify-content:flex-end;">
         <button class="btn b-sm" style="background:rgba(255,255,255,.07);color:rgba(255,220,180,.7);border:1px solid rgba(139,26,26,.3);" id="aif_cancel" type="button">Cancel</button>
         <button class="btn b-pri b-sm" id="aif_save" type="button">💾 ${isEdit ? 'Update' : 'Create Account'}</button>
       </div>
@@ -454,24 +460,26 @@ function renderSAInlineForm(sa) {
   const isEdit = !!sa;
   return `
     <div class="acc-inline-form" id="saInlineForm" style="border-color:rgba(30,58,110,.5)!important;">
-      <div class="acc-inline-form-title" style="color:rgba(147,197,253,.6);">${isEdit ? '✏️ Editing School Admin' : '➕ New School Admin'}</div>
+      <div class="acc-inline-form-title" style="color:rgba(147,197,253,.8);">${isEdit ? '✏️ Editing School Admin' : '➕ New School Admin'}</div>
       <div class="acc-inline-grid">
         <div class="f" style="margin:0;">
           <label>Display Name *</label>
-          <input id="saf_name" value="${_escA(sa?.name || '')}"/>
+          <input id="saf_name" value="${_escA(sa?.name || '')}" autocomplete="off"/>
         </div>
         <div class="f" style="margin:0;">
           <label>Login Email *</label>
-          <input id="saf_email" value="${_escA(sa?.login_id || '')}"/>
+          <input id="saf_email" value="${_escA(sa?.login_id || '')}" autocomplete="off"/>
         </div>
-        <div class="f" style="margin:0;grid-column:1/-1;position:relative;">
-          <label>Password ${isEdit ? '<span style="font-weight:400;opacity:.5;font-size:10px;">(blank = keep current)</span>' : '*'}</label>
-          <input id="saf_pw" type="password" placeholder="${isEdit ? 'Leave blank to keep current' : 'Enter password'}" style="padding-right:38px!important;"/>
-          <button class="eye-btn" id="saf_eye" tabindex="-1" type="button" style="position:absolute;right:8px;bottom:9px;">👁</button>
+        <div class="f" style="margin:0;grid-column:1/-1;">
+          <label>Password ${isEdit ? '<span style="font-weight:400;opacity:.5;font-size:11px;">(blank = keep current)</span>' : '*'}</label>
+          <div class="pw-wrap">
+            <input id="saf_pw" type="password" placeholder="${isEdit ? 'Leave blank to keep current' : 'Enter password'}"/>
+            <button class="eye-btn" id="saf_eye" tabindex="-1" type="button">👁</button>
+          </div>
         </div>
       </div>
       <div id="saf_err" class="saf_err_text" style="margin-top:8px;"></div>
-      <div style="margin-top:14px;display:flex;gap:10px;justify-content:flex-end;">
+      <div style="margin-top:16px;display:flex;gap:10px;justify-content:flex-end;">
         <button class="btn b-sm" style="background:rgba(255,255,255,.07);color:rgba(255,220,180,.7);border:1px solid rgba(139,26,26,.3);" id="saf_cancel" type="button">Cancel</button>
         <button class="btn b-nvy b-sm" id="saf_save" type="button">💾 ${isEdit ? 'Update' : 'Create Account'}</button>
       </div>
@@ -483,8 +491,12 @@ function renderSAInlineForm(sa) {
 ───────────────────────────────────────────────────────── */
 function wireAccInlineForm(acc, role, onSuccess) {
   document.getElementById('aif_eye')?.addEventListener('click', () => {
-    const pw = document.getElementById('aif_pw');
-    if (pw) pw.type = pw.type === 'password' ? 'text' : 'password';
+    const pw  = document.getElementById('aif_pw');
+    const eye = document.getElementById('aif_eye');
+    if (!pw) return;
+    const showing = pw.type === 'text';
+    pw.type = showing ? 'password' : 'text';
+    eye.textContent = showing ? '👁' : '🙈';
   });
   document.getElementById('aif_cancel')?.addEventListener('click', () => {
     document.getElementById('accInlineForm')?.remove();
@@ -522,8 +534,12 @@ function wireAccInlineForm(acc, role, onSuccess) {
 ───────────────────────────────────────────────────────── */
 function wireSAInlineForm(sa, onSuccess) {
   document.getElementById('saf_eye')?.addEventListener('click', () => {
-    const pw = document.getElementById('saf_pw');
-    if (pw) pw.type = pw.type === 'password' ? 'text' : 'password';
+    const pw  = document.getElementById('saf_pw');
+    const eye = document.getElementById('saf_eye');
+    if (!pw) return;
+    const showing = pw.type === 'text';
+    pw.type = showing ? 'password' : 'text';
+    eye.textContent = showing ? '👁' : '🙈';
   });
   document.getElementById('saf_cancel')?.addEventListener('click', () => {
     document.getElementById('saInlineForm')?.remove();
@@ -552,7 +568,7 @@ function wireSAInlineForm(sa, onSuccess) {
 }
 
 /* ─────────────────────────────────────────────────────────
-   MAIN MODAL: showAdminProfileModal — Red Armoured wide
+   MAIN MODAL: showAdminProfileModal
 ───────────────────────────────────────────────────────── */
 async function showAdminProfileModal() {
   document.getElementById('adminProfMo')?.remove();
@@ -578,7 +594,6 @@ async function showAdminProfileModal() {
         </div>
         <div class="md" style="position:relative;z-index:1;">
 
-          <!-- ── HERO ── -->
           <div class="arm-prof-hero">
             <div class="arm-prof-hero-role">
               <span class="arm-prof-pulse"></span> ADMINISTRATOR
@@ -587,31 +602,31 @@ async function showAdminProfileModal() {
             <div class="arm-prof-hero-id">🔑 ${_escA(state.adminCfg.id || '—')}</div>
           </div>
 
-          <!-- ── MY PROFILE ── -->
           <div class="arm-section-label">👤 My Profile</div>
           <div class="arm-myprofile-box">
             <div class="arm-myprofile-grid">
               <div class="f" style="margin:0;">
                 <label>Display Name</label>
-                <input id="myp_name" value="${_escA(myAccount.name || state.adminCfg.name || '')}"/>
+                <input id="myp_name" value="${_escA(myAccount.name || state.adminCfg.name || '')}" autocomplete="off"/>
               </div>
               <div class="f" style="margin:0;">
                 <label>Login Email</label>
-                <input id="myp_email" value="${_escA(myAccount.login_id || state.adminCfg.id || '')}"/>
+                <input id="myp_email" value="${_escA(myAccount.login_id || state.adminCfg.id || '')}" autocomplete="off"/>
               </div>
-              <div class="f" style="margin:0;grid-column:1/-1;position:relative;">
-                <label>New Password <span style="font-weight:400;opacity:.5;font-size:10px;">(leave blank to keep current)</span></label>
-                <input id="myp_pw" type="password" placeholder="Enter new password to change…" style="padding-right:38px!important;"/>
-                <button class="eye-btn" id="mypEye" tabindex="-1" type="button" style="position:absolute;right:8px;bottom:9px;">👁</button>
+              <div class="f" style="margin:0;grid-column:1/-1;">
+                <label>New Password <span style="font-weight:400;opacity:.5;font-size:10px;">(blank = keep current)</span></label>
+                <div class="pw-wrap">
+                  <input id="myp_pw" type="password" placeholder="Leave blank to keep current password"/>
+                  <button class="eye-btn" id="mypEye" tabindex="-1" type="button">👁</button>
+                </div>
               </div>
             </div>
-            <div id="myp_err" style="color:#f87171;font-size:11px;margin-top:8px;min-height:14px;"></div>
-            <div style="margin-top:16px;display:flex;gap:10px;justify-content:flex-end;">
+            <div id="myp_err" style="color:#f87171;font-size:12px;margin-top:8px;min-height:14px;"></div>
+            <div style="margin-top:18px;display:flex;gap:10px;justify-content:flex-end;">
               <button class="btn b-pri b-sm" id="mypSave" type="button">💾 Save My Profile</button>
             </div>
           </div>
 
-          <!-- ── ADMIN ACCOUNTS ── -->
           <div class="arm-section-label" style="margin-top:22px;">🔴 Admin Accounts</div>
           <div id="adminAccList">${renderAccountList(accounts, 'admin')}</div>
           <div id="adminFormSlot"></div>
@@ -619,7 +634,6 @@ async function showAdminProfileModal() {
             <button class="btn b-pri b-sm" id="addAdminBtn" type="button">➕ Add Admin</button>
           </div>
 
-          <!-- ── ENCODER ACCOUNTS ── -->
           <div class="arm-section-label" style="margin-top:22px;">🟡 Encoder Accounts</div>
           <div id="encAccList">${renderAccountList(encAccounts, 'encoder')}</div>
           <div id="encFormSlot"></div>
@@ -627,7 +641,6 @@ async function showAdminProfileModal() {
             <button class="btn b-amb b-sm" id="addEncBtn" type="button">➕ Add Encoder</button>
           </div>
 
-          <!-- ── SCHOOL ADMIN ACCOUNTS ── -->
           <div class="arm-section-label" style="margin-top:22px;">🟢 School Admin Accounts</div>
           <div id="saAccList">${renderSAAccountList(saList)}</div>
           <div id="saFormSlot"></div>
@@ -642,19 +655,18 @@ async function showAdminProfileModal() {
   document.body.insertAdjacentHTML('beforeend', html);
   const mo = document.getElementById('adminProfMo');
 
-  /* Close */
   document.getElementById('adminProfClose').addEventListener('click', () => closeMo('adminProfMo'));
-
-  /* Fireworks on open */
   setTimeout(() => _accFireworks(mo.querySelector('.mb'), '#c83030'), 200);
 
-  /* Eye toggles */
   document.getElementById('mypEye').addEventListener('click', () => {
-    const pw = document.getElementById('myp_pw');
-    if (pw) pw.type = pw.type === 'password' ? 'text' : 'password';
+    const pw  = document.getElementById('myp_pw');
+    const eye = document.getElementById('mypEye');
+    if (!pw) return;
+    const showing = pw.type === 'text';
+    pw.type = showing ? 'password' : 'text';
+    eye.textContent = showing ? '👁' : '🙈';
   });
 
-  /* My Profile save */
   document.getElementById('mypSave').addEventListener('click', async () => {
     const name     = document.getElementById('myp_name').value.trim();
     const login_id = document.getElementById('myp_email').value.trim().toLowerCase();
@@ -675,7 +687,6 @@ async function showAdminProfileModal() {
     showAdminProfileModal();
   });
 
-  /* Password eye in tables */
   mo.addEventListener('click', e => {
     const btn = e.target.closest('.pw-eye-btn');
     if (!btn) return;
@@ -686,7 +697,6 @@ async function showAdminProfileModal() {
     btn.style.opacity = hidden ? '1' : '.4';
   });
 
-  /* Add Admin */
   document.getElementById('addAdminBtn').addEventListener('click', () => {
     document.getElementById('accInlineForm')?.remove();
     document.getElementById('saInlineForm')?.remove();
@@ -696,7 +706,6 @@ async function showAdminProfileModal() {
     slot.scrollIntoView({ behavior:'smooth', block:'nearest' });
   });
 
-  /* Add Encoder */
   document.getElementById('addEncBtn').addEventListener('click', () => {
     document.getElementById('accInlineForm')?.remove();
     document.getElementById('saInlineForm')?.remove();
@@ -706,7 +715,6 @@ async function showAdminProfileModal() {
     slot.scrollIntoView({ behavior:'smooth', block:'nearest' });
   });
 
-  /* Add School Admin */
   document.getElementById('addSABtn').addEventListener('click', () => {
     document.getElementById('accInlineForm')?.remove();
     document.getElementById('saInlineForm')?.remove();
@@ -716,7 +724,6 @@ async function showAdminProfileModal() {
     slot.scrollIntoView({ behavior:'smooth', block:'nearest' });
   });
 
-  /* Edit Admin / Encoder */
   mo.querySelectorAll('[data-editacc]').forEach(btn => {
     btn.addEventListener('click', () => {
       document.getElementById('accInlineForm')?.remove();
@@ -730,7 +737,6 @@ async function showAdminProfileModal() {
     });
   });
 
-  /* Delete Admin / Encoder */
   mo.querySelectorAll('[data-delacc]').forEach(btn => {
     btn.addEventListener('click', async () => {
       if (!confirm('Delete this account? This cannot be undone.')) return;
@@ -740,7 +746,6 @@ async function showAdminProfileModal() {
     });
   });
 
-  /* Edit School Admin */
   mo.querySelectorAll('[data-editsa]').forEach(btn => {
     btn.addEventListener('click', () => {
       document.getElementById('accInlineForm')?.remove();
@@ -754,7 +759,6 @@ async function showAdminProfileModal() {
     });
   });
 
-  /* Delete School Admin */
   mo.querySelectorAll('[data-delsa]').forEach(btn => {
     btn.addEventListener('click', async () => {
       if (!confirm('Delete this School Admin account?')) return;
@@ -766,7 +770,7 @@ async function showAdminProfileModal() {
 }
 
 /* ─────────────────────────────────────────────────────────
-   MODAL: Encoder Profile — Red Armoured
+   MODAL: Encoder Profile
 ───────────────────────────────────────────────────────── */
 async function showEncoderProfileModal() {
   document.getElementById('encProfMo')?.remove();
@@ -779,34 +783,26 @@ async function showEncoderProfileModal() {
   const html = `
     <div class="mo open" id="encProfMo">
       <div class="mb xsm">
-        <div class="mo-orb mo-orb1" style="background:#c83030;opacity:.12;"></div>
-        <div class="mo-orb mo-orb2" style="background:#8b1a1a;opacity:.1;"></div>
+        <div class="mo-orb mo-orb1"></div>
+        <div class="mo-orb mo-orb2"></div>
         <div class="mh">
           <h3>✏️ Encoder Profile</h3>
           <button class="mo-close-btn" id="encProfClose" type="button">✕</button>
         </div>
         <div class="md" style="position:relative;z-index:1;">
-
-          <!-- Hero -->
           <div class="arm-prof-hero" style="margin-bottom:20px;">
-            <div class="arm-prof-hero-role">
-              <span class="arm-prof-pulse"></span> ENCODER
-            </div>
+            <div class="arm-prof-hero-role"><span class="arm-prof-pulse"></span> ENCODER</div>
             <div class="arm-prof-hero-name">${_escA(me?.name || state.encoderCfg.name || 'Encoder')}</div>
             <div class="arm-prof-hero-id">✉️ ${_escA(me?.login_id || state.encoderCfg.id || '—')}</div>
           </div>
-
           <div class="f">
             <label>Display Name</label>
-            <input id="enc_name" value="${_escA(me?.name || state.encoderCfg.name || '')}"/>
+            <input id="enc_name" value="${_escA(me?.name || state.encoderCfg.name || '')}" autocomplete="off"/>
           </div>
-          <div id="enc_err" style="color:#f87171;font-size:11px;min-height:14px;margin-top:4px;"></div>
-
+          <div id="enc_err" style="color:#f87171;font-size:12px;min-height:14px;margin-top:4px;"></div>
           <div class="arm-info-box" style="margin-top:16px;">
             <span class="arm-info-icon">🔒</span>
-            <span class="arm-info-text">
-              To change your login email or password, please contact your system administrator.
-            </span>
+            <span class="arm-info-text">To change your login email or password, please contact your system administrator.</span>
           </div>
         </div>
         <div class="mf">
@@ -817,10 +813,8 @@ async function showEncoderProfileModal() {
     </div>`;
 
   document.body.insertAdjacentHTML('beforeend', html);
-
   document.getElementById('encProfClose').addEventListener('click',  () => closeMo('encProfMo'));
   document.getElementById('encProfCancel').addEventListener('click', () => closeMo('encProfMo'));
-
   document.getElementById('encSave').addEventListener('click', async () => {
     const name  = document.getElementById('enc_name').value.trim();
     const errEl = document.getElementById('enc_err');
@@ -838,8 +832,7 @@ async function showEncoderProfileModal() {
 }
 
 /* ─────────────────────────────────────────────────────────
-   MODAL: School Admin Profile — Red Armoured
-   (This version in accounts.js is used for the API-saving path)
+   MODAL: School Admin Profile
 ───────────────────────────────────────────────────────── */
 async function showSAProfileModal() {
   document.getElementById('saProfMo')?.remove();
@@ -848,34 +841,26 @@ async function showSAProfileModal() {
   const html = `
     <div class="mo open" id="saProfMo">
       <div class="mb xsm">
-        <div class="mo-orb mo-orb1" style="background:#c83030;opacity:.12;"></div>
-        <div class="mo-orb mo-orb2" style="background:#8b1a1a;opacity:.1;"></div>
+        <div class="mo-orb mo-orb1"></div>
+        <div class="mo-orb mo-orb2"></div>
         <div class="mh">
           <h3>👤 School Admin Profile</h3>
           <button class="mo-close-btn" id="saProfClose" type="button">✕</button>
         </div>
         <div class="md" style="position:relative;z-index:1;">
-
-          <!-- Hero -->
           <div class="arm-prof-hero" style="margin-bottom:20px;">
-            <div class="arm-prof-hero-role">
-              <span class="arm-prof-pulse"></span> SCHOOL ADMINISTRATOR
-            </div>
+            <div class="arm-prof-hero-role"><span class="arm-prof-pulse"></span> SCHOOL ADMINISTRATOR</div>
             <div class="arm-prof-hero-name">${_escA(state.schoolAdminCfg.name || 'School Admin')}</div>
             <div class="arm-prof-hero-id">🏫 ${_escA(state.schoolAdminCfg.id || '—')}</div>
           </div>
-
           <div class="f">
             <label>Display Name</label>
-            <input id="sap_name" value="${_escA(state.schoolAdminCfg.name || '')}"/>
+            <input id="sap_name" value="${_escA(state.schoolAdminCfg.name || '')}" autocomplete="off"/>
           </div>
-          <div id="sap_err" style="color:#f87171;font-size:11px;min-height:14px;margin-top:4px;"></div>
-
+          <div id="sap_err" style="color:#f87171;font-size:12px;min-height:14px;margin-top:4px;"></div>
           <div class="arm-info-box" style="margin-top:16px;">
             <span class="arm-info-icon">🔒</span>
-            <span class="arm-info-text">
-              To update your login credentials, contact the system administrator.
-            </span>
+            <span class="arm-info-text">To update your login credentials, contact the system administrator.</span>
           </div>
         </div>
         <div class="mf">
@@ -886,10 +871,8 @@ async function showSAProfileModal() {
     </div>`;
 
   document.body.insertAdjacentHTML('beforeend', html);
-
   document.getElementById('saProfClose').addEventListener('click',  () => closeMo('saProfMo'));
   document.getElementById('saProfCancel').addEventListener('click', () => closeMo('saProfMo'));
-
   document.getElementById('sapSave').addEventListener('click', async () => {
     const name  = document.getElementById('sap_name').value.trim();
     const errEl = document.getElementById('sap_err');
@@ -898,10 +881,8 @@ async function showSAProfileModal() {
     if (!name) { errEl.textContent = 'Name is required.'; return; }
     btn.disabled = true; btn.textContent = 'Saving…';
     const res = await apiCall('save_school_admin', {
-      sa_id:    state.schoolAdminCfg.dbId,
-      name,
-      login_id: state.schoolAdminCfg.id,
-      password: '',
+      sa_id: state.schoolAdminCfg.dbId, name,
+      login_id: state.schoolAdminCfg.id, password: '',
     });
     btn.disabled = false; btn.textContent = '💾 Save';
     if (!res.ok) { errEl.textContent = res.error || 'Save failed.'; return; }

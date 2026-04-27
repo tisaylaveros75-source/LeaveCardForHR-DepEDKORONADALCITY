@@ -32,8 +32,8 @@ function eu(s) {
 /* ─────────────────────────────────────────────────────────────
    1.  PAGE LAYOUT CONSTANTS
    ───────────────────────────────────────────────────────────── */
-const PDF_ROWS_PAGE1 = 18;
-const PDF_ROWS_PAGEN = 36;
+const PDF_ROWS_PAGE1 = 16;
+const PDF_ROWS_PAGEN = 33;
 const PAGE_W_MM = 215.9;
 const PAGE_H_MM = 355.6;
 
@@ -93,17 +93,17 @@ function fmtDateEx(raw) {
 function buildTableHeader() {
   return `
     <colgroup>
-      <col style="width:4%"/>
-      <col style="width:13%"/>
-      <col style="width:5.5%"/>
-      <col style="width:5.5%"/>
-      <col style="width:5.5%"/>
-      <col style="width:5.5%"/>
-      <col style="width:5.5%"/>
-      <col style="width:5.5%"/>
-      <col style="width:5.5%"/>
-      <col style="width:5.5%"/>
-      <col style="width:38%"/>
+      <col style="width:5%"/>
+      <col style="width:16%"/>
+      <col style="width:5%"/>
+      <col style="width:5%"/>
+      <col style="width:5%"/>
+      <col style="width:5%"/>
+      <col style="width:5%"/>
+      <col style="width:5%"/>
+      <col style="width:5%"/>
+      <col style="width:5%"/>
+      <col style="width:34%"/>
     </colgroup>
     <thead>
       <tr>
@@ -111,7 +111,7 @@ function buildTableHeader() {
         <th rowspan="2">PERIOD</th>
         <th class="tha" colspan="4">STUDY / VACATION / FORCE PERSONAL / SPECIAL LEAVE</th>
         <th class="thb" colspan="4">SICK / MATERNITY / PATERNITY LEAVE</th>
-        <th rowspan="2" style="text-align:left;padding-left:6px;">REMARKS / NATURE OF ACTION</th>
+        <th rowspan="2" style="text-align:left;padding-left:6px;">REMARKS / TYPE OF LEAVE</th>
       </tr>
       <tr>
         <th class="ths tha">EARNED</th>
@@ -243,7 +243,29 @@ function flattenRecords(emp) {
   pushSeg(cur, eraIdx === 0);
   return flat;
 }
-
+function flattenByEra(emp) {
+  const records = emp.records || [];
+  const eras = [];
+  let cur = { conv: null, recs: [] };
+  for (const r of records) {
+    if (r._conversion) { eras.push(cur); cur = { conv: r, recs: [] }; }
+    else cur.recs.push(r);
+  }
+  eras.push(cur);
+  return eras.map((seg, si) => {
+    const flat = [];
+    if (si > 0 && seg.conv) flat.push({ type: 'fwd', payload: seg.conv });
+    seg.recs.forEach(r => flat.push({ type: 'data', payload: r }));
+    return {
+      conv: seg.conv,
+      isFirst: si === 0,
+      flat,
+      label: seg.conv
+        ? `${(seg.conv.fromStatus || '').toUpperCase()} → ${(seg.conv.toStatus || '').toUpperCase()}`
+        : null,
+    };
+  });
+}
 /* ─────────────────────────────────────────────────────────────
    11.  BUILD TABLE BODY from flat slice
    ───────────────────────────────────────────────────────────── */
@@ -343,12 +365,13 @@ function buildHeaderSection(emp, logoSrc) {
         Page 1+: seamless continuation header + table
         NOTE: No "INITIAL ERA" or "ERA" labels — only conversion rows
    ───────────────────────────────────────────────────────────── */
-function buildPageHTML(pageNum, flatSlice, emp, logoSrc, totalPages) {
+function buildPageHTML(pageNum, flatSlice, emp, logoSrc, totalPages, eraLabel) {
+  eraLabel = eraLabel || '&#9632; Leave Record';
   const tableSection = `
     <div class="lc-export-era">
       <div class="lc-table-cap">
         <div class="lc-table-cap-line"></div>
-        <div class="lc-table-cap-badge">&#9632; Leave Record</div>
+        <div class="lc-table-cap-badge">${eraLabel}</div>
         <div class="lc-table-cap-line"></div>
       </div>
       <div class="tw">
@@ -378,7 +401,7 @@ function buildPageHTML(pageNum, flatSlice, emp, logoSrc, totalPages) {
             ${logoImgBanner}
             <div class="cont-agency-block">
               <div class="cont-agency">SDO City of Koronadal &mdash; Region XII</div>
-              <div class="cont-sub">Employee Leave Record &mdash; ${surname}, ${given}</div>
+              <div class="cont-sub">Employee Leave Record &mdash; ${surname}, ${given} &mdash; ${eraLabel}</div>
             </div>
           </div>
           <div class="cont-page-badge">
@@ -426,7 +449,7 @@ function sliceIntoPages(flat) {
    15.  RENDER ONE PAGE → ArrayBuffer
    ───────────────────────────────────────────────────────────── */
 const PDF_OPT_BASE = {
-  margin:      [10, 5, 20, 5],
+margin:      [8, 5, 12, 5],
   image:       { type: 'jpeg', quality: 0.99 },
   html2canvas: {
     scale:           2,
@@ -445,16 +468,27 @@ const PDF_OPT_BASE = {
   pagebreak: { mode: [] },
 };
 
-function renderPageToArrayBuffer(htmlStr) {
+async function renderPageToArrayBuffer(htmlStr) {
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = [
+    'position:fixed','left:-9999px','top:0',
+    'width:794px','background:#fff',
+    'z-index:-9999','visibility:hidden',
+  ].join(';');
+  wrapper.innerHTML = htmlStr;
+  document.body.appendChild(wrapper);
+
+  // Force full decode of every image before html2canvas captures
+  await Promise.all(
+    [...wrapper.querySelectorAll('img')].map(img =>
+      img.decode ? img.decode().catch(() => {}) : Promise.resolve()
+    )
+  );
+
+  // Settle time for fonts/layout after decode
+  await new Promise(r => setTimeout(r, 350));
+
   return new Promise((resolve, reject) => {
-    const wrapper = document.createElement('div');
-    wrapper.style.cssText = [
-      'position:fixed','left:-9999px','top:0',
-      'width:794px','background:#fff',
-      'z-index:-9999','visibility:hidden',
-    ].join(';');
-    wrapper.innerHTML = htmlStr;
-    document.body.appendChild(wrapper);
     setTimeout(() => {
       const target = wrapper.querySelector('.lc-export-doc') || wrapper;
       html2pdf()
@@ -463,8 +497,22 @@ function renderPageToArrayBuffer(htmlStr) {
         .outputPdf('arraybuffer')
         .then(buf => { wrapper.remove(); resolve(buf); })
         .catch(err => { wrapper.remove(); reject(err); });
-    }, 700);
-  });
+    }, 300);
+  /* ─────────────────────────────────────────────────────────────
+   24.  EXPOSE SHARED API for bulk-export.js
+───────────────────────────────────────────────────────────── */
+window.getLogoBase64           = getLogoBase64;
+window.buildExportHTML         = buildExportHTML;
+window.buildFullPage           = buildFullPage;
+window.buildPageHTML           = buildPageHTML;
+window.flattenRecords          = flattenRecords;
+window.sliceIntoPages          = sliceIntoPages;
+window.renderPageToArrayBuffer = renderPageToArrayBuffer;
+window.mergePageBuffers        = mergePageBuffers;
+window.showArmourOverlay       = showArmourOverlay;
+window.setOverlayProgress      = setOverlayProgress;
+window.hideArmourOverlay       = hideArmourOverlay;
+window.SHARED_CSS              = SHARED_CSS;});
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -782,7 +830,7 @@ tbody tr:nth-child(odd) td { background: #ffffff; }
   font-family: 'Barlow Condensed', 'Courier New', monospace !important;
   white-space: nowrap !important; text-transform: uppercase !important; font-size: 8pt !important;
 }
-.so-cell { font-size: 7pt !important; padding: 5px 2px !important; color: #555 !important; }
+.so-cell { font-size: 7pt !important; padding: 5px 2px !important; color: #555 !important; white-space: normal !important; word-break: break-word !important; overflow-wrap: break-word !important; }
 .num-cell { padding: 5px 3px !important; font-size: 8pt !important; }
 .period-cell {
   text-align: left !important; padding: 5pt 6pt !important;
@@ -837,20 +885,20 @@ tbody tr:nth-child(odd) td { background: #ffffff; }
 .fwd-remarks-cell { background: #fff9e0 !important; border-color: #d4a843 !important; }
 
 /* Column widths */
-table col:nth-child(1)  { width: 4%   !important; }
-table col:nth-child(2)  { width: 13%  !important; }
-table col:nth-child(3)  { width: 5.5% !important; }
-table col:nth-child(4)  { width: 5.5% !important; }
-table col:nth-child(5)  { width: 5.5% !important; }
-table col:nth-child(6)  { width: 5.5% !important; }
-table col:nth-child(7)  { width: 5.5% !important; }
-table col:nth-child(8)  { width: 5.5% !important; }
-table col:nth-child(9)  { width: 5.5% !important; }
-table col:nth-child(10) { width: 5.5% !important; }
-table col:nth-child(11) { width: 38%  !important; }
+table col:nth-child(1)  { width: 5%   !important; }
+table col:nth-child(2)  { width: 16%  !important; }
+table col:nth-child(3)  { width: 5%   !important; }
+table col:nth-child(4)  { width: 5%   !important; }
+table col:nth-child(5)  { width: 5%   !important; }
+table col:nth-child(6)  { width: 5%   !important; }
+table col:nth-child(7)  { width: 5%   !important; }
+table col:nth-child(8)  { width: 5%   !important; }
+table col:nth-child(9)  { width: 5%   !important; }
+table col:nth-child(10) { width: 5%   !important; }
+table col:nth-child(11) { width: 34%  !important; }
 
-table th:nth-child(1), table td:nth-child(1) { width: 4%   !important; }
-table th:nth-child(2), table td:nth-child(2) { width: 13%  !important; }
+table th:nth-child(1), table td:nth-child(1) { width: 5%   !important; }
+table th:nth-child(2), table td:nth-child(2) { width: 16%  !important; }
 table th:nth-child(3),  table td:nth-child(3),
 table th:nth-child(4),  table td:nth-child(4),
 table th:nth-child(5),  table td:nth-child(5),
@@ -858,9 +906,9 @@ table th:nth-child(6),  table td:nth-child(6),
 table th:nth-child(7),  table td:nth-child(7),
 table th:nth-child(8),  table td:nth-child(8),
 table th:nth-child(9),  table td:nth-child(9),
-table th:nth-child(10), table td:nth-child(10) { width: 5.5% !important; }
+table th:nth-child(10), table td:nth-child(10) { width: 5% !important; }
 table th:nth-child(11), table td:nth-child(11) {
-  width: 38% !important; text-align: left !important; padding-left: 8px !important;
+  width: 34% !important; text-align: left !important; padding-left: 8px !important;
 }
 
 @media print {
@@ -1500,8 +1548,17 @@ async function lcPrint() {
     iframe = await createCaptureIframe(buildFullPage(emp, logoSrc));
   }
 
+  // Force full decode of every image before opening print dialog
+  await Promise.all(
+    [...iframe.contentDocument.images].map(img =>
+      img.decode ? img.decode().catch(() => {}) : Promise.resolve()
+    )
+  );
+  // Extra settle for fonts/layout after decode
+  await new Promise(r => setTimeout(r, 350));
+
   iframe.contentWindow.focus();
-  iframe.contentWindow.print(); // ← opens dialog immediately
+  iframe.contentWindow.print();
 
   const cleanup = () => {
     try { iframe.remove(); } catch (_) {}
@@ -1551,19 +1608,28 @@ async function lcDownloadPDF(emp) {
     setOverlayProgress(12, 'Loading insignia…', 0);
 
     // 1. Flatten + slice
-    const flat       = flattenRecords(emp);
-    const pageSlices = sliceIntoPages(flat);
-    const totalPages = pageSlices.length;
+    const eras = flattenByEra(emp);
+    const eraPageData = eras.map(era => ({
+      era,
+      pages: sliceIntoPages(era.flat.length ? era.flat : []),
+      label: era.label,
+    }));
+    const totalPages = eraPageData.reduce((sum, e) => sum + Math.max(e.pages.length, 1), 0);
     setOverlayProgress(18, `Laying out ${totalPages} page${totalPages>1?'s':''}…`, 0);
 
-    // 2. Render each page
+    // 2. Render each page — era by era
     const buffers = [];
-    for (let i = 0; i < pageSlices.length; i++) {
-      const pct = 20 + Math.round((i / pageSlices.length) * 50);
-      setOverlayProgress(pct, `Rendering page ${i+1} of ${totalPages}…`, 1);
-      const html = buildPageHTML(i, pageSlices[i], emp, logoSrc, totalPages);
-      const buf  = await renderPageToArrayBuffer(html);
-      buffers.push(buf);
+    let globalPageNum = 0;
+    for (const { pages, label } of eraPageData) {
+      const eraPages = pages.length ? pages : [[]];
+      for (let i = 0; i < eraPages.length; i++) {
+        const pct = 20 + Math.round((globalPageNum / totalPages) * 50);
+        setOverlayProgress(pct, `Rendering page ${globalPageNum+1} of ${totalPages}…`, 1);
+        const html = buildPageHTML(globalPageNum, eraPages[i], emp, logoSrc, totalPages, label);
+        const buf  = await renderPageToArrayBuffer(html);
+        buffers.push(buf);
+        globalPageNum++;
+      }
     }
 
     // 3. Merge
@@ -1787,6 +1853,88 @@ const BUTTON_CSS = `
     0 3px 0 #060e22,
     0 4px 12px rgba(30,61,136,.5),
     0 0 0 1px rgba(34,81,179,.6);
+}
+    /* ── Back to List Button — dark forged steel ── */
+.lc-back-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 26px 12px 22px;
+  font-family: 'Barlow Condensed', sans-serif !important;
+  font-size: 11pt !important;
+  font-weight: 800 !important;
+  letter-spacing: .14em !important;
+  text-transform: uppercase;
+  color: #e8ddd0 !important;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  overflow: hidden;
+  outline: none;
+  transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s ease;
+
+  background: linear-gradient(160deg,
+    #0d0a08 0%, #1e1812 18%, #2e2418 40%,
+    #3a2e1e 55%, #2e2418 70%, #1e1812 85%, #0a0806 100%);
+
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.10) inset,
+    0 -2px 0 rgba(0,0,0,.5) inset,
+    2px 0 0 rgba(200,160,80,.06) inset,
+    -2px 0 0 rgba(0,0,0,.3) inset,
+    0 6px 0 #0a0806,
+    0 7px 0 #060502,
+    0 8px 16px rgba(0,0,0,.55),
+    0 16px 40px rgba(0,0,0,.25),
+    0 0 0 1px rgba(180,140,60,.35);
+
+  text-shadow: 0 1px 3px rgba(0,0,0,.7);
+}
+
+.lc-back-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,.10) 0%,
+    rgba(255,255,255,.02) 45%,
+    transparent 100%);
+  border-radius: inherit;
+  pointer-events: none;
+}
+.lc-back-btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%; height: 100%;
+  background: linear-gradient(105deg,
+    transparent 0%,
+    rgba(255,255,255,.10) 50%,
+    transparent 100%);
+  animation: btn-shimmer 4s 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.lc-back-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.12) inset,
+    0 -2px 0 rgba(0,0,0,.5) inset,
+    0 8px 0 #0a0806,
+    0 9px 0 #060502,
+    0 12px 28px rgba(0,0,0,.6),
+    0 24px 50px rgba(0,0,0,.3),
+    0 0 0 1px rgba(200,160,80,.55);
+}
+
+.lc-back-btn:active {
+  transform: translateY(4px);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.08) inset,
+    0 2px 0 #0a0806,
+    0 3px 0 #060502,
+    0 4px 12px rgba(0,0,0,.5),
+    0 0 0 1px rgba(180,140,60,.35);
 }
 `;
 

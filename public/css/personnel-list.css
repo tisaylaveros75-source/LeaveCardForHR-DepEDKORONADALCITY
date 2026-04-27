@@ -190,7 +190,7 @@
   grid-template-columns:
     48px          /* # */
     110px         /* Employee ID */
-    minmax(180px, 1fr) /* Full Name */
+    minmax(220px, 1fr) /* Full Name — holds register button */
     130px         /* Category */
     150px         /* Position */
     minmax(160px, 1fr) /* School/Office */

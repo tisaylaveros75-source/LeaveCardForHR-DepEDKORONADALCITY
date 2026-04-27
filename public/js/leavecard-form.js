@@ -185,7 +185,7 @@ function openDatePopup(anchorEl, labelText, currentVal, onApply) {
 function buildLeaveEntryForm(emp) {
   return `
     <div class="lc-entry-card no-print" id="leaveEntryPanel">
-      <div class="lc-entry-header"><span>✏ LEAVE ENTRY FORM</span></div>
+      <div class="lc-entry-header"><span>LEAVE ENTRY FORM</span></div>
       <div class="lc-entry-body">
 
         <!-- Row 1 — main fields -->
@@ -235,7 +235,7 @@ function buildLeaveEntryForm(emp) {
             <input type="hidden" id="le_tp" value="WD"/>
           </div>
 
-          <!-- TYPE OF LEAVE (was: NATURE OF ACTION) -->
+          <!-- TYPE OF LEAVE -->
           <div class="lc-ef lc-ef-wide">
             <label>TYPE OF LEAVE <span style="font-weight:400;font-size:10px;color:var(--mu);">(optional)</span></label>
             <input id="le_action" list="leaveTypesList" placeholder="Select or type…" autocomplete="off"/>

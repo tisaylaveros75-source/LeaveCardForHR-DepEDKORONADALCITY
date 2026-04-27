@@ -1093,4 +1093,182 @@ public function fixAllSortOrders(): JsonResponse
             'error' => $e->getMessage(),
         ], 500);
     }
+    
+}
+// ── POST /api/submit_leave_application ──────────────────────
+public function submitLeaveApplication(Request $request): JsonResponse
+{
+    try {
+        $role  = $request->session()->get('lms_role', '');
+        $empId = $request->session()->get('lms_employee_id', '');
+        if ($role !== 'employee' || !$empId) {
+            return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
+        }
+
+        $appId = (int)$request->input('app_id', 0); // 0 = new, >0 = resubmit
+
+        $emp = DB::table('personnel')->where('employee_id', $empId)->first();
+
+        $data = [
+    'employee_id'          => $empId,
+    'surname'              => $emp->surname ?? '',
+    'given'                => $emp->given   ?? '',
+    'suffix'               => $emp->suffix  ?? '',
+    'office_school'        => $request->input('office_school') ?? '',
+    'position'             => $request->input('position') ?? '',
+    'date_of_filing'       => $request->input('date_of_filing') ?: now()->toDateString(),
+    'salary_monthly'       => $request->input('salary_monthly') ?: null,
+    'leave_type'           => $request->input('leave_type') ?? '',
+    'leave_type_other'     => $request->input('leave_type_other') ?? '',
+    'vacation_detail'      => $request->input('vacation_detail') ?? '',
+    'vacation_abroad_specify' => $request->input('vacation_abroad_specify') ?? '',
+    'sick_detail'          => $request->input('sick_detail') ?? '',
+    'sick_specify'         => $request->input('sick_specify') ?? '',
+    'women_specify'        => $request->input('women_specify') ?? '',
+    'study_detail'         => $request->input('study_detail') ?? '',
+    'other_purpose'        => $request->input('other_purpose') ?? '',
+'num_working_days'     => $request->input('num_working_days') ?: null,
+'inclusive_dates'      => $request->input('inclusive_dates') ?? '',
+'commutation'          => $request->input('commutation') ?? 'Not Requested',
+'status'               => 'pending',
+        ];
+
+        // Handle file upload
+        if ($request->hasFile('attachment')) {
+            $file     = $request->file('attachment');
+            $filename = time() . '_' . $empId . '_' . $file->getClientOriginalName();
+            $path     = $file->storeAs('leave_attachments', $filename, 'public');
+            $data['attachment_path'] = $path;
+            $data['attachment_name'] = $file->getClientOriginalName();
+        }
+
+        if ($appId > 0) {
+            // Resubmit — only allow if it belongs to this employee and is rejected
+            $existing = DB::table('leave_applications')
+                ->where('id', $appId)
+                ->where('employee_id', $empId)
+                ->where('status', 'rejected')
+                ->first();
+            if (!$existing) {
+                return response()->json(['ok' => false, 'error' => 'Application not found or not resubmittable.'], 404);
+            }
+            // Keep old attachment if no new file uploaded
+            if (!$request->hasFile('attachment')) {
+                unset($data['attachment_path'], $data['attachment_name']);
+            }
+            DB::table('leave_applications')->where('id', $appId)->update($data);
+            return response()->json(['ok' => true, 'app_id' => $appId, 'resubmitted' => true]);
+        } else {
+            $data['created_at'] = now();
+            $newId = DB::table('leave_applications')->insertGetId($data);
+            return response()->json(['ok' => true, 'app_id' => $newId]);
+        }
+    } catch (Exception $e) {
+        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+    }
+}
+
+// ── GET /api/get_my_leave_applications ──────────────────────
+public function getMyLeaveApplications(Request $request): JsonResponse
+{
+    try {
+        $empId = $request->session()->get('lms_employee_id', '');
+        if (!$empId) return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
+
+        $rows = DB::table('leave_applications')
+            ->where('employee_id', $empId)
+            ->orderByDesc('created_at')
+            ->get()
+            ->toArray();
+
+        return response()->json(['ok' => true, 'applications' => array_map(fn($r) => (array)$r, $rows)]);
+    } catch (Exception $e) {
+        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+    }
+}
+
+// ── GET /api/get_leave_applications (admin/encoder) ─────────
+public function getLeaveApplications(Request $request): JsonResponse
+{
+    try {
+        $role = $request->session()->get('lms_role', '');
+        if (!in_array($role, ['admin', 'encoder'])) {
+            return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
+        }
+
+        $status = $request->input('status', 'pending'); // pending | accepted | rejected
+        $rows = DB::table('leave_applications as la')
+            ->join('personnel as p', 'la.employee_id', '=', 'p.employee_id')
+            ->where('la.status', $status)
+            ->orderByDesc('la.created_at')
+            ->select('la.*', 'p.surname', 'p.given', 'p.suffix', 'p.status as emp_category')
+            ->get()
+            ->toArray();
+
+        return response()->json(['ok' => true, 'applications' => array_map(fn($r) => (array)$r, $rows)]);
+    } catch (Exception $e) {
+        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+    }
+}
+
+// ── POST /api/review_leave_application ──────────────────────
+public function reviewLeaveApplication(Request $request): JsonResponse
+{
+    try {
+        $role = $request->session()->get('lms_role', '');
+        $name = $request->session()->get('lms_name', 'Admin');
+        if (!in_array($role, ['admin', 'encoder'])) {
+            return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
+        }
+
+        $appId  = $request->input('app_id');
+        $action = $request->input('action'); // 'accept' or 'reject'
+        $reason = $request->input('reason', '');
+
+        if (!$appId || !in_array($action, ['accept', 'reject'])) {
+            return response()->json(['ok' => false, 'error' => 'Invalid parameters.'], 400);
+        }
+        if ($action === 'reject' && !$reason) {
+            return response()->json(['ok' => false, 'error' => 'Rejection reason is required.'], 400);
+        }
+
+        DB::table('leave_applications')->where('id', $appId)->update([
+            'status'           => $action === 'accept' ? 'accepted' : 'rejected',
+            'rejection_reason' => $action === 'reject' ? $reason : null,
+            'reviewed_at'      => now(),
+            'reviewed_by'      => $name,
+            'updated_at'       => now(),
+        ]);
+
+        return response()->json(['ok' => true]);
+    } catch (Exception $e) {
+        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+    }
+}
+
+// ── POST /api/delete_leave_application ──────────────────────
+public function deleteLeaveApplication(Request $request): JsonResponse
+{
+    try {
+        $role  = $request->session()->get('lms_role', '');
+        $empId = $request->session()->get('lms_employee_id', '');
+        $appId = $request->input('app_id');
+
+        $query = DB::table('leave_applications')->where('id', $appId);
+
+        // Employees can only delete their own pending/rejected ones
+        if ($role === 'employee') {
+            $query->where('employee_id', $empId)
+                  ->whereIn('status', ['pending', 'rejected']);
+        } elseif (!in_array($role, ['admin', 'encoder'])) {
+            return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
+        }
+
+        $deleted = $query->delete();
+        if (!$deleted) return response()->json(['ok' => false, 'error' => 'Not found or not deletable.'], 404);
+
+        return response()->json(['ok' => true]);
+    } catch (Exception $e) {
+        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+    }
 }}

@@ -130,7 +130,7 @@
     .tw::-webkit-scrollbar-track { background: #f5eded; }
 
     .tw table {
-      table-layout: fixed; width: 100%; border-collapse: collapse;
+      table-layout: auto; width: 100%; border-collapse: collapse;
       background: #ffffff;
     }
 
@@ -251,11 +251,21 @@
       border-color: #e8d090 !important;
     }
 
-    /* ══════════════════════════════════════════════
-       COLUMN WIDTHS
+/* ══════════════════════════════════════════════
+       COLUMN WIDTHS — fixed layout, Set A = Set B
     ══════════════════════════════════════════════ */
-    .tw table th:nth-child(1), .tw table td:nth-child(1)  { width:5.5px; min-width:45px; }
-    .tw table th:nth-child(2), .tw table td:nth-child(2)  { width:30px; min-width:85px; }
+
+    /* SO# */
+    .tw table th:nth-child(1), .tw table td:nth-child(1) {
+      width: 4%; white-space: nowrap; overflow: hidden;
+    }
+
+    /* Period */
+    .tw table th:nth-child(2), .tw table td:nth-child(2) {
+      width: 11%; white-space: normal; word-break: break-word;
+    }
+
+    /* Set A cols 3–6 AND Set B cols 7–10 — identical width = always symmetric */
     .tw table th:nth-child(3),  .tw table td:nth-child(3),
     .tw table th:nth-child(4),  .tw table td:nth-child(4),
     .tw table th:nth-child(5),  .tw table td:nth-child(5),
@@ -263,9 +273,21 @@
     .tw table th:nth-child(7),  .tw table td:nth-child(7),
     .tw table th:nth-child(8),  .tw table td:nth-child(8),
     .tw table th:nth-child(9),  .tw table td:nth-child(9),
-    .tw table th:nth-child(10), .tw table td:nth-child(10) { width:40px; min-width:52px; }
-    .tw table th:nth-child(11), .tw table td:nth-child(11) { width:200px; min-width:150px; }
-    .tw table th:nth-child(12), .tw table td:nth-child(12) { width:2px; min-width:2px; max-width:2px; padding:2px; }
+    .tw table th:nth-child(10), .tw table td:nth-child(10) {
+      width: 5%; white-space: nowrap; overflow: hidden;
+    }
+
+    /* Remarks — gets all remaining space */
+    .tw table th:nth-child(11), .tw table td:nth-child(11) {
+      width: 38%; white-space: normal;
+      word-break: break-word; line-height: 1.45;
+    }
+
+    /* Action ⋮ — truly tiny */
+    .tw table th:nth-child(12), .tw table td:nth-child(12) {
+      width: 3%; white-space: nowrap;
+      padding: 2px 2px; text-align: center;
+    }
 
     /* ══════════════════════════════════════════════
        ROW ACTION MENU
