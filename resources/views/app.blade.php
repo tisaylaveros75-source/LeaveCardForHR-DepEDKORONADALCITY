@@ -19,8 +19,10 @@
   <link rel="stylesheet" href="{{ asset('css/print.css') }}"/>
 
   <!-- html2pdf library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  
   <style>
     /* ═══════════════════════════════════════════════════
        RED ARMOUR — SPLIT LOGIN
