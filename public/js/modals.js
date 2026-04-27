@@ -643,6 +643,10 @@ function showEraModal(emp) {
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
 
+  setTimeout(() => {
+    const eraDateEl = document.getElementById('era_date');
+    if (eraDateEl && !eraDateEl._flatpickr) flatpickr(eraDateEl, { dateFormat: 'm/d/Y', allowInput: true });
+  }, 100);
   document.getElementById('eraModSave').addEventListener('click', async () => {
     const fromS = document.getElementById('era_from').value;
     const toS   = document.getElementById('era_to').value;
@@ -978,8 +982,14 @@ function showRegisterModal(emp) {
 
   _wireCombobox('reg_civil');
   _wireCombobox('reg_pos');
-  _wireCombobox('reg_school');
-
+_wireCombobox('reg_school');
+  setTimeout(() => {
+    ['reg_dob','reg_appt','reg_dexam'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && !el._flatpickr) flatpickr(el, { dateFormat: 'm/d/Y', allowInput: true });
+    });
+  }, 100);
+  
   if (isEdit) {
     const originalStatus = r.status || 'Teaching';
     mo.querySelector('#reg_status').addEventListener('change', function () {
@@ -1013,8 +1023,11 @@ function showRegisterModal(emp) {
     else                    { pw.type = 'text';     eye.textContent = '👁'; }
   });
 
-  enforceAllCaps(mo);
-
+enforceAllCaps(mo);
+  mo.querySelectorAll('input[type="text"], input[type="number"]').forEach(inp => {
+    inp.addEventListener('paste', e => e.stopPropagation());
+  });
+  
   document.getElementById('regSave').addEventListener('click', async () => {
     const errEl = document.getElementById('reg_err');
     errEl.textContent = '';
