@@ -262,7 +262,7 @@
 .pl-tcol-rownum { width: 48px; }
 .pl-tcol-empid  { width: 110px; }
 .pl-tcol-name   { width: auto; min-width: 180px; }
-.pl-tcol-cat    { width: 130px; }
+.pl-tcol-cat    { width: 140px; }
 .pl-tcol-pos    { width: 150px; }
 .pl-tcol-school { width: auto; min-width: 160px; }
 .pl-tcol-card   { width: 120px; }
@@ -321,7 +321,7 @@
   white-space: nowrap;
 }
 .pl-badge--teaching         { background: #ddeeff; color: #1e3a6e; border: 1px solid #b8d4f8; }
-.pl-badge--teaching-related { background: #ede9fe; color: #4c1d95; border: 1px solid #c4b5fd; }
+.pl-badge--teaching-related { background: #ede9fe; color: #4c1d95; border: 1px solid #c4b5fd; font-size: 8.5px !important; padding: 3px 4px !important; letter-spacing: 0 !important; }
 .pl-badge--non-teaching     { background: #fce8e8; color: #7f1d1d; border: 1px solid #f5c8c8; }
 
 .pl-card-status {
