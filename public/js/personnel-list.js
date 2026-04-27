@@ -26,7 +26,7 @@ function _currentMonthLabel() {
 function _categoryBadge(status) {
   const s = (status || '').toLowerCase();
   if (s === 'teaching')         return `<span class="pl-badge pl-badge--teaching">Teaching</span>`;
-  if (s === 'teaching related') return `<span class="pl-badge pl-badge--teaching-related">Teaching Related</span>`;
+  if (s === 'teaching related') return `<span class="pl-badge pl-badge--teaching-related" style="font-size:9px;white-space:nowrap;padding:2px 5px;">Teaching Related</span>`;
   return `<span class="pl-badge pl-badge--non-teaching">Non-Teaching</span>`;
 }
 
@@ -162,7 +162,7 @@ function renderPersonnelList() {
               <th class="pl-th-center pl-tcol-rownum">#</th>
               <th class="pl-tcol-empid">Employee ID</th>
               <th class="pl-tcol-name">Full Name</th>
-              <th class="pl-th-center pl-tcol-cat">Category</th>
+              <th class="pl-th-center pl-tcol-cat" style="min-width:120px;">Category</th>
               <th class="pl-tcol-pos">Position</th>
               <th class="pl-tcol-school">School / Office</th>
               <th class="pl-th-center pl-tcol-card">Card Status</th>
@@ -256,7 +256,7 @@ function filterPersonnelTable() {
       <td class="pl-td-rownum pl-td-center">${i + 1}</td>
       <td class="pl-td-empid">${_esc(e.id)}</td>
       <td class="pl-td-name"><strong style="font-weight:700;">${_esc(e.surname)}</strong>, <strong style="font-weight:700;">${_esc(e.given)}</strong>${suffixHtml}</td>
-      <td class="pl-td-center">${_categoryBadge(e.status)}</td>
+      <td class="pl-td-center" style="min-width:120px;">${_categoryBadge(e.status)}</td>
       <td class="pl-td-pos">${_esc(e.pos || '—')}</td>
       <td class="pl-td-school">${_esc(e.school || '—')}</td>
       <td class="pl-td-center">${_cardStatusBadge(e)}</td>
