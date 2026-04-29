@@ -782,7 +782,7 @@
           <form id="loginForm" autocomplete="off" class="ra-form">
 
             <div class="ra-field">
-              <label class="ra-label" for="lid">EMAIL / EMPLOYEE ID</label>
+              <label class="ra-label" for="lid">EMAIL</label>
               <div class="ra-input-wrap">
                 <span class="ra-input-icon">◈</span>
                 <input id="lid" type="text" class="ra-input"
