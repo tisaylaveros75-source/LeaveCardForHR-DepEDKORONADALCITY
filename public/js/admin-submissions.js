@@ -747,7 +747,7 @@ function _asRenderList(apiCall) {
       if (!confirm(`Mark as Recorded?\n\nEmployee: ${app.surname}, ${app.given}\nLeave Type: ${app.leave_type}\nDates: ${app.inclusive_dates}\n\nThis confirms the leave has been officially recorded.`)) return;
       btn.disabled = true; btn.textContent = '⏳ Recording…';
       const r = await apiCall('mark_as_recorded', { app_id: +btn.dataset.asRecord });
-      if (r.ok) { await _asLoadAll(apiCall); _asRenderList(apiCall); }
+      if (r.ok) { _currentTab = 'recorded'; document.querySelectorAll('[data-atab]').forEach(b => b.classList.remove('active')); document.querySelector('[data-atab="recorded"]')?.classList.add('active'); await _asLoadAll(apiCall); _asRenderList(apiCall); }
       else { alert(r.error || 'Failed.'); btn.disabled = false; btn.textContent = '📁 Mark as Recorded'; }
     });
   });
