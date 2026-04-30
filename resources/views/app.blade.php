@@ -964,10 +964,9 @@
 <script src="{{ asset('js/accounts.js') }}"></script>
 <script src="{{ asset('js/school-admin.js') }}"></script>
 <script src="{{ asset('js/app.js') }}"></script>
-<script src="leave-application.js"></script>   <!-- wizard + employee views -->
-<script src="admin-submissions.js"></script>    <!-- admin submissions page  -->
-<script src="recorded-archive.js"></script>     <!-- recorded archive        -->
-<script src="employee.js"></script>             <!-- employee leave card page -->
+<script src="{{ asset('js/leave-application.js') }}"></script>
+<script src="{{ asset('js/admin-submissions.js') }}"></script>
+<script src="{{ asset('js/employee.js') }}"></script>
 <script src="{{ asset('js/recorded-archive.js') }}"></script>
 <script src="{{ asset('js/bulk-operations-modals.js') }}"></script>
 
