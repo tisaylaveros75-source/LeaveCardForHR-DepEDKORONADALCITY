@@ -34,7 +34,7 @@
       display: none;
       align-items: stretch !important;
       justify-content: stretch !important;
-      background: #080000 !important;
+      background: #fff5f5 !important;
       overflow: hidden;
     }
     #s-login.active { display: flex !important; }
@@ -83,7 +83,7 @@
       padding: 60px 52px;
       overflow: hidden;
       background:
-        linear-gradient(155deg, rgba(16,0,0,0.93) 0%, rgba(5,0,0,0.97) 100%),
+        linear-gradient(155deg, rgba(160,25,25,0.62) 0%, rgba(100,12,12,0.68) 100%),
         url('https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Koronadal_City_Hall.jpg/1280px-Koronadal_City_Hall.jpg')
         center/cover no-repeat;
       border-right: 1px solid rgba(192,57,43,0.3);
@@ -191,7 +191,7 @@
       font-weight: 700;
       letter-spacing: 2.5px;
       text-transform: uppercase;
-      color: rgba(176,125,44,0.8);
+      color: rgba(240,190,100,1.0);
       margin-bottom: 4px;
     }
     .ra-logo-title {
@@ -209,7 +209,7 @@
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 10px; font-weight: 700;
       letter-spacing: 3px; text-transform: uppercase;
-      color: rgba(220,100,80,0.65);
+      color: rgba(255,160,130,0.95);
       margin-bottom: 14px;
     }
 
@@ -242,7 +242,7 @@
       position: relative; z-index: 2;
       font-family: 'Inter', sans-serif;
       font-size: 13px; font-weight: 400;
-      color: rgba(255,200,180,0.45);
+      color: rgba(255,220,205,0.90);
       line-height: 1.75;
       max-width: 340px;
       margin-bottom: 24px;
@@ -253,7 +253,7 @@
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 9px; font-weight: 700;
       letter-spacing: 2.5px; text-transform: uppercase;
-      color: rgba(192,57,43,0.4);
+      color: rgba(255,160,130,0.75);
     }
 
     /* ── RIGHT PANEL ── */
@@ -265,7 +265,7 @@
       justify-content: center;
       padding: 40px 32px;
       background:
-        linear-gradient(168deg, rgba(18,0,0,0.88), rgba(8,0,0,0.96)),
+        linear-gradient(168deg, rgba(255,235,235,0.45), rgba(255,210,210,0.50)),
         url('https://depedkoronadalcity.wordpress.com/wp-content/uploads/2012/09/city-division-office1.jpg')
         center/cover no-repeat;
       overflow: hidden;
@@ -276,7 +276,7 @@
       top: -100px; right: -100px;
       width: 400px; height: 400px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(139,0,0,0.18) 0%, transparent 65%);
+      background: radial-gradient(circle, rgba(220,80,60,0.08) 0%, transparent 65%);
       pointer-events: none;
     }
 
@@ -285,15 +285,15 @@
       position: relative;
       width: 100%;
       max-width: 430px;
-      background: linear-gradient(160deg, #1a0303 0%, #120202 50%, #0a0101 100%);
-      border: 1px solid rgba(192,57,43,0.5);
+      background: linear-gradient(160deg, #fdf2f2 0%, #fce8e8 50%, #f9d8d8 100%);
+      border: 1px solid rgba(192,57,43,0.25);
       border-radius: 18px;
       padding: 32px 32px 26px;
       box-shadow:
         0 0 0 1px rgba(255,60,40,0.06),
-        0 0 40px rgba(139,0,0,0.5),
-        0 0 90px rgba(139,0,0,0.2),
-        0 30px 60px rgba(0,0,0,0.9),
+        0 0 40px rgba(192,57,43,0.15),
+        0 0 90px rgba(192,57,43,0.08),
+        0 30px 60px rgba(0,0,0,0.15),
         inset 0 1px 0 rgba(255,100,80,0.1),
         inset 0 -1px 0 rgba(0,0,0,0.5);
       animation: ra-card-enter 0.8s cubic-bezier(0.22,1,0.36,1) 0.3s both;
@@ -304,7 +304,7 @@
       position: absolute;
       inset: 8px;
       border-radius: 12px;
-      border: 1px solid rgba(192,57,43,0.1);
+      border: 1px solid rgba(192,57,43,0.2);
       pointer-events: none;
     }
     .ra-card::after {
@@ -367,19 +367,10 @@
     }
     .ra-card-title-text { text-align: center; flex-shrink: 0; }
     .ra-card-org {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 14px; font-weight: 800;
-      letter-spacing: 0.18em; text-transform: uppercase;
-      color: #f5d0c0;
-      text-shadow: 0 0 12px rgba(220,80,60,0.5);
-      line-height: 1.2;
+      display: none;
     }
     .ra-card-sys {
-      font-family: 'Inter', sans-serif;
-      font-size: 9px; font-weight: 500;
-      letter-spacing: 0.12em; text-transform: uppercase;
-      color: rgba(255,160,140,0.4);
-      margin-top: 2px;
+      display: none;
     }
 
     .ra-welcome {
@@ -390,14 +381,14 @@
     .ra-welcome-h2 {
       font-family: 'Cormorant Garamond', Georgia, serif;
       font-size: 1.55rem; font-weight: 700;
-      color: #fff; letter-spacing: 0.02em;
-      text-shadow: 0 0 20px rgba(220,60,40,0.3);
+      color: #7a1010; letter-spacing: 0.02em;
+      text-shadow: none;
       margin-bottom: 4px;
     }
     .ra-welcome-sub {
       font-family: 'Inter', sans-serif;
       font-size: 10px;
-      color: rgba(255,160,140,0.38);
+      color: rgba(140,40,40,0.5);
       letter-spacing: 0.1em; text-transform: uppercase;
     }
 
@@ -406,16 +397,16 @@
       display: flex; align-items: center; gap: 10px;
       margin-bottom: 20px;
     }
-    .ra-div-line { flex: 1; height: 1px; background: rgba(139,26,26,0.35); }
+    .ra-div-line { flex: 1; height: 1px; background: rgba(139,26,26,0.25); }
     .ra-div-badge {
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 9px; font-weight: 700;
       letter-spacing: 0.18em; text-transform: uppercase;
-      color: rgba(255,120,100,0.38);
+      color: rgba(120,30,30,0.65);
       padding: 3px 10px;
-      border: 1px solid rgba(139,26,26,0.28);
+      border: 1px solid rgba(139,26,26,0.35);
       border-radius: 4px;
-      background: rgba(139,0,0,0.1);
+      background: rgba(200,80,80,0.1);
       white-space: nowrap;
     }
 
@@ -429,7 +420,7 @@
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 9.5px; font-weight: 700;
       letter-spacing: 0.16em; text-transform: uppercase;
-      color: rgba(220,100,80,0.7);
+      color: rgba(130,30,30,0.85);
     }
     .ra-input-wrap { position: relative; display: flex; align-items: center; }
     .ra-input-icon {
@@ -442,21 +433,21 @@
     .ra-input {
       width: 100%; height: 48px;
       padding: 0 44px 0 38px;
-      background: rgba(0,0,0,0.45);
-      border: 1px solid rgba(139,26,26,0.4);
+      background: rgba(255,255,255,0.85);
+      border: 1px solid rgba(192,57,43,0.3);
       border-radius: 10px;
-      color: #f5e8e0;
+      color: #3a0a0a;
       font-family: 'Inter', sans-serif;
       font-size: 13.5px; font-weight: 500;
       outline: none;
       transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
     }
-    .ra-input::placeholder { color: rgba(255,160,140,0.22); font-weight: 400; }
+    .ra-input::placeholder { color: rgba(160,60,60,0.4); font-weight: 400; }
     .ra-input:focus {
-      background: rgba(30,4,4,0.65);
-      border-color: rgba(220,80,60,0.75);
-      box-shadow: 0 0 0 3px rgba(192,57,43,0.12),
-                  inset 0 1px 0 rgba(255,80,60,0.06);
+      background: #ffffff;
+      border-color: rgba(192,57,43,0.65);
+      box-shadow: 0 0 0 3px rgba(192,57,43,0.1),
+                  inset 0 1px 0 rgba(192,57,43,0.04);
     }
     .ra-input:focus ~ .ra-input-bar { width: 100%; }
     .ra-input-wrap:focus-within .ra-input-icon { color: rgba(220,80,60,0.9); }
@@ -483,7 +474,7 @@
       padding: 10px 14px;
       font-family: 'Inter', sans-serif;
       font-size: 12px; font-weight: 600;
-      color: #fca5a5; letter-spacing: 0.02em;
+      color: #7a1010; letter-spacing: 0.02em;
       animation: ra-shake 0.4s cubic-bezier(0.36,0.07,0.19,0.97);
     }
 
@@ -496,8 +487,8 @@
       cursor: pointer; overflow: hidden; outline: none;
       transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s ease;
       background: linear-gradient(160deg,
-        #6b0e0e 0%, #8b1a1a 15%, #c0392b 40%,
-        #e53e3e 55%, #c0392b 70%, #8b1a1a 85%, #5a0808 100%);
+        #aa1c1c 0%, #cc2828 15%, #ee4444 40%,
+        #ff6a6a 55%, #ee4444 70%, #cc2828 85%, #991818 100%);
       box-shadow:
         0 1px 0 rgba(255,255,255,0.12) inset,
         0 -3px 0 rgba(0,0,0,0.55) inset,
@@ -570,7 +561,7 @@
       font-family: 'Inter', sans-serif;
       font-size: 9px; font-weight: 500;
       letter-spacing: 0.1em; text-transform: uppercase;
-      color: rgba(255,160,140,0.22);
+      color: rgba(160,60,60,0.45);
     }
 
     /* ── KEYFRAMES ── */
@@ -973,8 +964,11 @@
 <script src="{{ asset('js/accounts.js') }}"></script>
 <script src="{{ asset('js/school-admin.js') }}"></script>
 <script src="{{ asset('js/app.js') }}"></script>
-<script src="{{ asset('js/employee.js') }}"></script>
-<script src="{{ asset('js/leave-application.js?v=2.0') }}"></script>
+<script src="leave-application.js"></script>   <!-- wizard + employee views -->
+<script src="admin-submissions.js"></script>    <!-- admin submissions page  -->
+<script src="recorded-archive.js"></script>     <!-- recorded archive        -->
+<script src="employee.js"></script>             <!-- employee leave card page -->
+<script src="{{ asset('js/recorded-archive.js') }}"></script>
 <script src="{{ asset('js/bulk-operations-modals.js') }}"></script>
 
 <!-- Print & Download PDF — load ONCE, LAST -->
