@@ -66,7 +66,8 @@ async function openLeaveCardInContainer(emp, container) {
   const forceBtnStyle = forceLeaveApplied
     ? 'background:rgba(255,100,100,.18);color:rgba(255,200,200,.6);border:1px solid rgba(255,100,100,.25);cursor:not-allowed;'
     : 'background:rgba(255,165,0,.22);color:#fde68a;border:1px solid rgba(255,165,0,.4);';
-  const forceBtnHtml = canEdit ? `
+  const isNTorTR = ['non-teaching','teaching related'].includes((emp.status||'').toLowerCase());
+  const forceBtnHtml = canEdit && isNTorTR ? `
     <button class="btn b-sm no-print" id="cForceLeave"
       style="${forceBtnStyle}"
       title="${forceLeaveApplied ? 'Force/Mandatory Leave already applied this year' : 'Apply Force/Mandatory Leave (deducts 5 days from Set A)'}"
