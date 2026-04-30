@@ -267,7 +267,10 @@ async function showForceLeaveModal() {
   const now = new Date();
   const y   = now.getFullYear();
 
-  const allActive = (window.state?.db||[]).filter(e=>(e.account_status||'active')==='active');
+  const allActive = (window.state?.db||[]).filter(e=>{
+  const s = (e.status||'').toLowerCase();
+  return (e.account_status||'active')==='active' && (s==='non-teaching'||s==='teaching related');
+});
 
   for (const emp of allActive) {
     if (!emp.records||!emp.records.length) {
