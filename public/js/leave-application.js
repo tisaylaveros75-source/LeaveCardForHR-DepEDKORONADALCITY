@@ -1367,6 +1367,10 @@ async function injectLeaveApplicationSection(emp) {
           style="flex:1;padding:12px 8px;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;border:none;cursor:pointer;background:#fff;color:#7a8a9d;border-left:1px solid #f0e0e0;transition:all .2s;">
           ❌ Rejected <span style="background:#fee2e2;color:#991b1b;border-radius:20px;padding:1px 8px;margin-left:4px;">${rejectedCount}</span>
         </button>
+        <button id="empSubTabRecorded"
+          style="flex:1;padding:12px 8px;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;border:none;cursor:pointer;background:#fff;color:#7a8a9d;border-left:1px solid #f0e0e0;transition:all .2s;">
+          📁 Recorded <span id="empSubRecordedCount" style="background:#dbeafe;color:#1e3a6e;border-radius:20px;padding:1px 8px;margin-left:4px;">…</span>
+        </button>
       </div>
 
       <!-- List -->
@@ -1401,6 +1405,17 @@ async function injectLeaveApplicationSection(emp) {
 
   mount.querySelector('#empApplyLeaveBtn')?.addEventListener('click', () => showLeaveApplicationModal(emp, null));
 
+  mount.querySelector('#empSubTabRecorded')?.addEventListener('click', () => {
+    if (typeof renderRecordedArchivePage === 'function') renderRecordedArchivePage(true);
+  });
+
+  /* Load recorded count */
+  apiCall('get_my_recorded_applications', {}, 'GET').then(r => {
+    const cnt = (r.ok ? r.applications : []).length;
+    const badge = mount.querySelector('#empSubRecordedCount');
+    if (badge) badge.textContent = cnt;
+  });
+
   /* Default tab */
   renderTab('pending');
 }
@@ -1427,79 +1442,7 @@ function _laRenderHistory(apps) {
     </div>`;
 }
 
-/* ── ADMIN: SUBMISSIONS PAGE ─────────────────────────────────── */
-async function renderSubmissionsPage() {
-  const el = document.getElementById('pg-submissions');
-  if (!el) return;
-  const esc      = _escH();
-  const apiCall  = window.apiCall || (async () => ({ ok: false }));
 
-  el.innerHTML = `
-    <div class="sub-page">
-      <div class="sub-header">
-        <div class="sub-title">📨 Leave Submissions</div>
-        <div class="sub-tabs">
-          <button class="sub-tab active" data-sub-tab="pending">Pending <span class="sub-badge pending" id="subCntPending">…</span></button>
-          <button class="sub-tab" data-sub-tab="accepted">Accepted <span class="sub-badge accepted" id="subCntAccepted">…</span></button>
-          <button class="sub-tab" data-sub-tab="rejected">Rejected <span class="sub-badge rejected" id="subCntRejected">…</span></button>
-        </div>
-      </div>
-      <div id="subListWrap"><div class="sub-empty"><span>⏳</span>Loading…</div></div>
-    </div>`;
-
-  let currentTab = 'pending';
-
-  async function loadTab(tab) {
-    currentTab = tab;
-    const wrap = document.getElementById('subListWrap');
-    if (wrap) wrap.innerHTML = `<div class="sub-empty"><span>⏳</span>Loading…</div>`;
-    el.querySelectorAll('.sub-tab').forEach(t => t.classList.toggle('active', t.dataset.subTab === tab));
-
-    const res  = await apiCall('get_leave_applications', { status: tab }, 'GET');
-    const apps = res.ok ? (res.applications || []) : [];
-
-    /* Update this tab's count */
-    const cKey = tab.charAt(0).toUpperCase() + tab.slice(1);
-    const cEl  = document.getElementById('subCnt' + cKey);
-    if (cEl) cEl.textContent = apps.length;
-
-    /* Update other tabs' counts asynchronously */
-    ['pending','accepted','rejected'].filter(s => s !== tab).forEach(async s => {
-      const r2 = await apiCall('get_leave_applications', { status: s }, 'GET');
-      const k2 = s.charAt(0).toUpperCase() + s.slice(1);
-      const e2 = document.getElementById('subCnt' + k2);
-      if (e2) e2.textContent = r2.ok ? (r2.applications || []).length : '?';
-    });
-
-    if (!wrap) return;
-    if (apps.length === 0) {
-      wrap.innerHTML = `<div class="sub-empty"><span>${tab === 'pending' ? '📭' : tab === 'accepted' ? '✅' : '❌'}</span>No ${tab} submissions.</div>`;
-      return;
-    }
-
-    wrap.innerHTML = `<div class="sub-card-list">${apps.map(a => _laSubCard(a, tab, esc)).join('')}</div>`;
-
-    wrap.querySelectorAll('[data-sub-accept]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        if (!confirm('Accept this leave application?')) return;
-        const r = await apiCall('review_leave_application', { app_id: +btn.dataset.subAccept, action: 'accept' });
-        if (r.ok) loadTab(currentTab);
-        else alert(r.error || 'Failed.');
-      });
-    });
-    wrap.querySelectorAll('[data-sub-reject]').forEach(btn => {
-      btn.addEventListener('click', () => _laRejectModal(+btn.dataset.subReject, loadTab, currentTab));
-    });
-    wrap.querySelectorAll('[data-sub-view]').forEach(btn => {
-      const app = apps.find(a => a.id === +btn.dataset.subView);
-      if (app) btn.addEventListener('click', () => _laViewCSFModal(app, esc));
-    });
-  }
-
-  el.querySelectorAll('.sub-tab').forEach(t => t.addEventListener('click', () => loadTab(t.dataset.subTab)));
-  loadTab('pending');
-}
-window.renderSubmissionsPage = renderSubmissionsPage;
 
 function _laSubCard(a, tab, esc) {
   const name = `${esc(a.surname)}, ${esc(a.given)}${a.suffix ? ' ' + esc(a.suffix) : ''}`;
@@ -1528,6 +1471,15 @@ function _laSubCard(a, tab, esc) {
         ${tab === 'pending' ? `
           <button class="sub-btn accept" data-sub-accept="${a.id}">✅ Accept</button>
           <button class="sub-btn reject" data-sub-reject="${a.id}">❌ Reject</button>` : ''}
+${tab === 'accepted' && !a.recorded_at ? `
+          <button class="sub-btn" data-sub-record="${a.id}"
+            style="background:linear-gradient(135deg,#1e3a6e,#4a7cc7);color:#fff;box-shadow:0 3px 12px rgba(74,124,199,.3);">
+            📁 Mark as Recorded
+          </button>` : ''}
+${tab === 'accepted' && a.recorded_at ? `
+          <span style="font-size:11px;font-weight:700;color:#1e3a6e;background:#dbeafe;border-radius:8px;padding:5px 12px;border:1px solid #93c5fd;display:inline-flex;align-items:center;gap:5px;">
+            📁 Recorded on ${new Date(a.recorded_at).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}
+          </span>` : ''}
       </div>
     </div>`;
 }
@@ -1598,6 +1550,10 @@ function _laViewCSFModal(a, esc) {
               style="background:linear-gradient(135deg,#5a0f16,#8b1a1a);color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:12px;font-weight:700;cursor:pointer;">
               🖨 Print CSF No. 6
             </button>
+            <button id="csfDownloadBtn"
+              style="background:linear-gradient(135deg,#065f46,#059669);color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:12px;font-weight:700;cursor:pointer;">
+              ⬇ Download PDF
+            </button>
             ${a.attachment_path ? `<a href="/storage/${esc(a.attachment_path)}" target="_blank"
               style="background:linear-gradient(135deg,#1e3a6e,#3b82f6);color:#fff;border-radius:8px;padding:9px 22px;font-size:12px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
               📎 View Attachment
@@ -1618,6 +1574,7 @@ function _laViewCSFModal(a, esc) {
   /* Inject CSF content into iframe */
   const iframe = document.getElementById('csfPrintFrame');
   const iDoc = iframe.contentDocument || iframe.contentWindow.document;
+  let _csfHtmlForDownload = '';
 
   const typeChecks = [
     'Vacation Leave','Mandatory/Forced Leave','Sick Leave','Maternity Leave',
@@ -1631,6 +1588,8 @@ function _laViewCSFModal(a, esc) {
       </td>
     </tr>`).join('');
 
+  _csfHtmlForDownload = `<!DOCTYPE html><html><head>`;
+
   iDoc.open();
   iDoc.write(`<!DOCTYPE html><html><head>
     <meta charset="UTF-8"/>
@@ -1638,14 +1597,17 @@ function _laViewCSFModal(a, esc) {
       * { margin:0; padding:0; box-sizing:border-box; }
       body {
         font-family: Arial, sans-serif;
-        font-size: 10pt;
+        font-size: 8pt;
         color: #000;
         background: #fff;
-        padding: 0.3in 0.35in;
+        padding: 0;
+        margin: 0;
+        width: 750px;
+        box-sizing: border-box;
       }
       @page {
         size: 8.5in 13in portrait;
-        margin: 0.3in 0.35in;
+        margin: 0.3in;
       }
       @media print {
         body { padding: 0; }
@@ -1662,9 +1624,9 @@ function _laViewCSFModal(a, esc) {
       table { border-collapse: collapse; width: 100%; }
       td, th {
         border: 0.5pt solid #000;
-        padding: 2px 4px;
+        padding: 1px 3px;
         vertical-align: top;
-        font-size: 9pt;
+        font-size: 7.5pt;
       }
       .no-border td, .no-border th { border: none; }
 
@@ -1692,8 +1654,18 @@ function _laViewCSFModal(a, esc) {
         border-top: 0.5pt solid #000;
         text-align: center;
         padding-top: 2px;
-        font-size: 8pt;
-        margin-top: 20px;
+        font-size: 7pt;
+        margin-top: 6px;
+      }
+      .form-wrapper {
+        border: 1pt solid #000;
+        width: 100%;
+        min-height: 96vh;
+        display: flex;
+        flex-direction: column;
+      }
+      .form-wrapper > table:last-of-type {
+        flex: 1;
       }
       .section-title {
         font-weight: bold;
@@ -1706,18 +1678,18 @@ function _laViewCSFModal(a, esc) {
       }
       .subsection-label {
         font-style: italic;
-        font-size: 8.5pt;
-        margin-bottom: 4px;
-        margin-top: 10px;
+        font-size: 7pt;
+        margin-bottom: 2px;
+        margin-top: 5px;
         display: block;
       }
       .chk-row {
         display: flex;
         align-items: flex-start;
-        gap: 4px;
-        margin-bottom: 5px;
-        font-size: 8.5pt;
-        line-height: 1.5;
+        gap: 3px;
+        margin-bottom: 2px;
+        font-size: 7pt;
+        line-height: 1.3;
       }
       .chk-box {
         width: 10px;
@@ -1741,14 +1713,14 @@ function _laViewCSFModal(a, esc) {
       }
       .approval-table td { padding: 3px 6px; font-size: 9pt; }
       h1.form-title {
-        font-size: 13pt;
+        font-size: 10pt;
         font-weight: bold;
         text-align: center;
         text-transform: uppercase;
-        padding: 4px 0;
+        padding: 2px 0;
         border-bottom: 0.5pt solid #000;
         border-top: 0.5pt solid #000;
-        margin: 3px 0;
+        margin: 2px 0;
         letter-spacing: 1px;
       }
     </style>
@@ -1796,7 +1768,7 @@ function _laViewCSFModal(a, esc) {
         </td>
         <td style="width:24%;">
           <span class="field-label">(MIDDLE)</span>
-          <span class="field-value">${_esc(a.suffix||'')}</span>
+          <span class="field-value">${_esc(a.middle || a.maternal || '')}</span>
         </td>
       </tr>
       <tr>
@@ -1940,7 +1912,7 @@ function _laViewCSFModal(a, esc) {
           </div>
           <div style="margin:8px 0 6px 4px;">
             <span style="font-size:9.5pt;font-weight:bold;border-bottom:0.5pt solid #000;display:inline-block;min-width:120px;padding:0 4px;">
-              ${_esc(String(a.num_working_days||''))}
+              ${(() => { const n = parseFloat(a.num_working_days); return isNaN(n) ? (a.num_working_days || '') : (n % 1 === 0 ? String(Math.round(n)) : n.toFixed(1)); })()}
             </span>
           </div>
           <div class="small" style="margin-top:10px;font-style:italic;">Inclusive Dates</div>
@@ -1958,13 +1930,13 @@ function _laViewCSFModal(a, esc) {
             </div>
             <span>Not Requested</span>
           </div>
-          <div class="chk-row" style="margin-bottom:20px;">
+          <div class="chk-row" style="margin-bottom:6px;">
             <div class="chk-box ${a.commutation==='Requested'?'checked':''}">
               ${a.commutation==='Requested'?'&#10003;':''}
             </div>
             <span>Requested</span>
           </div>
-          <div class="sig-line">(Signature of Applicant)</div>
+          <div class="sig-line" style="margin-top:6px;">(Signature of Applicant)</div>
         </td>
       </tr>
     </table>
@@ -1976,11 +1948,11 @@ function _laViewCSFModal(a, esc) {
     <table>
       <tr>
         <td style="width:50%;padding:5px 6px;vertical-align:top;">
-          <div class="bold small upper" style="margin-bottom:5px;">7. A. Certification of Leave Credits</div>
-          <div class="small" style="margin-bottom:6px;">
+          <div class="bold small upper" style="margin-bottom:3px;">7. A. Certification of Leave Credits</div>
+          <div class="small" style="margin-bottom:3px;">
             As of <span class="inline-line" style="min-width:120px;">&nbsp;</span>
           </div>
-          <div style="display:flex;flex-direction:column;align-items:center;margin-top:8px;">
+          <div style="display:flex;flex-direction:column;align-items:center;margin-top:4px;">
             <table class="approval-table" style="width:auto;">
               <tr>
                 <th style="width:130px;background:#f5f5f5;">&nbsp;</th>
@@ -2003,8 +1975,8 @@ function _laViewCSFModal(a, esc) {
                 <td>&nbsp;</td>
               </tr>
             </table>
-            <div style="text-align:center;margin-top:20px;">
-              <div class="bold" style="font-size:9.5pt;">FAIZAL B. MACASAYON</div>
+            <div style="text-align:center;margin-top:8px;">
+              <div class="bold" style="font-size:8.5pt;">FAIZAL B. MACASAYON</div>
               <div class="small">Administrative Officer IV/ HRMO</div>
             </div>
           </div>
@@ -2025,7 +1997,7 @@ function _laViewCSFModal(a, esc) {
             <span class="inline-line" style="min-width:200px;display:block;margin-bottom:4px;">&nbsp;</span>
             <span class="inline-line" style="min-width:200px;display:block;">&nbsp;</span>
           </div>
-          <div class="sig-line" style="margin-top:60px;">(Authorized Officer)</div>
+          <div class="sig-line" style="margin-top:70px;">(Authorized Officer)</div>
         </td>
       </tr>
     </table>
@@ -2060,9 +2032,9 @@ function _laViewCSFModal(a, esc) {
         </td>
       </tr>
       <tr>
-        <td colspan="2" style="text-align:center;padding:80px 6px 8px;border-top:0.5pt solid #000;border-left:none;border-right:none;">
-          <div class="bold underline" style="font-size:13pt;letter-spacing:0.3px;">NERISSA A. ALFAFARA, CESO VI</div>
-          <div style="font-size:9pt;">Assistant Schools Division Superintendent</div>
+        <td colspan="2" style="text-align:center;padding:70px 6px 55px;border-top:0.5pt solid #000;border-left:none;border-right:none;">
+          <div class="bold underline" style="font-size:11pt;letter-spacing:0.3px;">NERISSA A. ALFAFARA, CESO VI</div>
+          <div style="font-size:8pt;">Assistant Schools Division Superintendent</div>
         </td>
       </tr>
     </table>
@@ -2072,14 +2044,606 @@ function _laViewCSFModal(a, esc) {
   </body></html>`);
   iDoc.close();
 
+  /* Capture the rendered HTML for download */
+  const _csfHtmlStr = '<!DOCTYPE html><html>' + iDoc.documentElement.outerHTML + '</html>';
+
   const close = () => document.getElementById('laViewMo')?.remove();
   document.getElementById('laVwClose')?.addEventListener('click', close);
   document.getElementById('laVwOk')?.addEventListener('click',    close);
+
+  document.getElementById('csfDownloadBtn')?.addEventListener('click', () => {
+    const btn = document.getElementById('csfDownloadBtn');
+    if (typeof html2pdf === 'undefined') { alert('PDF library not loaded.'); return; }
+    btn.disabled = true;
+    btn.textContent = '⏳ Generating…';
+
+    const name = ('CSF6_' + (a.surname||'') + '_' + (a.given||'') + '_' + (a.date_of_filing||'leave')).replace(/\s+/g,'_') + '.pdf';
+
+    html2pdf().set({
+      margin:      [0.3, 0.3, 0.3, 0.3],
+      filename:    name,
+      image:       { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#fff', logging: false, windowWidth: 750, scrollX: 0, scrollY: 0, x: 0, y: 0 },
+      jsPDF:       { unit: 'in', format: [8.5, 13], orientation: 'portrait' }
+    }).from(_csfHtmlStr, 'string').save().then(() => {
+      btn.disabled = false;
+      btn.textContent = '⬇ Download PDF';
+    }).catch(err => {
+      btn.disabled = false;
+      btn.textContent = '⬇ Download PDF';
+      alert('PDF generation failed: ' + err.message);
+    });
+  });
 }
 
-/* ── EMPLOYEE SUBMISSIONS FULL PAGE ──────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   REPLACE these two functions in leave-application.js
+   1. injectLeaveApplicationSection
+   2. renderEmpSubmissionsPage
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── CSS injection for the new layout ── */
+(function injectEmpSubmissionsCSS() {
+  if (document.getElementById('emp-subs-v4-css')) return;
+  const s = document.createElement('style');
+  s.id = 'emp-subs-v4-css';
+  s.textContent = `
+/* ── SUBMISSIONS SHELL ──────────────────── */
+.es-shell {
+  display: flex;
+  min-height: 600px;
+  border-radius: 18px;
+  border: 1.5px solid #e8d0d0;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 4px 24px rgba(139,26,26,.08);
+  margin: 28px 0 0;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── SIDEBAR ────────────────────────────── */
+.es-sidebar {
+  width: 200px;
+  min-width: 200px;
+  background: linear-gradient(180deg, #5a0f16 0%, #8b1a1a 60%, #9b1c1c 100%);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  flex-shrink: 0;
+}
+.es-sidebar-header {
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+.es-sidebar-eyebrow {
+  font-size: 8.5px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,200,200,.55);
+  margin-bottom: 4px;
+}
+.es-sidebar-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+}
+.es-sidebar-nav {
+  flex: 1;
+  padding: 12px 0;
+}
+.es-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 18px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: rgba(255,210,210,.65);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  width: 100%;
+  text-align: left;
+  transition: background .15s, color .15s;
+  position: relative;
+  border-left: 3px solid transparent;
+}
+.es-nav-item:hover {
+  background: rgba(255,255,255,.08);
+  color: #fff;
+}
+.es-nav-item.active {
+  background: rgba(255,255,255,.14);
+  color: #fff;
+  border-left-color: #fcd34d;
+}
+.es-nav-item-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.es-nav-item-label { flex: 1; }
+.es-nav-item-badge {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 20px;
+  min-width: 20px;
+  text-align: center;
+}
+.es-badge-pending  { background: #fef3c7; color: #92400e; }
+.es-badge-accepted { background: #d1fae5; color: #065f46; }
+.es-badge-rejected { background: #fee2e2; color: #991b1b; }
+.es-badge-recorded { background: #dbeafe; color: #1e3a6e; }
+
+.es-sidebar-apply {
+  padding: 16px;
+  border-top: 1px solid rgba(255,255,255,.1);
+}
+.es-apply-btn {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255,255,255,.15);
+  border: 1.5px solid rgba(255,255,255,.25);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: background .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.es-apply-btn:hover { background: rgba(255,255,255,.25); }
+
+/* ── CONTENT AREA ───────────────────────── */
+.es-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.es-content-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1.5px solid #f0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.es-content-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1a1a2e;
+}
+.es-content-subtitle {
+  font-size: 11px;
+  color: #9a8a8a;
+  margin-top: 2px;
+}
+.es-content-list {
+  flex: 1;
+  padding: 16px 20px;
+  overflow-y: auto;
+}
+.es-content-list.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── APP CARDS ──────────────────────────── */
+.es-app-card {
+  background: #fff;
+  border: 1.5px solid #eee;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 10px;
+  transition: box-shadow .2s, border-color .2s;
+}
+.es-app-card:hover {
+  box-shadow: 0 4px 16px rgba(139,26,26,.09);
+  border-color: #e0c0c0;
+}
+.es-app-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.es-app-card-type {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 3px;
+}
+.es-app-card-meta {
+  font-size: 11px;
+  color: #7a8a9d;
+  line-height: 1.6;
+}
+.es-status-pill {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  padding: 4px 11px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.es-status-pending  { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.es-status-accepted { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.es-status-rejected { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+.es-rejection-box {
+  background: #fff5f5;
+  border-left: 3px solid #fca5a5;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 11.5px;
+  color: #991b1b;
+  margin-bottom: 10px;
+}
+.es-accepted-box {
+  background: #f0fdf8;
+  border-left: 3px solid #6ee7b7;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 11.5px;
+  color: #065f46;
+  margin-bottom: 10px;
+}
+.es-app-card-actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.es-action-btn {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 13px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: opacity .15s, transform .15s;
+}
+.es-action-btn:hover { transform: translateY(-1px); }
+.es-action-view   { background: #ede9fe; color: #4c1d95; border: 1px solid #c4b5fd; }
+.es-action-print  { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.es-action-edit   { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.es-action-delete { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+/* ── RECORDED CARDS ─────────────────────── */
+.es-recorded-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #dbeafe;
+  color: #1e3a6e;
+  border: 1px solid #93c5fd;
+  border-radius: 8px;
+  padding: 4px 12px;
+  font-size: 10.5px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+/* ── EMPTY STATE ────────────────────────── */
+.es-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #9a8a8a;
+}
+.es-empty-icon { font-size: 36px; margin-bottom: 10px; }
+.es-empty-text { font-size: 13px; }
+
+/* ── RESPONSIVE ─────────────────────────── */
+@media (max-width: 640px) {
+  .es-shell { flex-direction: column; }
+  .es-sidebar { width: 100%; min-width: unset; }
+  .es-sidebar-nav { display: flex; flex-direction: row; padding: 8px; gap: 4px; overflow-x: auto; }
+  .es-nav-item { flex-direction: column; padding: 8px 10px; gap: 4px; border-left: none; border-bottom: 3px solid transparent; min-width: 70px; }
+  .es-nav-item.active { border-left-color: transparent; border-bottom-color: #fcd34d; }
+  .es-nav-item-label { font-size: 10px; }
+}
+
+@media print {
+  .es-shell { display: none !important; }
+}
+  `;
+  document.head.appendChild(s);
+})();
+
+
+/* ══════════════════════════════════════════════════════════════
+   injectLeaveApplicationSection
+   Mounted on the employee's leave card page (empLeaveAppMount)
+   ══════════════════════════════════════════════════════════════ */
+async function injectLeaveApplicationSection(emp) {
+  const mount = document.getElementById('empLeaveAppMount');
+  if (!mount) return;
+
+  const apiCall = window.apiCall;
+  if (!apiCall) return;
+
+  const esc = window.escHtml || (s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'));
+
+  const res  = await apiCall('get_my_leave_applications', {}, 'GET');
+  const apps = (res.ok ? res.applications : []) || [];
+
+  const counts = {
+    pending:  apps.filter(a => a.status === 'pending').length,
+    accepted: apps.filter(a => a.status === 'accepted').length,
+    rejected: apps.filter(a => a.status === 'rejected').length,
+    recorded: 0,
+  };
+
+  /* Load recorded count */
+  const recRes = await apiCall('get_my_recorded_applications', {}, 'GET');
+  const recApps = (recRes.ok ? recRes.applications : []) || [];
+  counts.recorded = recApps.length;
+
+  let currentTab = 'pending';
+
+  /* ── Build shell ── */
+  mount.innerHTML = `
+    <div class="es-shell" id="esShell">
+      <div class="es-sidebar">
+        <div class="es-sidebar-header">
+          <div class="es-sidebar-eyebrow">Civil Service Form No. 6</div>
+          <div class="es-sidebar-title">My Leave Applications</div>
+        </div>
+        <nav class="es-sidebar-nav" id="esNav">
+          <button class="es-nav-item active" data-tab="pending">
+            <span class="es-nav-item-icon">⏳</span>
+            <span class="es-nav-item-label">Pending</span>
+            <span class="es-nav-item-badge es-badge-pending" id="esBadgePending">${counts.pending}</span>
+          </button>
+          <button class="es-nav-item" data-tab="accepted">
+            <span class="es-nav-item-icon">✅</span>
+            <span class="es-nav-item-label">Accepted</span>
+            <span class="es-nav-item-badge es-badge-accepted" id="esBadgeAccepted">${counts.accepted}</span>
+          </button>
+          <button class="es-nav-item" data-tab="rejected">
+            <span class="es-nav-item-icon">❌</span>
+            <span class="es-nav-item-label">Rejected</span>
+            <span class="es-nav-item-badge es-badge-rejected" id="esBadgeRejected">${counts.rejected}</span>
+          </button>
+          <button class="es-nav-item" data-tab="recorded">
+            <span class="es-nav-item-icon">📁</span>
+            <span class="es-nav-item-label">Recorded</span>
+            <span class="es-nav-item-badge es-badge-recorded" id="esBadgeRecorded">${counts.recorded}</span>
+          </button>
+        </nav>
+        <div class="es-sidebar-apply">
+          <button class="es-apply-btn" id="esApplyBtn">
+            📋 Apply for Leave
+          </button>
+        </div>
+      </div>
+      <div class="es-content">
+        <div class="es-content-header">
+          <div>
+            <div class="es-content-title" id="esContentTitle">Pending Applications</div>
+            <div class="es-content-subtitle" id="esContentSub">Applications awaiting review</div>
+          </div>
+        </div>
+        <div class="es-content-list" id="esContentList"></div>
+      </div>
+    </div>`;
+
+  /* ── Tab metadata ── */
+  const TAB_META = {
+    pending:  { title: 'Pending Applications',  sub: 'Applications awaiting review' },
+    accepted: { title: 'Accepted Applications', sub: 'Approved leave applications' },
+    rejected: { title: 'Rejected Applications', sub: 'Applications requiring correction' },
+    recorded: { title: 'Recorded Applications', sub: 'Officially recorded in the leave card' },
+  };
+
+  /* ── Render tab ── */
+  function renderTab(tab) {
+    currentTab = tab;
+
+    /* Update nav active state */
+    mount.querySelectorAll('.es-nav-item').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+
+    /* Update header */
+    const meta = TAB_META[tab];
+    const titleEl = mount.querySelector('#esContentTitle');
+    const subEl   = mount.querySelector('#esContentSub');
+    if (titleEl) titleEl.textContent = meta.title;
+    if (subEl)   subEl.textContent   = meta.sub;
+
+    const list = mount.querySelector('#esContentList');
+    if (!list) return;
+
+    if (tab === 'recorded') {
+      _esRenderRecorded(recApps, list, esc, emp);
+      return;
+    }
+
+    const filtered = apps.filter(a => a.status === tab);
+    _esRenderApplications(filtered, tab, list, esc, emp, apiCall, apps, renderTab);
+  }
+
+  /* ── Wire nav ── */
+  mount.querySelectorAll('.es-nav-item').forEach(btn => {
+    btn.addEventListener('click', () => renderTab(btn.dataset.tab));
+  });
+
+  mount.querySelector('#esApplyBtn')?.addEventListener('click', () => {
+    if (typeof showLeaveApplicationModal === 'function') showLeaveApplicationModal(emp, null);
+  });
+
+  /* ── Default tab ── */
+  renderTab('pending');
+}
+window.injectLeaveApplicationSection = injectLeaveApplicationSection;
+
+
+/* ── Render application cards ── */
+function _esRenderApplications(filtered, tab, list, esc, emp, apiCall, allApps, renderTab) {
+  const icons = { pending: '📭', accepted: '✅', rejected: '❌' };
+
+  if (filtered.length === 0) {
+    list.classList.add('empty-state');
+    list.innerHTML = `
+      <div class="es-empty">
+        <div class="es-empty-icon">${icons[tab] || '📂'}</div>
+        <div class="es-empty-text">No ${tab} applications yet.</div>
+      </div>`;
+    return;
+  }
+
+  list.classList.remove('empty-state');
+  list.innerHTML = filtered.map(a => {
+    const lbl = a.leave_type === 'Others' && a.leave_type_other
+      ? `Others: ${esc(a.leave_type_other)}` : esc(a.leave_type || '—');
+
+    return `
+      <div class="es-app-card">
+        <div class="es-app-card-top">
+          <div>
+            <div class="es-app-card-type">${lbl}</div>
+            <div class="es-app-card-meta">
+              📅 ${esc(a.inclusive_dates || '—')} &nbsp;·&nbsp; ${a.num_working_days || '—'} day(s)<br>
+              Filed: ${a.date_of_filing || '—'} &nbsp;·&nbsp; ${esc(a.office_school || '')}
+            </div>
+          </div>
+          <span class="es-status-pill es-status-${tab}">${tab.toUpperCase()}</span>
+        </div>
+
+        ${tab === 'rejected' && a.rejection_reason ? `
+          <div class="es-rejection-box">❌ ${esc(a.rejection_reason)}</div>` : ''}
+
+        ${tab === 'accepted' && a.reviewed_by ? `
+          <div class="es-accepted-box">✅ Accepted by ${esc(a.reviewed_by)}</div>` : ''}
+
+        <div class="es-app-card-actions">
+          <button class="es-action-btn es-action-view" data-view="${a.id}">🔍 View</button>
+          ${tab === 'accepted'
+            ? `<button class="es-action-btn es-action-print" data-print="${a.id}">🖨 Print CSF No. 6</button>` : ''}
+          ${tab === 'rejected'
+            ? `<button class="es-action-btn es-action-edit" data-edit="${a.id}">✏ Edit & Resubmit</button>` : ''}
+          ${tab !== 'accepted'
+            ? `<button class="es-action-btn es-action-delete" data-delete="${a.id}">🗑 Delete</button>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+
+  /* Wire buttons */
+  list.querySelectorAll('[data-view]').forEach(btn => {
+    const app = allApps.find(a => a.id === +btn.dataset.view);
+    if (app && typeof _laViewCSFModal === 'function') {
+      btn.addEventListener('click', () => _laViewCSFModal(app, esc));
+    }
+  });
+  list.querySelectorAll('[data-print]').forEach(btn => {
+    const app = allApps.find(a => a.id === +btn.dataset.print);
+    if (app && typeof _laViewCSFModal === 'function') {
+      btn.addEventListener('click', () => {
+        _laViewCSFModal(app, esc);
+        setTimeout(() => document.getElementById('csfPrintFrame')?.contentWindow?.print(), 800);
+      });
+    }
+  });
+  list.querySelectorAll('[data-edit]').forEach(btn => {
+    const app = allApps.find(a => a.id === +btn.dataset.edit);
+    if (app && typeof showLeaveApplicationModal === 'function') {
+      btn.addEventListener('click', () => showLeaveApplicationModal(emp, app));
+    }
+  });
+  list.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Delete this application?')) return;
+      const r = await apiCall('delete_leave_application', { app_id: +btn.dataset.delete });
+      if (r.ok) injectLeaveApplicationSection(emp);
+      else alert(r.error || 'Delete failed.');
+    });
+  });
+}
+
+
+/* ── Render recorded cards ── */
+function _esRenderRecorded(recApps, list, esc, emp) {
+  if (recApps.length === 0) {
+    list.classList.add('empty-state');
+    list.innerHTML = `
+      <div class="es-empty">
+        <div class="es-empty-icon">📁</div>
+        <div class="es-empty-text">No recorded applications yet.</div>
+      </div>`;
+    return;
+  }
+
+  list.classList.remove('empty-state');
+  list.innerHTML = recApps.map(a => {
+    const lbl = a.leave_type === 'Others' && a.leave_type_other
+      ? `Others: ${esc(a.leave_type_other)}` : esc(a.leave_type || '—');
+
+    let recDate = '—';
+    if (a.recorded_at) {
+      try {
+        recDate = new Date(a.recorded_at).toLocaleDateString('en-PH', {
+          month: 'long', day: 'numeric', year: 'numeric'
+        });
+      } catch(e) { recDate = String(a.recorded_at).slice(0, 10); }
+    }
+
+    return `
+      <div class="es-app-card">
+        <div class="es-app-card-top">
+          <div>
+            <div class="es-app-card-type">${lbl}</div>
+            <div class="es-app-card-meta">
+              📅 ${esc(a.inclusive_dates || '—')} &nbsp;·&nbsp; ${a.num_working_days || '—'} day(s)<br>
+              Filed: ${a.date_of_filing || '—'}
+            </div>
+          </div>
+        </div>
+        <div class="es-recorded-badge">📁 Recorded on ${recDate}</div>
+        <div class="es-app-card-actions">
+          <button class="es-action-btn es-action-view" data-view-rec="${a.id}">🔍 View CSF No. 6</button>
+          <button class="es-action-btn es-action-print" data-print-rec="${a.id}">🖨 Print</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  list.querySelectorAll('[data-view-rec]').forEach(btn => {
+    const app = recApps.find(a => String(a.id) === String(btn.dataset.viewRec));
+    if (app && typeof _laViewCSFModal === 'function') {
+      btn.addEventListener('click', () => _laViewCSFModal(app, esc));
+    }
+  });
+  list.querySelectorAll('[data-print-rec]').forEach(btn => {
+    const app = recApps.find(a => String(a.id) === String(btn.dataset.printRec));
+    if (app && typeof _laViewCSFModal === 'function') {
+      btn.addEventListener('click', () => {
+        _laViewCSFModal(app, esc);
+        setTimeout(() => document.getElementById('csfPrintFrame')?.contentWindow?.print(), 800);
+      });
+    }
+  });
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   renderEmpSubmissionsPage
+   Full-page view accessed via hamburger sidebar
+   ══════════════════════════════════════════════════════════════ */
 async function renderEmpSubmissionsPage(emp) {
-  /* Get or create page element */
   let pg = document.getElementById('pg-emp-submissions');
   if (!pg) {
     pg = document.createElement('div');
@@ -2092,10 +2656,10 @@ async function renderEmpSubmissionsPage(emp) {
   pg.classList.add('on');
   window.scrollTo(0, 0);
 
-  pg.innerHTML = `
-    <div style="max-width:860px;margin:0 auto;padding-bottom:80px;font-family:'DM Sans','Inter',sans-serif;">
+  const esc = window.escHtml || (s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'));
 
-      <!-- Sticky Header -->
+  pg.innerHTML = `
+    <div style="max-width:100%;margin:0;padding-bottom:80px;font-family:'DM Sans','Inter',sans-serif;">
       <div style="background:linear-gradient(135deg,#5a0f16 0%,#8b1a1a 55%,#b02020 100%);
                   color:#fff;padding:18px 28px;position:sticky;top:0;z-index:200;
                   box-shadow:0 3px 20px rgba(90,15,22,.45);">
@@ -2103,35 +2667,20 @@ async function renderEmpSubmissionsPage(emp) {
           <button id="empSubBackBtn"
             style="background:rgba(255,255,255,.14);color:#fff;border:1.5px solid rgba(255,255,255,.3);
                    border-radius:9px;padding:8px 18px;font-size:12px;font-weight:700;cursor:pointer;
-                   font-family:'DM Sans',sans-serif;">
-            ← My Leave Card
-          </button>
+                   font-family:'DM Sans',sans-serif;">← My Leave Card</button>
           <div style="text-align:center;flex:1;">
-            <div style="font-size:9px;letter-spacing:2.5px;text-transform:uppercase;opacity:.65;margin-bottom:3px;">
-              Civil Service Form No. 6
-            </div>
-            <div style="font-family:'Playfair Display',Georgia,serif;font-size:1.2rem;font-weight:800;">
-              My Leave Applications
-            </div>
-            <div style="font-size:10.5px;opacity:.7;margin-top:2px;">
-              SDO Koronadal City &nbsp;·&nbsp; ${_esc(emp?.school || 'Schools Division Office')}
-            </div>
+            <div style="font-size:9px;letter-spacing:2.5px;text-transform:uppercase;opacity:.65;margin-bottom:3px;">Civil Service Form No. 6</div>
+            <div style="font-family:'Playfair Display',Georgia,serif;font-size:1.2rem;font-weight:800;">My Leave Applications</div>
+            <div style="font-size:10.5px;opacity:.7;margin-top:2px;">SDO Koronadal City &nbsp;·&nbsp; ${esc(emp?.school || 'Schools Division Office')}</div>
           </div>
-          <button id="empSubApplyBtn"
+          <button id="empSubApplyBtn2"
             style="background:rgba(255,255,255,.14);color:#fff;border:1.5px solid rgba(255,255,255,.3);
                    border-radius:9px;padding:8px 18px;font-size:12px;font-weight:700;cursor:pointer;
-                   white-space:nowrap;font-family:'DM Sans',sans-serif;">
-            📋 Apply for Leave
-          </button>
+                   white-space:nowrap;font-family:'DM Sans',sans-serif;">📋 Apply for Leave</button>
         </div>
       </div>
-
-      <!-- Loading -->
-      <div id="empSubPageInner" style="padding:24px 20px 0;">
-        <div style="text-align:center;padding:60px 20px;color:#9a8a8a;">
-          <div style="font-size:32px;margin-bottom:12px;">⏳</div>
-          <div style="font-size:13px;">Loading your applications…</div>
-        </div>
+      <div style="padding:20px 24px;">
+        <div id="empSubPageMount"></div>
       </div>
     </div>`;
 
@@ -2139,208 +2688,94 @@ async function renderEmpSubmissionsPage(emp) {
     pg.classList.remove('on');
     document.getElementById('pg-user')?.classList.add('on');
   });
-  document.getElementById('empSubApplyBtn')?.addEventListener('click', () => {
+  document.getElementById('empSubApplyBtn2')?.addEventListener('click', () => {
     if (typeof showLeaveApplicationModal === 'function') showLeaveApplicationModal(emp, null);
   });
 
-  /* Load applications */
+  /* Reuse injectLeaveApplicationSection but target new mount */
   const apiCall = window.apiCall;
   if (!apiCall) return;
 
-  const res  = await apiCall('get_my_leave_applications', {}, 'GET');
-  const apps = (res.ok ? res.applications : []) || [];
+  const res     = await apiCall('get_my_leave_applications', {}, 'GET');
+  const apps    = (res.ok ? res.applications : []) || [];
+  const recRes  = await apiCall('get_my_recorded_applications', {}, 'GET');
+  const recApps = (recRes.ok ? recRes.applications : []) || [];
 
-  const pendingCount  = apps.filter(a => a.status === 'pending').length;
-  const acceptedCount = apps.filter(a => a.status === 'accepted').length;
-  const rejectedCount = apps.filter(a => a.status === 'rejected').length;
+  const counts = {
+    pending:  apps.filter(a => a.status === 'pending').length,
+    accepted: apps.filter(a => a.status === 'accepted').length,
+    rejected: apps.filter(a => a.status === 'rejected').length,
+    recorded: recApps.length,
+  };
 
-  const esc = window.escHtml || _esc;
+  const mount = document.getElementById('empSubPageMount');
+  if (!mount) return;
 
-  const inner = document.getElementById('empSubPageInner');
-  if (!inner) return;
+  mount.innerHTML = `
+    <div style="display:flex;gap:0;border-bottom:2px solid #f0e0e0;background:#fdf8f8;border-radius:12px 12px 0 0;overflow:hidden;">
+      <button class="es-flat-tab active" data-tab2="pending" style="flex:1;padding:13px 8px;font-size:11.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;border:none;cursor:pointer;background:linear-gradient(135deg,#8b1a1a,#c83030);color:#fff;font-family:'DM Sans',sans-serif;transition:all .2s;">
+        ⏳ Pending <span style="background:rgba(255,255,255,.25);border-radius:20px;padding:1px 8px;margin-left:4px;">${counts.pending}</span>
+      </button>
+      <button class="es-flat-tab" data-tab2="accepted" style="flex:1;padding:13px 8px;font-size:11.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;border:none;border-left:1px solid #f0e0e0;cursor:pointer;background:#fff;color:#7a8a9d;font-family:'DM Sans',sans-serif;transition:all .2s;">
+        ✅ Accepted <span style="background:#d1fae5;color:#065f46;border-radius:20px;padding:1px 8px;margin-left:4px;">${counts.accepted}</span>
+      </button>
+      <button class="es-flat-tab" data-tab2="rejected" style="flex:1;padding:13px 8px;font-size:11.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;border:none;border-left:1px solid #f0e0e0;cursor:pointer;background:#fff;color:#7a8a9d;font-family:'DM Sans',sans-serif;transition:all .2s;">
+        ❌ Rejected <span style="background:#fee2e2;color:#991b1b;border-radius:20px;padding:1px 8px;margin-left:4px;">${counts.rejected}</span>
+      </button>
+      <button class="es-flat-tab" data-tab2="recorded" style="flex:1;padding:13px 8px;font-size:11.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;border:none;border-left:1px solid #f0e0e0;cursor:pointer;background:#fff;color:#7a8a9d;font-family:'DM Sans',sans-serif;transition:all .2s;">
+        📁 Recorded <span style="background:#dbeafe;color:#1e3a6e;border-radius:20px;padding:1px 8px;margin-left:4px;">${counts.recorded}</span>
+      </button>
+    </div>
+    <div id="esContentList2" style="padding:20px;min-height:400px;background:#fff;border-radius:0 0 12px 12px;border:1.5px solid #e8d0d0;border-top:none;"></div>`;
 
-  let currentTab = 'pending';
+  const TAB_META = {
+    pending:  { title: 'Pending Applications',  sub: 'Applications awaiting review' },
+    accepted: { title: 'Accepted Applications', sub: 'Approved leave applications' },
+    rejected: { title: 'Rejected Applications', sub: 'Applications requiring correction' },
+    recorded: { title: 'Recorded Applications', sub: 'Officially recorded in the leave card' },
+  };
 
-  function renderTab(tab) {
-    currentTab = tab;
-    const filtered = apps.filter(a => a.status === tab);
-
-    /* Update tab styles */
-    ['pending','accepted','rejected'].forEach(t => {
-      const btn = inner.querySelector(`#empSubPgTab_${t}`);
-      if (!btn) return;
-      if (t === tab) {
-        const grad = t === 'pending'  ? 'linear-gradient(135deg,#8b1a1a,#c83030)'
-                   : t === 'accepted' ? 'linear-gradient(135deg,#064e3b,#059669)'
-                   :                    'linear-gradient(135deg,#7f1d1d,#dc2626)';
-        btn.style.background = grad;
-        btn.style.color = '#fff';
-      } else {
-        btn.style.background = '#fff';
-        btn.style.color = '#7a8a9d';
-      }
+  function renderTab2(tab) {
+    mount.querySelectorAll('.es-nav-item').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab2 === tab);
     });
+    const meta  = TAB_META[tab];
+    const title = mount.querySelector('#esContentTitle2');
+    const sub   = mount.querySelector('#esContentSub2');
+    if (title) title.textContent = meta.title;
+    if (sub)   sub.textContent   = meta.sub;
 
-    const listWrap = inner.querySelector('#empSubPgList');
-    if (!listWrap) return;
+    const list = document.getElementById('esContentList2');
+    if (!list) return;
 
-    if (filtered.length === 0) {
-      listWrap.innerHTML = `
-        <div style="text-align:center;padding:60px 20px;color:#9a8a8a;">
-          <div style="font-size:40px;margin-bottom:14px;">
-            ${tab==='pending'?'📭':tab==='accepted'?'✅':'❌'}
-          </div>
-          <div style="font-size:13px;">No ${tab} applications yet.</div>
-          ${tab==='pending' ? `<button onclick="document.getElementById('empSubApplyBtn').click()"
-            style="margin-top:16px;background:linear-gradient(135deg,#8b1a1a,#c83030);color:#fff;
-                   border:none;border-radius:10px;padding:11px 26px;font-size:13px;font-weight:700;
-                   cursor:pointer;font-family:'DM Sans',sans-serif;">
-            📋 Apply for Leave
-          </button>` : ''}
-        </div>`;
+    if (tab === 'recorded') {
+      _esRenderRecorded(recApps, list, esc, emp);
       return;
     }
 
-    listWrap.innerHTML = `<div style="display:flex;flex-direction:column;gap:12px;">
-      ${filtered.map(a => {
-        const lbl = a.leave_type === 'Others' && a.leave_type_other
-          ? `Others: ${esc(a.leave_type_other)}` : esc(a.leave_type||'—');
-        return `
-          <div style="background:#fff;border-radius:16px;border:1.5px solid #e8d0d0;
-                      padding:20px 24px;box-shadow:0 2px 12px rgba(139,26,26,.07);">
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:10px;">
-              <div>
-                <span class="emp-app-card-status ${a.status}"
-                  style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;
-                         padding:4px 12px;border-radius:20px;display:inline-block;margin-bottom:6px;
-                         ${a.status==='pending'  ? 'background:#fef3c7;color:#92400e;border:1px solid #fcd34d;'
-                         : a.status==='accepted' ? 'background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;'
-                         :                        'background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;'}">
-                  ${a.status.toUpperCase()}
-                </span>
-                <div style="font-size:14px;font-weight:700;color:#1a1a2e;">${lbl}</div>
-                <div style="font-size:11.5px;color:#7a8a9d;margin-top:3px;">
-                  📅 ${esc(a.inclusive_dates||'—')} &nbsp;·&nbsp; ${a.num_working_days||'—'} day(s)
-                  &nbsp;·&nbsp; Filed: ${a.date_of_filing||'—'}
-                </div>
-                <div style="font-size:11px;color:#9a8a9d;margin-top:2px;">
-                  🏫 ${esc(a.office_school||'')} &nbsp;·&nbsp; Commutation: ${esc(a.commutation||'Not Requested')}
-                </div>
-                ${a.attachment_name
-                  ? `<div style="font-size:11px;color:#3b82f6;margin-top:4px;">📎 ${esc(a.attachment_name)}</div>` : ''}
-              </div>
-            </div>
-
-            ${a.status==='rejected' && a.rejection_reason ? `
-              <div style="font-size:12px;color:#991b1b;background:#fff5f5;border-radius:9px;
-                          padding:9px 14px;border-left:3px solid #fca5a5;margin-bottom:10px;">
-                ❌ Rejection reason: ${esc(a.rejection_reason)}
-              </div>` : ''}
-
-            ${a.status==='accepted' && a.reviewed_by ? `
-              <div style="font-size:11px;color:#065f46;background:#d1fae5;border-radius:9px;
-                          padding:6px 12px;margin-bottom:10px;">
-                ✅ Accepted by ${esc(a.reviewed_by)}
-              </div>` : ''}
-
-            <!-- Action buttons -->
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button data-view-app="${a.id}"
-                style="font-size:11px;font-weight:700;padding:7px 16px;border-radius:8px;cursor:pointer;
-                       background:#e0e7ff;color:#3730a3;border:1px solid #a5b4fc;font-family:'DM Sans',sans-serif;">
-                🔍 View
-              </button>
-              ${a.status==='accepted' ? `
-                <button data-print-app="${a.id}"
-                  style="font-size:11px;font-weight:700;padding:7px 16px;border-radius:8px;cursor:pointer;
-                         background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;font-family:'DM Sans',sans-serif;">
-                  🖨 Print CSF No. 6
-                </button>` : ''}
-              ${a.status==='rejected' ? `
-                <button data-edit-app="${a.id}"
-                  style="font-size:11px;font-weight:700;padding:7px 16px;border-radius:8px;cursor:pointer;
-                         background:#fef3c7;color:#92400e;border:1px solid #fcd34d;font-family:'DM Sans',sans-serif;">
-                  ✏ Edit &amp; Resubmit
-                </button>` : ''}
-              ${a.status!=='accepted' ? `
-                <button data-delete-app="${a.id}"
-                  style="font-size:11px;font-weight:700;padding:7px 16px;border-radius:8px;cursor:pointer;
-                         background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;font-family:'DM Sans',sans-serif;">
-                  🗑 Delete
-                </button>` : ''}
-            </div>
-          </div>`;
-      }).join('')}
-    </div>`;
-
-    /* Wire buttons */
-    listWrap.querySelectorAll('[data-view-app]').forEach(btn => {
-      const app = apps.find(a => a.id === +btn.dataset.viewApp);
-      if (app) btn.addEventListener('click', () => _laViewCSFModal(app, esc));
-    });
-    listWrap.querySelectorAll('[data-print-app]').forEach(btn => {
-      const app = apps.find(a => a.id === +btn.dataset.printApp);
-      if (app) btn.addEventListener('click', () => {
-        _laViewCSFModal(app, esc);
-        setTimeout(() => document.getElementById('csfPrintFrame')?.contentWindow?.print(), 800);
-      });
-    });
-    listWrap.querySelectorAll('[data-edit-app]').forEach(btn => {
-      const app = apps.find(a => a.id === +btn.dataset.editApp);
-      if (app) btn.addEventListener('click', () => {
-        if (typeof showLeaveApplicationModal === 'function') showLeaveApplicationModal(emp, app);
-      });
-    });
-    listWrap.querySelectorAll('[data-delete-app]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        if (!confirm('Delete this application?')) return;
-        const r = await apiCall('delete_leave_application', { app_id: +btn.dataset.deleteApp });
-        if (r.ok) renderEmpSubmissionsPage(emp);
-        else alert(r.error || 'Delete failed.');
-      });
-    });
+    const filtered = apps.filter(a => a.status === tab);
+    _esRenderApplications(filtered, tab, list, esc, emp, apiCall, apps, renderTab2);
   }
 
-  inner.innerHTML = `
-    <!-- Tabs -->
-    <div style="display:flex;border-radius:14px;overflow:hidden;border:1.5px solid #e8d0d0;margin-bottom:20px;background:#fff;">
-      <button id="empSubPgTab_pending"
-        style="flex:1;padding:13px 8px;font-size:11px;font-weight:800;letter-spacing:.5px;
-               text-transform:uppercase;border:none;cursor:pointer;
-               background:linear-gradient(135deg,#8b1a1a,#c83030);color:#fff;
-               transition:all .2s;font-family:'DM Sans',sans-serif;">
-        ⏳ Pending <span style="background:rgba(255,255,255,.25);border-radius:20px;padding:1px 8px;margin-left:4px;">${pendingCount}</span>
-      </button>
-      <button id="empSubPgTab_accepted"
-        style="flex:1;padding:13px 8px;font-size:11px;font-weight:800;letter-spacing:.5px;
-               text-transform:uppercase;border:none;cursor:pointer;background:#fff;color:#7a8a9d;
-               border-left:1.5px solid #e8d0d0;transition:all .2s;font-family:'DM Sans',sans-serif;">
-        ✅ Accepted <span style="background:#d1fae5;color:#065f46;border-radius:20px;padding:1px 8px;margin-left:4px;">${acceptedCount}</span>
-      </button>
-      <button id="empSubPgTab_rejected"
-        style="flex:1;padding:13px 8px;font-size:11px;font-weight:800;letter-spacing:.5px;
-               text-transform:uppercase;border:none;cursor:pointer;background:#fff;color:#7a8a9d;
-               border-left:1.5px solid #e8d0d0;transition:all .2s;font-family:'DM Sans',sans-serif;">
-        ❌ Rejected <span style="background:#fee2e2;color:#991b1b;border-radius:20px;padding:1px 8px;margin-left:4px;">${rejectedCount}</span>
-      </button>
-    </div>
+  mount.querySelectorAll('.es-flat-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      mount.querySelectorAll('.es-flat-tab').forEach(b => {
+        b.style.background = '#fff';
+        b.style.color = '#7a8a9d';
+      });
+      btn.style.background = 'linear-gradient(135deg,#8b1a1a,#c83030)';
+      btn.style.color = '#fff';
+      renderTab2(btn.dataset.tab2);
+    });
+  });
 
-    <!-- List -->
-    <div id="empSubPgList"></div>`;
-
-  /* Tab click handlers */
-  inner.querySelector('#empSubPgTab_pending')?.addEventListener('click',  () => renderTab('pending'));
-  inner.querySelector('#empSubPgTab_accepted')?.addEventListener('click', () => renderTab('accepted'));
-  inner.querySelector('#empSubPgTab_rejected')?.addEventListener('click', () => renderTab('rejected'));
-
-  /* Default to pending */
-  renderTab('pending');
+  renderTab2('pending');
 }
 window.renderEmpSubmissionsPage = renderEmpSubmissionsPage;
 
 /* ── EXPORTS ─────────────────────────────────────────────────── */
 window.showLeaveApplicationModal     = showLeaveApplicationModal;
 window.injectLeaveApplicationSection = injectLeaveApplicationSection;
-window.renderSubmissionsPage         = renderSubmissionsPage;
+window._laViewCSFModal               = _laViewCSFModal;
 
 })();
