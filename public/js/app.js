@@ -524,7 +524,8 @@ function renderSidebar() {
   navItems += `
     <div class="sb-item" data-page="list"><span class="sb-icon">👥</span>Personnel List</div>
     <div class="sb-item" data-page="cards"><span class="sb-icon">📋</span>Leave Cards</div>
-    <div class="sb-item" data-page="submissions"><span class="sb-icon">📨</span>Submissions</div>`;
+    <div class="sb-item" data-page="submissions"><span class="sb-icon">📨</span>Submissions</div>
+    <div class="sb-item" id="sbRecordedArchive" style="cursor:pointer;"><span class="sb-icon">📁</span>Recorded Archive</div>`;
 }
   }
 
@@ -547,6 +548,10 @@ function renderSidebar() {
 
   document.getElementById('sbClose')?.addEventListener('click', closeSidebar);
   document.getElementById('sbLogout')?.addEventListener('click', () => showLogoutModal());
+  document.getElementById('sbRecordedArchive')?.addEventListener('click', () => {
+    closeSidebar();
+    if (typeof renderRecordedArchivePage === 'function') renderRecordedArchivePage(false);
+  });
   sb.querySelectorAll('.sb-item[data-page]').forEach(item => {
     item.addEventListener('click', () => setPage(item.dataset.page));
   });
@@ -681,9 +686,12 @@ function filterCardList() {
   });
 
   const accrualPending = ntTrActive.filter(e => !isEmpCardUpdated(e)).length;
-  const forcePending   = state.db.filter(e =>
-    (e.account_status || 'active') === 'active' && !e.force_leave_applied
-  ).length;
+  const forcePending   = state.db.filter(e => {
+    const s = (e.status || '').toLowerCase();
+    return (e.account_status || 'active') === 'active'
+        && (s === 'non-teaching' || s === 'teaching related')
+        && !e.force_leave_applied;
+  }).length;
 
   const apEl = document.getElementById('lcAccrualPending');
   const fpEl = document.getElementById('lcForcePending');
@@ -814,8 +822,12 @@ async function postMonthlyAccrual() {
 async function postMandatoryLeave() {
   const now = new Date();
   const y   = now.getFullYear();
-  const allActive = state.db.filter(e => (e.account_status || 'active') === 'active');
-  if (allActive.length === 0) { alert('No active employees found.'); return; }
+  const allActive = state.db.filter(e => {
+    const s = (e.status || '').toLowerCase();
+    return (e.account_status || 'active') === 'active'
+        && (s === 'non-teaching' || s === 'teaching related');
+  });
+  if (allActive.length === 0) { alert('No active Non-Teaching or Teaching-Related employees found.'); return; }
 
   for (const emp of allActive) {
     if (!emp.records || emp.records.length === 0) {
