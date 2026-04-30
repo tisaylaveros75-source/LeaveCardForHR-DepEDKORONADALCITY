@@ -45,4 +45,5 @@ Route::get('/get_leave_applications',      [LeaveCardApiController::class, 'getL
 Route::get('/get_my_leave_applications',   [LeaveCardApiController::class, 'getMyLeaveApplications']);
 Route::post('/review_leave_application',   [LeaveCardApiController::class, 'reviewLeaveApplication']);
 Route::post('/delete_leave_application',   [LeaveCardApiController::class, 'deleteLeaveApplication']);
+Route::post('/mark_as_recorded',           [LeaveCardApiController::class, 'markAsRecorded']);
 });
