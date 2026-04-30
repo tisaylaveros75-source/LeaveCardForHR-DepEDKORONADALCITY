@@ -119,27 +119,28 @@ class LeaveCardApiController extends Controller
                 ->toArray();
 
             $updatedIds = $this->batchComputeUpdatedIds(
-    array_map(fn($r) => (array)$r, $rows)
-);
+                array_map(fn($r) => (array)$r, $rows)
+            );
 
-$currentYear = (int)now()->format('Y');
-$forceAppliedIds = DB::table('leave_records')
-    ->where('is_conversion', 0)
-    ->whereRaw("(LOWER(action) LIKE '%force%' OR LOWER(action) LIKE '%mandatory%')")
-    ->whereRaw("LOWER(action) NOT LIKE '%disapproved%'")
-    ->whereYear('created_at', $currentYear)
-    ->distinct()
-    ->pluck('employee_id')
-    ->toArray();
+            $currentYear = (int)now()->format('Y');
+            $forceAppliedIds = DB::table('leave_records')
+                ->where('is_conversion', 0)
+                ->whereRaw("(LOWER(action) LIKE '%force%' OR LOWER(action) LIKE '%mandatory%')")
+                ->whereRaw("LOWER(action) NOT LIKE '%disapproved%'")
+                ->whereYear('created_at', $currentYear)
+                ->distinct()
+                ->pluck('employee_id')
+                ->toArray();
 
             $showPassword = in_array($role, ['admin', 'encoder', 'school_admin']);
 
-$data = array_map(function ($r) use ($updatedIds, $showPassword, $forceAppliedIds) {
-                    $arr = (array)$r;
+            $data = array_map(function ($r) use ($updatedIds, $showPassword, $forceAppliedIds) {
+                $arr = (array)$r;
                 $emp = LeaveHelper::personnelRowToJs($arr);
                 $emp['records']             = [];
-$emp['card_status_updated'] = in_array($arr['employee_id'], $updatedIds);
-$emp['force_leave_applied'] = in_array($arr['employee_id'], $forceAppliedIds);                $emp['password'] = $showPassword ? ($arr['password'] ?? '') : '';
+                $emp['card_status_updated'] = in_array($arr['employee_id'], $updatedIds);
+                $emp['force_leave_applied'] = in_array($arr['employee_id'], $forceAppliedIds);
+                $emp['password'] = $showPassword ? ($arr['password'] ?? '') : '';
                 return $emp;
             }, $rows);
 
@@ -223,7 +224,6 @@ $emp['force_leave_applied'] = in_array($arr['employee_id'], $forceAppliedIds);  
                 return response()->json(['ok' => false, 'skipped' => true, 'error' => "Skipped: employee {$empId} is inactive."]);
             }
 
-            // Append at end first (sort_order will be fixed by resortRecords below)
             $maxSort   = DB::table('leave_records')->where('employee_id', $empId)->max('sort_order') ?? 0;
             $sortOrder = $maxSort + 1;
 
@@ -233,7 +233,6 @@ $emp['force_leave_applied'] = in_array($arr['employee_id'], $forceAppliedIds);  
             DB::table('personnel')->where('employee_id', $empId)
                 ->update(['last_edited_at' => now()]);
 
-            // ── Resort by date, then recompute balances ──
             $this->resortRecords($empId);
             $this->recomputeAndSaveBalances($empId, $emp->status ?? 'Teaching');
 
@@ -263,7 +262,6 @@ $emp['force_leave_applied'] = in_array($arr['employee_id'], $forceAppliedIds);  
 
             $emp = DB::table('personnel')->where('employee_id', $empId)->first();
 
-            // ── Resort by date (date may have changed), then recompute ──
             $this->resortRecords($empId);
             $this->recomputeAndSaveBalances($empId, $emp->status ?? 'Teaching');
 
@@ -292,7 +290,6 @@ $emp['force_leave_applied'] = in_array($arr['employee_id'], $forceAppliedIds);  
 
             $emp = DB::table('personnel')->where('employee_id', $empId)->first();
             if ($emp) {
-                // No resort needed after delete — remaining sort_orders stay valid
                 $this->recomputeAndSaveBalances($empId, $emp->status ?? 'Teaching');
             }
 
@@ -324,9 +321,6 @@ $emp['force_leave_applied'] = in_array($arr['employee_id'], $forceAppliedIds);  
     }
 
     // ── POST /api/insert_record_at ──────────────────────────────
-    // NOTE: insert_record_at is used for "Insert Below" from the row menu.
-    // We honour the explicit position the user chose, so we do NOT resort
-    // after this operation — the user deliberately placed it there.
     public function insertRecordAt(Request $request): JsonResponse
     {
         try {
@@ -800,7 +794,6 @@ $emp['force_leave_applied'] = in_array($arr['employee_id'], $forceAppliedIds);  
             DB::table('personnel')->where('employee_id', $empId)
                 ->update(['last_edited_at' => now()]);
 
-            // Force Leave has no date → appended at the end, no resort needed
             $this->recomputeAndSaveBalances($empId, $emp->status ?? 'Teaching');
 
             return response()->json(['ok' => true, 'amount' => $amount, 'year' => $currentYear]);
@@ -904,22 +897,6 @@ $emp['force_leave_applied'] = in_array($arr['employee_id'], $forceAppliedIds);  
     //  PRIVATE HELPERS
     // ════════════════════════════════════════════════════════════
 
-    /**
-     * Re-sort all leave_records for an employee by date (server-side).
-     *
-     * Rules (mirrors LeaveHelper::sortRecordsForResort):
-     *  - Conversion markers (is_conversion=1) are never moved.
-     *  - Within each era, dated records are sorted ascending by from_date
-     *    (falling back to prd text or to_date).
-     *  - Undated records act as barriers: they stay in place, separating
-     *    date groups. Dated records do not jump across an undated barrier.
-     *  - Duplicate dates: lower record_id comes first (stable).
-     *
-     * Called after: saveRecord, updateRecord.
-     * NOT called after: insertRecordAt (user chose explicit position),
-     *                   deleteRecord (remaining order is already valid),
-     *                   applyForceLeave (no date → appended at end naturally).
-     */
     private function resortRecords(string $empId): void
     {
         $rows = DB::table('leave_records')
@@ -1060,215 +1037,285 @@ $emp['force_leave_applied'] = in_array($arr['employee_id'], $forceAppliedIds);  
                 ]);
         }
     }
+
     // ── GET /api/fix_all_sort_orders — ONE TIME USE ─────────────
-public function fixAllSortOrders(): JsonResponse
-{
-    try {
-        $employees = DB::table('personnel')->pluck('employee_id');
-        $fixed = 0;
+    public function fixAllSortOrders(): JsonResponse
+    {
+        try {
+            $employees = DB::table('personnel')->pluck('employee_id');
+            $fixed = 0;
 
-        foreach ($employees as $empId) {
-            $emp = DB::table('personnel')
-                ->where('employee_id', $empId)
-                ->first();
+            foreach ($employees as $empId) {
+                $emp = DB::table('personnel')
+                    ->where('employee_id', $empId)
+                    ->first();
 
-            if (!$emp) continue;
+                if (!$emp) continue;
 
-            $this->resortRecords($empId);
-            $this->recomputeAndSaveBalances(
-                $empId,
-                $emp->status ?? 'Teaching'
-            );
+                $this->resortRecords($empId);
+                $this->recomputeAndSaveBalances(
+                    $empId,
+                    $emp->status ?? 'Teaching'
+                );
 
-            $fixed++;
-        }
-
-        return response()->json([
-            'ok'      => true,
-            'message' => "Fixed sort order for {$fixed} employees.",
-        ]);
-    } catch (Exception $e) {
-        return response()->json([
-            'ok'    => false,
-            'error' => $e->getMessage(),
-        ], 500);
-    }
-    
-}
-// ── POST /api/submit_leave_application ──────────────────────
-public function submitLeaveApplication(Request $request): JsonResponse
-{
-    try {
-        $role  = $request->session()->get('lms_role', '');
-        $empId = $request->session()->get('lms_employee_id', '');
-        if ($role !== 'employee' || !$empId) {
-            return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
-        }
-
-        $appId = (int)$request->input('app_id', 0); // 0 = new, >0 = resubmit
-
-        $emp = DB::table('personnel')->where('employee_id', $empId)->first();
-
-        $data = [
-    'employee_id'          => $empId,
-    'surname'              => $emp->surname ?? '',
-    'given'                => $emp->given   ?? '',
-    'suffix'               => $emp->suffix  ?? '',
-    'office_school'        => $request->input('office_school') ?? '',
-    'position'             => $request->input('position') ?? '',
-    'date_of_filing'       => $request->input('date_of_filing') ?: now()->toDateString(),
-    'salary_monthly'       => $request->input('salary_monthly') ?: null,
-    'leave_type'           => $request->input('leave_type') ?? '',
-    'leave_type_other'     => $request->input('leave_type_other') ?? '',
-    'vacation_detail'      => $request->input('vacation_detail') ?? '',
-    'vacation_abroad_specify' => $request->input('vacation_abroad_specify') ?? '',
-    'sick_detail'          => $request->input('sick_detail') ?? '',
-    'sick_specify'         => $request->input('sick_specify') ?? '',
-    'women_specify'        => $request->input('women_specify') ?? '',
-    'study_detail'         => $request->input('study_detail') ?? '',
-    'other_purpose'        => $request->input('other_purpose') ?? '',
-'num_working_days'     => $request->input('num_working_days') ?: null,
-'inclusive_dates'      => $request->input('inclusive_dates') ?? '',
-'commutation'          => $request->input('commutation') ?? 'Not Requested',
-'status'               => 'pending',
-        ];
-
-        // Handle file upload
-        if ($request->hasFile('attachment')) {
-            $file     = $request->file('attachment');
-            $filename = time() . '_' . $empId . '_' . $file->getClientOriginalName();
-            $path     = $file->storeAs('leave_attachments', $filename, 'public');
-            $data['attachment_path'] = $path;
-            $data['attachment_name'] = $file->getClientOriginalName();
-        }
-
-        if ($appId > 0) {
-            // Resubmit — only allow if it belongs to this employee and is rejected
-            $existing = DB::table('leave_applications')
-                ->where('id', $appId)
-                ->where('employee_id', $empId)
-                ->where('status', 'rejected')
-                ->first();
-            if (!$existing) {
-                return response()->json(['ok' => false, 'error' => 'Application not found or not resubmittable.'], 404);
+                $fixed++;
             }
-            // Keep old attachment if no new file uploaded
-            if (!$request->hasFile('attachment')) {
-                unset($data['attachment_path'], $data['attachment_name']);
+
+            return response()->json([
+                'ok'      => true,
+                'message' => "Fixed sort order for {$fixed} employees.",
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'ok'    => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // ── POST /api/submit_leave_application ──────────────────────
+    public function submitLeaveApplication(Request $request): JsonResponse
+    {
+        try {
+            $role  = $request->session()->get('lms_role', '');
+            $empId = $request->session()->get('lms_employee_id', '');
+            if ($role !== 'employee' || !$empId) {
+                return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
             }
-            DB::table('leave_applications')->where('id', $appId)->update($data);
-            return response()->json(['ok' => true, 'app_id' => $appId, 'resubmitted' => true]);
-        } else {
-            $data['created_at'] = now();
-            $newId = DB::table('leave_applications')->insertGetId($data);
-            return response()->json(['ok' => true, 'app_id' => $newId]);
+
+            $appId = (int)$request->input('app_id', 0);
+
+            $emp = DB::table('personnel')->where('employee_id', $empId)->first();
+
+            $data = [
+                'employee_id'             => $empId,
+                'surname'                 => $emp->surname  ?? '',
+                'given'                   => $emp->given    ?? '',
+                'suffix'                  => $emp->suffix   ?? '',
+                'maternal'                => $emp->maternal ?? '',  // ← FIX 1
+                'office_school'           => $request->input('office_school') ?? '',
+                'position'                => $request->input('position') ?? '',
+                'date_of_filing'          => $request->input('date_of_filing') ?: now()->toDateString(),
+                'salary_monthly'          => $request->input('salary_monthly') ?: null,
+                'leave_type'              => $request->input('leave_type') ?? '',
+                'leave_type_other'        => $request->input('leave_type_other') ?? '',
+                'vacation_detail'         => $request->input('vacation_detail') ?? '',
+                'vacation_abroad_specify' => $request->input('vacation_abroad_specify') ?? '',
+                'sick_detail'             => $request->input('sick_detail') ?? '',
+                'sick_specify'            => $request->input('sick_specify') ?? '',
+                'women_specify'           => $request->input('women_specify') ?? '',
+                'study_detail'            => $request->input('study_detail') ?? '',
+                'other_purpose'           => $request->input('other_purpose') ?? '',
+                'num_working_days'        => $request->input('num_working_days') ?: null,
+                'inclusive_dates'         => $request->input('inclusive_dates') ?? '',
+                'commutation'             => $request->input('commutation') ?? 'Not Requested',
+                'status'                  => 'pending',
+            ];
+
+            if ($request->hasFile('attachment')) {
+                $file     = $request->file('attachment');
+                $filename = time() . '_' . $empId . '_' . $file->getClientOriginalName();
+                $path     = $file->storeAs('leave_attachments', $filename, 'public');
+                $data['attachment_path'] = $path;
+                $data['attachment_name'] = $file->getClientOriginalName();
+            }
+
+            if ($appId > 0) {
+                $existing = DB::table('leave_applications')
+                    ->where('id', $appId)
+                    ->where('employee_id', $empId)
+                    ->where('status', 'rejected')
+                    ->first();
+                if (!$existing) {
+                    return response()->json(['ok' => false, 'error' => 'Application not found or not resubmittable.'], 404);
+                }
+                if (!$request->hasFile('attachment')) {
+                    unset($data['attachment_path'], $data['attachment_name']);
+                }
+                DB::table('leave_applications')->where('id', $appId)->update($data);
+                return response()->json(['ok' => true, 'app_id' => $appId, 'resubmitted' => true]);
+            } else {
+                $data['created_at'] = now();
+                $newId = DB::table('leave_applications')->insertGetId($data);
+                return response()->json(['ok' => true, 'app_id' => $newId]);
+            }
+        } catch (Exception $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
         }
-    } catch (Exception $e) {
-        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+    }
+
+    // ── GET /api/get_my_leave_applications ──────────────────────
+    public function getMyLeaveApplications(Request $request): JsonResponse
+    {
+        try {
+            $empId = $request->session()->get('lms_employee_id', '');
+            if (!$empId) return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
+
+            // ← FIX 2: JOIN personnel to always get maternal name
+            $rows = DB::table('leave_applications as la')
+                ->join('personnel as p', 'la.employee_id', '=', 'p.employee_id')
+                ->where('la.employee_id', $empId)
+                ->orderByDesc('la.created_at')
+                ->select('la.*', 'p.maternal')
+                ->get()
+                ->toArray();
+
+            return response()->json(['ok' => true, 'applications' => array_map(fn($r) => (array)$r, $rows)]);
+        } catch (Exception $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    // ── GET /api/get_leave_applications (admin/encoder) ─────────
+    public function getLeaveApplications(Request $request): JsonResponse
+    {
+        try {
+            $role = $request->session()->get('lms_role', '');
+            if (!in_array($role, ['admin', 'encoder'])) {
+                return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
+            }
+
+            $status = $request->input('status', 'pending');
+            $rows = DB::table('leave_applications as la')
+                ->join('personnel as p', 'la.employee_id', '=', 'p.employee_id')
+                ->where('la.status', $status)
+                ->orderByDesc('la.created_at')
+                ->select('la.*', 'p.surname', 'p.given', 'p.suffix', 'p.maternal', 'p.status as emp_category')
+                ->get()
+                ->toArray();
+
+            return response()->json(['ok' => true, 'applications' => array_map(fn($r) => (array)$r, $rows)]);
+        } catch (Exception $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    // ── POST /api/review_leave_application ──────────────────────
+    public function reviewLeaveApplication(Request $request): JsonResponse
+    {
+        try {
+            $role = $request->session()->get('lms_role', '');
+            $name = $request->session()->get('lms_name', 'Admin');
+            if (!in_array($role, ['admin', 'encoder'])) {
+                return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
+            }
+
+            $appId  = $request->input('app_id');
+            $action = $request->input('action');
+            $reason = $request->input('reason', '');
+
+            if (!$appId || !in_array($action, ['accept', 'reject'])) {
+                return response()->json(['ok' => false, 'error' => 'Invalid parameters.'], 400);
+            }
+            if ($action === 'reject' && !$reason) {
+                return response()->json(['ok' => false, 'error' => 'Rejection reason is required.'], 400);
+            }
+
+            DB::table('leave_applications')->where('id', $appId)->update([
+                'status'           => $action === 'accept' ? 'accepted' : 'rejected',
+                'rejection_reason' => $action === 'reject' ? $reason : null,
+                'reviewed_at'      => now(),
+                'reviewed_by'      => $name,
+                'updated_at'       => now(),
+            ]);
+
+            return response()->json(['ok' => true]);
+        } catch (Exception $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    // ── POST /api/delete_leave_application ──────────────────────
+    public function deleteLeaveApplication(Request $request): JsonResponse
+    {
+        try {
+            $role  = $request->session()->get('lms_role', '');
+            $empId = $request->session()->get('lms_employee_id', '');
+            $appId = $request->input('app_id');
+
+            $query = DB::table('leave_applications')->where('id', $appId);
+
+            if ($role === 'employee') {
+                $query->where('employee_id', $empId)
+                      ->whereIn('status', ['pending', 'rejected']);
+            } elseif (!in_array($role, ['admin', 'encoder'])) {
+                return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
+            }
+
+            $deleted = $query->delete();
+            if (!$deleted) return response()->json(['ok' => false, 'error' => 'Not found or not deletable.'], 404);
+
+            return response()->json(['ok' => true]);
+        } catch (Exception $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    // ── POST /api/mark_as_recorded ───────────────────────────────
+    public function markAsRecorded(Request $request): JsonResponse
+    {
+        try {
+            $role = $request->session()->get('lms_role', '');
+            $name = $request->session()->get('lms_name', 'Admin');
+            if (!in_array($role, ['admin', 'encoder'])) {
+                return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
+            }
+            $appId = $request->input('app_id');
+            if (!$appId) return response()->json(['ok' => false, 'error' => 'Missing app_id'], 400);
+            $app = DB::table('leave_applications')->where('id', $appId)->first();
+            if (!$app) return response()->json(['ok' => false, 'error' => 'Application not found'], 404);
+            if ($app->status !== 'accepted') {
+                return response()->json(['ok' => false, 'error' => 'Only accepted applications can be recorded'], 400);
+            }
+            DB::table('leave_applications')->where('id', $appId)->update([
+                'recorded_at' => now(),
+                'recorded_by' => $name,
+                'updated_at'  => now(),
+            ]);
+            return response()->json(['ok' => true]);
+        } catch (Exception $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    // ── GET /api/get_recorded_applications (admin) ───────────────
+    public function getRecordedApplications(Request $request): JsonResponse
+    {
+        try {
+            $role = $request->session()->get('lms_role', '');
+            if (!in_array($role, ['admin', 'encoder'])) {
+                return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
+            }
+            $rows = DB::table('leave_applications as la')
+                ->join('personnel as p', 'la.employee_id', '=', 'p.employee_id')
+                ->whereNotNull('la.recorded_at')
+                ->orderByDesc('la.recorded_at')
+                ->select('la.*', 'p.surname', 'p.given', 'p.suffix', 'p.maternal', 'p.status as emp_category')
+                ->get()
+                ->toArray();
+            return response()->json(['ok' => true, 'applications' => array_map(fn($r) => (array)$r, $rows)]);
+        } catch (Exception $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    // ── GET /api/get_my_recorded_applications (employee) ────────
+    public function getMyRecordedApplications(Request $request): JsonResponse
+    {
+        try {
+            $empId = $request->session()->get('lms_employee_id', '');
+            if (!$empId) return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
+            $rows = DB::table('leave_applications as la')
+                ->join('personnel as p', 'la.employee_id', '=', 'p.employee_id')
+                ->where('la.employee_id', $empId)
+                ->whereNotNull('la.recorded_at')
+                ->orderByDesc('la.recorded_at')
+                ->select('la.*', 'p.maternal')
+                ->get()
+                ->toArray();
+            return response()->json(['ok' => true, 'applications' => array_map(fn($r) => (array)$r, $rows)]);
+        } catch (Exception $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+        }
     }
 }
-
-// ── GET /api/get_my_leave_applications ──────────────────────
-public function getMyLeaveApplications(Request $request): JsonResponse
-{
-    try {
-        $empId = $request->session()->get('lms_employee_id', '');
-        if (!$empId) return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
-
-        $rows = DB::table('leave_applications')
-            ->where('employee_id', $empId)
-            ->orderByDesc('created_at')
-            ->get()
-            ->toArray();
-
-        return response()->json(['ok' => true, 'applications' => array_map(fn($r) => (array)$r, $rows)]);
-    } catch (Exception $e) {
-        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
-    }
-}
-
-// ── GET /api/get_leave_applications (admin/encoder) ─────────
-public function getLeaveApplications(Request $request): JsonResponse
-{
-    try {
-        $role = $request->session()->get('lms_role', '');
-        if (!in_array($role, ['admin', 'encoder'])) {
-            return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
-        }
-
-        $status = $request->input('status', 'pending'); // pending | accepted | rejected
-        $rows = DB::table('leave_applications as la')
-            ->join('personnel as p', 'la.employee_id', '=', 'p.employee_id')
-            ->where('la.status', $status)
-            ->orderByDesc('la.created_at')
-            ->select('la.*', 'p.surname', 'p.given', 'p.suffix', 'p.status as emp_category')
-            ->get()
-            ->toArray();
-
-        return response()->json(['ok' => true, 'applications' => array_map(fn($r) => (array)$r, $rows)]);
-    } catch (Exception $e) {
-        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
-    }
-}
-
-// ── POST /api/review_leave_application ──────────────────────
-public function reviewLeaveApplication(Request $request): JsonResponse
-{
-    try {
-        $role = $request->session()->get('lms_role', '');
-        $name = $request->session()->get('lms_name', 'Admin');
-        if (!in_array($role, ['admin', 'encoder'])) {
-            return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
-        }
-
-        $appId  = $request->input('app_id');
-        $action = $request->input('action'); // 'accept' or 'reject'
-        $reason = $request->input('reason', '');
-
-        if (!$appId || !in_array($action, ['accept', 'reject'])) {
-            return response()->json(['ok' => false, 'error' => 'Invalid parameters.'], 400);
-        }
-        if ($action === 'reject' && !$reason) {
-            return response()->json(['ok' => false, 'error' => 'Rejection reason is required.'], 400);
-        }
-
-        DB::table('leave_applications')->where('id', $appId)->update([
-            'status'           => $action === 'accept' ? 'accepted' : 'rejected',
-            'rejection_reason' => $action === 'reject' ? $reason : null,
-            'reviewed_at'      => now(),
-            'reviewed_by'      => $name,
-            'updated_at'       => now(),
-        ]);
-
-        return response()->json(['ok' => true]);
-    } catch (Exception $e) {
-        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
-    }
-}
-
-// ── POST /api/delete_leave_application ──────────────────────
-public function deleteLeaveApplication(Request $request): JsonResponse
-{
-    try {
-        $role  = $request->session()->get('lms_role', '');
-        $empId = $request->session()->get('lms_employee_id', '');
-        $appId = $request->input('app_id');
-
-        $query = DB::table('leave_applications')->where('id', $appId);
-
-        // Employees can only delete their own pending/rejected ones
-        if ($role === 'employee') {
-            $query->where('employee_id', $empId)
-                  ->whereIn('status', ['pending', 'rejected']);
-        } elseif (!in_array($role, ['admin', 'encoder'])) {
-            return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
-        }
-
-        $deleted = $query->delete();
-        if (!$deleted) return response()->json(['ok' => false, 'error' => 'Not found or not deletable.'], 404);
-
-        return response()->json(['ok' => true]);
-    } catch (Exception $e) {
-        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
-    }
-}}
