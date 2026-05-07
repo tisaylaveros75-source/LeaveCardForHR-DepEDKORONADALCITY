@@ -1,14 +1,11 @@
 /* ============================================================
    SDO Koronadal City — Leave Card System
-   print-download.js  v8.0  — RED ARMOUR REFORGED
+   print-download.js  v8.1  — RED ARMOUR REFORGED (FIXED)
 
-   CHANGES v8.0:
-   • SPECTACULAR 3D Red Armour overlay during PDF generation
-   • Ghost/glitch after print FIXED — iframe removed cleanly
-   • PDF table headers: smooth rounded top, no "pasted" look
-   • Era banners: employees see only conversion info, not "era" labels
-   • Buttons: 3D forged-steel red armour with live pulse & shimmer
-   • Each page PDF header: seamless integrated look
+   FIXES v8.1:
+   • Canvas 0×0 crash fixed — images fully awaited before html2canvas
+   • window.expose block moved OUT of renderPageToArrayBuffer closure
+   • settle time increased to 500ms for safer font/layout rendering
    ============================================================ */
 
 'use strict';
@@ -188,13 +185,10 @@ function buildTableRow(r) {
 
 /* ─────────────────────────────────────────────────────────────
    9.  FORWARD-BALANCE ROW
-       NOTE: Employees see the conversion info (from→to status),
-       NOT internal "era" labels. Only relevant transition shown.
    ───────────────────────────────────────────────────────────── */
 function buildFwdRow(conv) {
   const bv = fmtNum(conv.fwdBV || 0);
   const bs = fmtNum(conv.fwdBS || 0);
-  // Show conversion context (visible to employee) but not "ERA" wording
   const fromLbl = (conv.fromStatus || '').toUpperCase();
   const toLbl   = (conv.toStatus   || '').toUpperCase();
   const convLabel = fromLbl && toLbl
@@ -243,6 +237,7 @@ function flattenRecords(emp) {
   pushSeg(cur, eraIdx === 0);
   return flat;
 }
+
 function flattenByEra(emp) {
   const records = emp.records || [];
   const eras = [];
@@ -266,6 +261,7 @@ function flattenByEra(emp) {
     };
   });
 }
+
 /* ─────────────────────────────────────────────────────────────
    11.  BUILD TABLE BODY from flat slice
    ───────────────────────────────────────────────────────────── */
@@ -361,9 +357,6 @@ function buildHeaderSection(emp, logoSrc) {
 
 /* ─────────────────────────────────────────────────────────────
    13.  BUILD A SINGLE PAGE HTML
-        Page 0: letterhead + profile + table
-        Page 1+: seamless continuation header + table
-        NOTE: No "INITIAL ERA" or "ERA" labels — only conversion rows
    ───────────────────────────────────────────────────────────── */
 function buildPageHTML(pageNum, flatSlice, emp, logoSrc, totalPages, eraLabel) {
   eraLabel = eraLabel || '&#9632; Leave Record';
@@ -392,8 +385,6 @@ function buildPageHTML(pageNum, flatSlice, emp, logoSrc, totalPages, eraLabel) {
       ? `<img class="cont-logo" src="${logoSrc}" alt="SDO Logo"/>` : '';
     const surname  = (emp.surname || '').toUpperCase();
     const given    = (emp.given   || '').toUpperCase();
-    // For continuation pages, the continuation header IS the cap —
-    // wrap it together with the table inside one rounded era box
     body = `
       <div class="lc-export-era">
         <div class="continuation-header">
@@ -447,9 +438,11 @@ function sliceIntoPages(flat) {
 
 /* ─────────────────────────────────────────────────────────────
    15.  RENDER ONE PAGE → ArrayBuffer
+        FIX v8.1: Wait for images to fully load (naturalWidth > 0)
+        before decode + html2canvas capture to prevent 0×0 canvas crash.
    ───────────────────────────────────────────────────────────── */
 const PDF_OPT_BASE = {
-margin:      [8, 5, 12, 5],
+  margin:      [8, 5, 12, 5],
   image:       { type: 'jpeg', quality: 0.99 },
   html2canvas: {
     scale:           2,
@@ -478,15 +471,36 @@ async function renderPageToArrayBuffer(htmlStr) {
   wrapper.innerHTML = htmlStr;
   document.body.appendChild(wrapper);
 
-  // Force full decode of every image before html2canvas captures
+  // ── STEP 1: Wait for ALL images to fully load (naturalWidth > 0).
+  //   This is the critical fix — img.complete can be true even when
+  //   naturalWidth===0 (broken/still-loading), which causes the
+  //   "canvas element with a width or height of 0" crash in html2canvas.
+  await Promise.all(
+    [...wrapper.querySelectorAll('img')].map(img => {
+      // Already fully loaded with real dimensions — nothing to do
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+      return new Promise(resolve => {
+        img.onload  = resolve;
+        img.onerror = resolve; // resolve on error — don't block forever
+        // If src is set but stuck, poke it to re-trigger load
+        if (img.src && !img.complete) {
+          const s = img.src;
+          img.src = '';
+          img.src = s;
+        }
+      });
+    })
+  );
+
+  // ── STEP 2: GPU texture upload (decode)
   await Promise.all(
     [...wrapper.querySelectorAll('img')].map(img =>
       img.decode ? img.decode().catch(() => {}) : Promise.resolve()
     )
   );
 
-  // Settle time for fonts/layout after decode
-  await new Promise(r => setTimeout(r, 350));
+  // ── STEP 3: Longer settle for fonts + layout (increased from 350ms)
+  await new Promise(r => setTimeout(r, 500));
 
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -498,21 +512,7 @@ async function renderPageToArrayBuffer(htmlStr) {
         .then(buf => { wrapper.remove(); resolve(buf); })
         .catch(err => { wrapper.remove(); reject(err); });
     }, 300);
-  /* ─────────────────────────────────────────────────────────────
-   24.  EXPOSE SHARED API for bulk-export.js
-───────────────────────────────────────────────────────────── */
-window.getLogoBase64           = getLogoBase64;
-window.buildExportHTML         = buildExportHTML;
-window.buildFullPage           = buildFullPage;
-window.buildPageHTML           = buildPageHTML;
-window.flattenRecords          = flattenRecords;
-window.sliceIntoPages          = sliceIntoPages;
-window.renderPageToArrayBuffer = renderPageToArrayBuffer;
-window.mergePageBuffers        = mergePageBuffers;
-window.showArmourOverlay       = showArmourOverlay;
-window.setOverlayProgress      = setOverlayProgress;
-window.hideArmourOverlay       = hideArmourOverlay;
-window.SHARED_CSS              = SHARED_CSS;});
+  });
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -542,7 +542,7 @@ async function mergePageBuffers(buffers) {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   16.  SHARED CSS  — Red Armour Reforged v8.0
+   16.  SHARED CSS  — Red Armour Reforged v8.1
    ───────────────────────────────────────────────────────────── */
 const SHARED_CSS = `
 
@@ -568,7 +568,6 @@ html, body {
   background: linear-gradient(135deg,
     #1a0000 0%, #5a0808 20%, #8b1414 45%,
     #a01a1a 58%, #7a1010 78%, #3d0606 100%);
-  /* no border-radius — era box clips it */
   border-bottom: 2.5px solid #c0392b;
   margin-bottom: 0;
   box-shadow: inset 0 1px 0 rgba(255,80,80,.12);
@@ -699,14 +698,10 @@ html, body {
 
 /* ═══════════════════════════════════════════════════
    ERA / TABLE WRAPPER
-   The outer box is the rounded card. A "bridge cap" div
-   sits on top of the table to create the seamless gradient
-   connection from profile card → table header. This is the
-   ONLY reliable way to get rounded tops with border-collapse.
    ═══════════════════════════════════════════════════ */
 .lc-export-era {
   border-radius: 10px;
-  overflow: hidden;          /* clips the table corners */
+  overflow: hidden;
   margin-top: 12px;
   margin-bottom: 14px;
   border: 1.5px solid rgba(139,0,0,.60);
@@ -718,9 +713,6 @@ html, body {
     0 2px 8px rgba(139,0,0,.22);
 }
 
-/* Bridge cap — the gradient header that connects profile card
-   to the table. Sits flush above the thead, fully inside the
-   rounded era box so corners are clipped cleanly. */
 .lc-table-cap {
   width: 100%;
   padding: 10px 14px 8px;
@@ -731,7 +723,6 @@ html, body {
   display: flex;
   align-items: center;
   gap: 10px;
-  /* subtle inner highlight at top */
   box-shadow: inset 0 1px 0 rgba(255,100,80,.14);
 }
 .lc-table-cap-line {
@@ -755,10 +746,6 @@ html, body {
 
 /* ═══════════════════════════════════════════════════
    TABLE
-   border-collapse:collapse is kept (required for correct
-   borders) — rounded corners are handled by .lc-export-era
-   overflow:hidden above. The cap div takes care of the
-   visual top so thead doesn't need border-radius at all.
    ═══════════════════════════════════════════════════ */
 table {
   width: 100% !important; border-collapse: collapse !important;
@@ -770,7 +757,6 @@ thead tr:first-child th {
   background: #1e0505; color: #fff;
   font-size: 6.5pt; font-weight: 800; padding: 8px 4px 6px;
   text-align: center;
-  /* no top border — cap div provides the visual edge */
   border-top: none !important;
   border-left: .5pt solid #5a2a2a;
   border-right: .5pt solid #5a2a2a;
@@ -862,7 +848,7 @@ tbody tr:nth-child(odd) td { background: #ffffff; }
 }
 
 /* ═══════════════════════════════════════════════════
-   FORWARD BALANCE ROW (Conversion — employee-visible)
+   FORWARD BALANCE ROW
    ═══════════════════════════════════════════════════ */
 .era-fwd-row { border-top: 2pt solid #c9a227 !important; page-break-inside: avoid !important; break-inside: avoid !important; }
 .fwd-label-cell {
@@ -915,49 +901,31 @@ table th:nth-child(11), table td:nth-child(11) {
   tr, .data-row, .era-fwd-row { page-break-inside: avoid !important; break-inside: avoid !important; }
   td, th { overflow: visible !important; overflow-wrap: break-word !important; word-break: break-word !important; }
   .remarks-cell { overflow: visible !important; }
-}
-  /* ═══════════════════════════════════════════════════
-   PRINT PERFORMANCE — strip expensive visuals
-   Browser renders these for every page during preview.
-   Removing them cuts preview time from minutes to seconds.
-   ═══════════════════════════════════════════════════ */
-@media print {
-  /* Kill all box-shadows — biggest offender */
+
+  /* Strip expensive visuals for print performance */
   *, *::before, *::after {
     box-shadow: none !important;
     text-shadow: none !important;
     backdrop-filter: none !important;
     filter: none !important;
   }
-
-  /* Flatten gradients to solid colours — second biggest offender */
   .lc-profile-header,
   .continuation-header,
-  .lc-table-cap {
-    background: #5a0808 !important;
-  }
-
+  .lc-table-cap { background: #5a0808 !important; }
   .lc-pf-row,
-  .lc-pf-row:nth-child(even) {
-    background: #1a0404 !important;
-  }
-
+  .lc-pf-row:nth-child(even) { background: #1a0404 !important; }
   thead tr:first-child th     { background: #1e0505 !important; }
   thead th.tha                { background: #7a1414 !important; }
   thead th.thb                { background: #162e5c !important; }
   thead th.ths.tha            { background: #420a0a !important; }
   thead th.ths.thb            { background: #0a1a3a !important; }
-
   tbody tr:nth-child(even) td { background: #faf0f0 !important; }
   tbody tr:nth-child(odd)  td { background: #ffffff !important; }
-
   .bc  { background: #fff8d6 !important; }
   .rdc { background: #fff5f5 !important; }
   .fwd-label-cell,
   .fwd-num-cell,
   .fwd-remarks-cell           { background: #fff9e0 !important; }
-
-  /* Remove rounded corners — browser has to clip-calculate them per page */
   .lc-export-era,
   .lc-profile-card            { border-radius: 0 !important; }
 }
@@ -965,7 +933,6 @@ table th:nth-child(11), table td:nth-child(11) {
 
 /* ─────────────────────────────────────────────────────────────
    17.  BUILD FULL STANDALONE PAGE  (for PRINT only)
-        Era banners shown to editors only in print view
    ───────────────────────────────────────────────────────────── */
 function buildExportHTML(emp, logoSrc) {
   const records = emp.records || [];
@@ -1078,7 +1045,7 @@ function buildFullPage(emp, logoSrc) {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   18.  IFRAME HELPER — no arbitrary delay, resolves on load
+   18.  IFRAME HELPER
    ───────────────────────────────────────────────────────────── */
 function createCaptureIframe(htmlContent) {
   return new Promise((resolve) => {
@@ -1095,7 +1062,7 @@ function createCaptureIframe(htmlContent) {
     ].join(';');
 
     document.body.appendChild(iframe);
-    iframe.onload = () => resolve(iframe); // ← no setTimeout at all
+    iframe.onload = () => resolve(iframe);
     iframe.contentDocument.open();
     iframe.contentDocument.write(htmlContent);
     iframe.contentDocument.close();
@@ -1103,33 +1070,25 @@ function createCaptureIframe(htmlContent) {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   18b.  PRE-WARMER — call this when an employee card opens.
-         Silently builds the print iframe in the background so
-         clicking Print is truly instant.
+   18b.  PRE-WARMER
    ───────────────────────────────────────────────────────────── */
 let _readyIframe   = null;
 let _readyForEmpId = null;
 
 async function lcPrimeForPrint(emp) {
   if (!emp) return;
-  // Already primed for this exact employee
   if (_readyIframe && _readyForEmpId === emp.id
       && document.body.contains(_readyIframe)) return;
-
-  // Discard stale iframe
   if (_readyIframe) { try { _readyIframe.remove(); } catch (_) {} _readyIframe = null; }
-
-  const logoSrc  = await getLogoBase64(); // already cached after pre-warm on load
+  const logoSrc  = await getLogoBase64();
   const fullPage = buildFullPage(emp, logoSrc);
   _readyIframe   = await createCaptureIframe(fullPage);
   _readyForEmpId = emp.id;
 }
 window.lcPrimeForPrint = lcPrimeForPrint;
+
 /* ─────────────────────────────────────────────────────────────
-   ██████████████████████████████████████████████████████████
-   19.  RED ARMOUR LOADING OVERLAY — 3D Forged Steel Edition
-        Shows during PDF generation. Jaw-dropping.
-   ██████████████████████████████████████████████████████████
+   19.  RED ARMOUR LOADING OVERLAY
    ───────────────────────────────────────────────────────────── */
 const OVERLAY_STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;600&display=swap');
@@ -1149,8 +1108,6 @@ const OVERLAY_STYLES = `
     from { opacity:0; backdrop-filter:blur(0px); }
     to   { opacity:1; backdrop-filter:blur(8px); }
   }
-
-  /* ── background hex grid ── */
   #lc-armour-overlay::before {
     content:'';
     position:absolute; inset:0;
@@ -1162,8 +1119,6 @@ const OVERLAY_STYLES = `
     animation: grid-pan 8s linear infinite;
   }
   @keyframes grid-pan { to { background-position: 40px 70px, 40px 70px, 40px 70px; } }
-
-  /* ── scanning light sweep ── */
   #lc-armour-overlay::after {
     content:'';
     position:absolute; inset:0;
@@ -1178,7 +1133,6 @@ const OVERLAY_STYLES = `
     0%   { background-position: 200% 0; }
     100% { background-position: -100% 0; }
   }
-
   .lc-armour-card {
     position: relative; z-index: 1;
     width: 420px;
@@ -1198,8 +1152,6 @@ const OVERLAY_STYLES = `
       inset 0 -1px 0 rgba(0,0,0,.5);
     overflow: hidden;
   }
-
-  /* inner bevel lines */
   .lc-armour-card::before {
     content:'';
     position:absolute; inset:8px;
@@ -1207,228 +1159,115 @@ const OVERLAY_STYLES = `
     border: 1px solid rgba(192,57,43,.15);
     pointer-events:none;
   }
-
-  /* corner rivets */
-  .lc-armour-rivets {
-    position:absolute; inset:0; pointer-events:none;
-  }
+  .lc-armour-rivets { position:absolute; inset:0; pointer-events:none; }
   .lc-armour-rivets span {
     position:absolute; width:8px; height:8px; border-radius:50%;
-    background: radial-gradient(circle at 35% 35%,
-      #ff6040 0%, #991010 60%, #4a0808 100%);
+    background: radial-gradient(circle at 35% 35%, #ff6040 0%, #991010 60%, #4a0808 100%);
     box-shadow: 0 0 6px rgba(255,80,60,.5), inset 0 1px 0 rgba(255,200,180,.2);
   }
   .lc-armour-rivets span:nth-child(1) { top:14px; left:14px; }
   .lc-armour-rivets span:nth-child(2) { top:14px; right:14px; }
   .lc-armour-rivets span:nth-child(3) { bottom:14px; left:14px; }
   .lc-armour-rivets span:nth-child(4) { bottom:14px; right:14px; }
-
-  /* emblem ring */
   .lc-armour-emblem {
-    width:72px; height:72px;
-    border-radius:50%;
-    margin:0 auto 24px;
-    position:relative;
+    width:72px; height:72px; border-radius:50%;
+    margin:0 auto 24px; position:relative;
     display:flex; align-items:center; justify-content:center;
   }
   .lc-armour-emblem::before {
-    content:'';
-    position:absolute; inset:-4px;
-    border-radius:50%;
-    background: conic-gradient(
-      from 0deg,
-      #8b1a1a 0deg, #e53e3e 60deg,
-      #8b1a1a 120deg, #c0392b 180deg,
-      #8b1a1a 240deg, #e53e3e 300deg, #8b1a1a 360deg);
+    content:''; position:absolute; inset:-4px; border-radius:50%;
+    background: conic-gradient(from 0deg, #8b1a1a 0deg, #e53e3e 60deg, #8b1a1a 120deg, #c0392b 180deg, #8b1a1a 240deg, #e53e3e 300deg, #8b1a1a 360deg);
     animation: ring-rotate 4s linear infinite;
   }
   @keyframes ring-rotate { to { transform: rotate(360deg); } }
   .lc-armour-emblem::after {
-    content:'';
-    position:absolute; inset:-1px;
-    border-radius:50%;
+    content:''; position:absolute; inset:-1px; border-radius:50%;
     background: radial-gradient(circle, rgba(15,1,1,1) 60%, transparent 100%);
   }
   .lc-armour-emblem-inner {
     position:relative; z-index:1;
     width:64px; height:64px; border-radius:50%;
-    background: radial-gradient(circle at 35% 30%,
-      #5a0e0e 0%, #2d0606 50%, #0d0101 100%);
+    background: radial-gradient(circle at 35% 30%, #5a0e0e 0%, #2d0606 50%, #0d0101 100%);
     display:flex; align-items:center; justify-content:center;
     font-size:28px;
     box-shadow: inset 0 2px 8px rgba(0,0,0,.8), inset 0 -1px 2px rgba(255,80,60,.1);
   }
-
-  /* title */
   .lc-armour-title {
-    text-align:center;
-    font-family:'Barlow Condensed', sans-serif;
-    font-size:20pt; font-weight:900;
-    letter-spacing:.18em;
-    color:#fff;
+    text-align:center; font-family:'Barlow Condensed', sans-serif;
+    font-size:20pt; font-weight:900; letter-spacing:.18em; color:#fff;
     text-transform:uppercase;
     text-shadow: 0 0 20px rgba(255,60,40,.6), 0 2px 4px rgba(0,0,0,.8);
     margin-bottom:4px;
   }
   .lc-armour-sub {
-    text-align:center;
-    font-family:'Barlow', sans-serif;
-    font-size:8pt; font-weight:300;
-    color:rgba(255,160,140,.5);
-    letter-spacing:.25em;
-    text-transform:uppercase;
-    margin-bottom:32px;
+    text-align:center; font-family:'Barlow', sans-serif;
+    font-size:8pt; font-weight:300; color:rgba(255,160,140,.5);
+    letter-spacing:.25em; text-transform:uppercase; margin-bottom:32px;
   }
-
-  /* progress track */
-  .lc-armour-progress-wrap {
-    margin-bottom:24px;
-    position:relative;
-  }
+  .lc-armour-progress-wrap { margin-bottom:24px; position:relative; }
   .lc-armour-progress-track {
-    width:100%;height:6px;
-    background:rgba(139,26,26,.25);
-    border-radius:3px;
-    overflow:hidden;
-    position:relative;
+    width:100%; height:6px; background:rgba(139,26,26,.25);
+    border-radius:3px; overflow:hidden; position:relative;
     box-shadow: inset 0 1px 4px rgba(0,0,0,.6), 0 0 0 1px rgba(139,26,26,.3);
   }
   .lc-armour-progress-fill {
     height:100%;
-    background: linear-gradient(90deg,
-      #7a1010 0%, #c0392b 35%, #e53e3e 50%, #c0392b 65%, #7a1010 100%);
-    background-size:200% 100%;
-    border-radius:3px;
-    width:0%;
+    background: linear-gradient(90deg, #7a1010 0%, #c0392b 35%, #e53e3e 50%, #c0392b 65%, #7a1010 100%);
+    background-size:200% 100%; border-radius:3px; width:0%;
     transition: width .4s cubic-bezier(.4,0,.2,1);
-    animation: fill-shimmer 1.5s ease-in-out infinite;
-    position:relative;
+    animation: fill-shimmer 1.5s ease-in-out infinite; position:relative;
   }
-  @keyframes fill-shimmer {
-    0%,100% { background-position:0% 0; }
-    50%      { background-position:200% 0; }
-  }
+  @keyframes fill-shimmer { 0%,100% { background-position:0% 0; } 50% { background-position:200% 0; } }
   .lc-armour-progress-glow {
-    position:absolute; right:0; top:50%;
-    transform:translateY(-50%);
+    position:absolute; right:0; top:50%; transform:translateY(-50%);
     width:20px; height:20px; border-radius:50%;
     background: radial-gradient(circle, rgba(255,80,60,.8) 0%, transparent 70%);
-    filter:blur(3px);
-    transition: right .4s cubic-bezier(.4,0,.2,1);
-    pointer-events:none;
+    filter:blur(3px); transition: right .4s cubic-bezier(.4,0,.2,1); pointer-events:none;
   }
-
-  /* status text */
-  .lc-armour-status-row {
-    display:flex; justify-content:space-between; align-items:baseline;
-    margin-bottom:20px;
-  }
+  .lc-armour-status-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:20px; }
   .lc-armour-status {
-    font-family:'Barlow Condensed', sans-serif;
-    font-size:10pt; font-weight:700;
-    color:#e07060; letter-spacing:.08em;
-    text-transform:uppercase;
+    font-family:'Barlow Condensed', sans-serif; font-size:10pt; font-weight:700;
+    color:#e07060; letter-spacing:.08em; text-transform:uppercase;
   }
   .lc-armour-pct {
-    font-family:'Barlow Condensed', sans-serif;
-    font-size:16pt; font-weight:800;
-    color:#ff6040;
-    text-shadow: 0 0 12px rgba(255,80,60,.4);
+    font-family:'Barlow Condensed', sans-serif; font-size:16pt; font-weight:800;
+    color:#ff6040; text-shadow: 0 0 12px rgba(255,80,60,.4);
   }
-
-  /* steps */
-  .lc-armour-steps {
-    display:flex; flex-direction:column; gap:10px;
-  }
+  .lc-armour-steps { display:flex; flex-direction:column; gap:10px; }
   .lc-armour-step {
-    display:flex; align-items:center; gap:12px;
-    padding:8px 12px; border-radius:8px;
-    background:rgba(139,26,26,.08);
-    border:1px solid rgba(139,26,26,.12);
-    transition: all .3s ease;
+    display:flex; align-items:center; gap:12px; padding:8px 12px; border-radius:8px;
+    background:rgba(139,26,26,.08); border:1px solid rgba(139,26,26,.12); transition: all .3s ease;
   }
-  .lc-armour-step.active {
-    background: rgba(139,26,26,.22);
-    border-color: rgba(192,57,43,.4);
-    box-shadow: 0 0 20px rgba(139,0,0,.3);
-  }
-  .lc-armour-step.done {
-    background: rgba(46,204,113,.06);
-    border-color: rgba(46,204,113,.2);
-  }
+  .lc-armour-step.active { background: rgba(139,26,26,.22); border-color: rgba(192,57,43,.4); box-shadow: 0 0 20px rgba(139,0,0,.3); }
+  .lc-armour-step.done   { background: rgba(46,204,113,.06); border-color: rgba(46,204,113,.2); }
   .lc-armour-step-icon {
-    width:24px; height:24px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    flex-shrink:0;
-    font-size:12px;
-    background: rgba(0,0,0,.4);
-    border: 1px solid rgba(139,26,26,.3);
-    color: rgba(255,100,80,.4);
-    transition: all .3s ease;
+    width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; font-size:12px; background: rgba(0,0,0,.4);
+    border: 1px solid rgba(139,26,26,.3); color: rgba(255,100,80,.4); transition: all .3s ease;
   }
   .lc-armour-step.active .lc-armour-step-icon {
-    background: rgba(139,26,26,.4);
-    border-color: rgba(255,80,60,.6);
-    color: #ff8060;
-    box-shadow: 0 0 10px rgba(255,60,40,.3);
-    animation: step-pulse .8s ease-in-out infinite alternate;
+    background: rgba(139,26,26,.4); border-color: rgba(255,80,60,.6); color: #ff8060;
+    box-shadow: 0 0 10px rgba(255,60,40,.3); animation: step-pulse .8s ease-in-out infinite alternate;
   }
-  @keyframes step-pulse {
-    from { box-shadow: 0 0 6px rgba(255,60,40,.2); }
-    to   { box-shadow: 0 0 16px rgba(255,60,40,.5); }
-  }
-  .lc-armour-step.done .lc-armour-step-icon {
-    background: rgba(46,204,113,.2);
-    border-color: rgba(46,204,113,.4);
-    color: #4eda8c;
-  }
+  @keyframes step-pulse { from { box-shadow: 0 0 6px rgba(255,60,40,.2); } to { box-shadow: 0 0 16px rgba(255,60,40,.5); } }
+  .lc-armour-step.done .lc-armour-step-icon { background: rgba(46,204,113,.2); border-color: rgba(46,204,113,.4); color: #4eda8c; }
   .lc-armour-step-label {
-    font-family:'Barlow Condensed', sans-serif;
-    font-size:9.5pt; font-weight:700; letter-spacing:.06em;
-    text-transform:uppercase; color:rgba(255,160,140,.35);
-    transition: color .3s ease;
-    flex:1;
+    font-family:'Barlow Condensed', sans-serif; font-size:9.5pt; font-weight:700;
+    letter-spacing:.06em; text-transform:uppercase; color:rgba(255,160,140,.35);
+    transition: color .3s ease; flex:1;
   }
   .lc-armour-step.active .lc-armour-step-label { color:#e07060; }
   .lc-armour-step.done  .lc-armour-step-label  { color:rgba(100,220,160,.6); }
   .lc-armour-step-detail {
-    font-family:'Barlow', sans-serif;
-    font-size:7pt; color:rgba(255,100,80,.4);
-    transition: color .3s ease;
-    text-align:right; white-space:nowrap;
+    font-family:'Barlow', sans-serif; font-size:7pt; color:rgba(255,100,80,.4);
+    transition: color .3s ease; text-align:right; white-space:nowrap;
   }
   .lc-armour-step.active .lc-armour-step-detail { color:rgba(255,120,80,.65); }
   .lc-armour-step.done  .lc-armour-step-detail  { color:rgba(80,200,140,.55); }
-
-  /* cancel btn */
-  .lc-armour-cancel {
-    margin-top:24px; width:100%;
-    display:none;
-    align-items:center; justify-content:center; gap:8px;
-    padding:10px 20px;
-    background:transparent;
-    border:1px solid rgba(139,26,26,.25);
-    border-radius:8px;
-    color:rgba(255,120,100,.45);
-    font-family:'Barlow Condensed', sans-serif;
-    font-size:9pt; font-weight:600; letter-spacing:.1em;
-    text-transform:uppercase; cursor:pointer;
-    transition: all .25s;
-  }
-  .lc-armour-cancel:hover {
-    background:rgba(139,26,26,.15);
-    border-color:rgba(192,57,43,.45);
-    color:rgba(255,140,120,.7);
-  }
-
-  /* ── out animation ── */
   #lc-armour-overlay.lc-overlay-out {
     animation: overlay-out .4s cubic-bezier(.55,0,1,.45) both;
   }
-  @keyframes overlay-out {
-    from { opacity:1; transform:scale(1); }
-    to   { opacity:0; transform:scale(.97); }
-  }
+  @keyframes overlay-out { from { opacity:1; transform:scale(1); } to { opacity:0; transform:scale(.97); } }
 `;
 
 let _overlayEl = null;
@@ -1446,15 +1285,12 @@ const OVERLAY_STEPS = [
 ];
 
 function showArmourOverlay() {
-  // Inject styles once
   if (!document.getElementById('lc-armour-styles')) {
     const st = document.createElement('style');
     st.id = 'lc-armour-styles';
     st.textContent = OVERLAY_STYLES;
     document.head.appendChild(st);
   }
-
-  // Remove any existing overlay
   const old = document.getElementById('lc-armour-overlay');
   if (old) old.remove();
 
@@ -1492,7 +1328,7 @@ function showArmourOverlay() {
     </div>`;
   document.body.appendChild(el);
 
-  _overlayEl          = el;
+  _overlayEl           = el;
   _overlayProgressFill = document.getElementById('lc-prog-fill');
   _overlayProgressGlow = document.getElementById('lc-prog-glow');
   _overlayStatus       = document.getElementById('lc-overlay-status');
@@ -1515,8 +1351,8 @@ function setOverlayProgress(pct, statusText, activeStep) {
 
   _overlaySteps.forEach((s, i) => {
     s.el.classList.remove('active','done');
-    if (i < activeStep)      { s.el.classList.add('done'); s.detail.textContent = '✓ Done'; }
-    else if (i === activeStep){ s.el.classList.add('active'); }
+    if (i < activeStep)       { s.el.classList.add('done'); s.detail.textContent = '✓ Done'; }
+    else if (i === activeStep) { s.el.classList.add('active'); }
   });
 }
 
@@ -1527,34 +1363,29 @@ function hideArmourOverlay() {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   20.  PRINT — instant: uses pre-warmed iframe if ready
+   20.  PRINT
    ───────────────────────────────────────────────────────────── */
 async function lcPrint() {
   const emp = resolveCurrentEmp();
   if (!emp) { alert('No employee leave card is currently open.'); return; }
 
-  // Grab pre-warmed iframe if it matches the current employee
   let iframe = (_readyIframe && _readyForEmpId === emp.id
                 && document.body.contains(_readyIframe))
     ? _readyIframe : null;
 
-  // Clear reference immediately so cleanup doesn't double-remove
   _readyIframe   = null;
   _readyForEmpId = null;
 
   if (!iframe) {
-    // Fallback: build now (only happens if prime hasn't finished yet)
     const logoSrc = await getLogoBase64();
     iframe = await createCaptureIframe(buildFullPage(emp, logoSrc));
   }
 
-  // Force full decode of every image before opening print dialog
   await Promise.all(
     [...iframe.contentDocument.images].map(img =>
       img.decode ? img.decode().catch(() => {}) : Promise.resolve()
     )
   );
-  // Extra settle for fonts/layout after decode
   await new Promise(r => setTimeout(r, 350));
 
   iframe.contentWindow.focus();
@@ -1562,15 +1393,15 @@ async function lcPrint() {
 
   const cleanup = () => {
     try { iframe.remove(); } catch (_) {}
-    lcPrimeForPrint(emp); // re-prime silently for the next print
+    lcPrimeForPrint(emp);
   };
   iframe.contentWindow.addEventListener('afterprint', cleanup, { once: true });
-  setTimeout(cleanup, 1500); // safety fallback
+  setTimeout(cleanup, 1500);
 }
 window.lcPrint = lcPrint;
 
 /* ─────────────────────────────────────────────────────────────
-   21.  DOWNLOAD PDF  v8.0 — Red Armour Edition
+   21.  DOWNLOAD PDF  v8.1
    ───────────────────────────────────────────────────────────── */
 async function lcDownloadPDF(emp) {
   if (typeof html2pdf === 'undefined') {
@@ -1587,7 +1418,6 @@ async function lcDownloadPDF(emp) {
     emp = resolved;
   }
 
-  // Button lockout
   const dlBtn = document.querySelector('.lc-dl-btn');
   let origHTML = '', origWidth = '';
   if (dlBtn) {
@@ -1599,7 +1429,6 @@ async function lcDownloadPDF(emp) {
     dlBtn.style.opacity = '0.7';
   }
 
-  // Show the epic overlay
   showArmourOverlay();
   setOverlayProgress(5, 'Summoning the forge…', 0);
 
@@ -1607,7 +1436,6 @@ async function lcDownloadPDF(emp) {
     const logoSrc = await getLogoBase64();
     setOverlayProgress(12, 'Loading insignia…', 0);
 
-    // 1. Flatten + slice
     const eras = flattenByEra(emp);
     const eraPageData = eras.map(era => ({
       era,
@@ -1617,7 +1445,6 @@ async function lcDownloadPDF(emp) {
     const totalPages = eraPageData.reduce((sum, e) => sum + Math.max(e.pages.length, 1), 0);
     setOverlayProgress(18, `Laying out ${totalPages} page${totalPages>1?'s':''}…`, 0);
 
-    // 2. Render each page — era by era
     const buffers = [];
     let globalPageNum = 0;
     for (const { pages, label } of eraPageData) {
@@ -1632,11 +1459,9 @@ async function lcDownloadPDF(emp) {
       }
     }
 
-    // 3. Merge
     setOverlayProgress(72, 'Welding pages together…', 2);
     const mergedBytes = await mergePageBuffers(buffers);
 
-    // 4. Download
     setOverlayProgress(92, 'Sealing the document…', 3);
     const surname  = (emp.surname || 'RECORD').toUpperCase().replace(/\s+/g, '_');
     const given    = (emp.given   || '').toUpperCase().replace(/\s+/g, '_');
@@ -1668,274 +1493,96 @@ async function lcDownloadPDF(emp) {
 window.lcDownloadPDF = lcDownloadPDF;
 
 /* ─────────────────────────────────────────────────────────────
-   22.  RED ARMOUR BUTTON INJECTION
-        Upgrades .lc-dl-btn and .lc-print-btn to 3D forged steel
+   22.  RED ARMOUR BUTTON STYLES
    ───────────────────────────────────────────────────────────── */
 const BUTTON_CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&display=swap');
 
-/* ── Download Button ── */
 .lc-dl-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  position: relative; display: inline-flex; align-items: center; gap: 8px;
   padding: 12px 26px 12px 22px;
   font-family: 'Barlow Condensed', sans-serif !important;
-  font-size: 11pt !important;
-  font-weight: 800 !important;
-  letter-spacing: .14em !important;
-  text-transform: uppercase;
-  color: #fff !important;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  overflow: hidden;
-  outline: none;
+  font-size: 11pt !important; font-weight: 800 !important; letter-spacing: .14em !important;
+  text-transform: uppercase; color: #fff !important;
+  border: none; border-radius: 10px; cursor: pointer; overflow: hidden; outline: none;
   transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s ease;
-
-  /* 3D forged steel base */
-  background: linear-gradient(160deg,
-    #6b0e0e 0%, #8b1a1a 15%, #c0392b 40%,
-    #e53e3e 55%, #c0392b 70%, #8b1a1a 85%, #5a0808 100%);
-
-  box-shadow:
-    0 1px 0 rgba(255,255,255,.12) inset,
-    0 -2px 0 rgba(0,0,0,.5) inset,
-    2px 0 0 rgba(255,120,100,.08) inset,
-    -2px 0 0 rgba(0,0,0,.3) inset,
-    0 6px 0 #5a0606,
-    0 7px 0 #3d0404,
-    0 8px 16px rgba(139,0,0,.6),
-    0 16px 40px rgba(139,0,0,.25),
-    0 0 0 1px rgba(192,57,43,.6);
-
+  background: linear-gradient(160deg, #6b0e0e 0%, #8b1a1a 15%, #c0392b 40%, #e53e3e 55%, #c0392b 70%, #8b1a1a 85%, #5a0808 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 -2px 0 rgba(0,0,0,.5) inset, 2px 0 0 rgba(255,120,100,.08) inset, -2px 0 0 rgba(0,0,0,.3) inset, 0 6px 0 #5a0606, 0 7px 0 #3d0404, 0 8px 16px rgba(139,0,0,.6), 0 16px 40px rgba(139,0,0,.25), 0 0 0 1px rgba(192,57,43,.6);
   text-shadow: 0 1px 3px rgba(0,0,0,.6);
 }
-
 .lc-dl-btn::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg,
-    rgba(255,255,255,.12) 0%,
-    rgba(255,255,255,.03) 45%,
-    transparent 100%);
-  border-radius: inherit;
-  pointer-events: none;
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,.03) 45%, transparent 100%);
+  border-radius: inherit; pointer-events: none;
 }
-
-/* shimmer sweep */
 .lc-dl-btn::after {
-  content: '';
-  position: absolute;
-  top: 0; left: -100%;
-  width: 60%; height: 100%;
-  background: linear-gradient(105deg,
-    transparent 0%,
-    rgba(255,255,255,.15) 50%,
-    transparent 100%);
-  animation: btn-shimmer 3s ease-in-out infinite;
-  pointer-events: none;
+  content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+  background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,.15) 50%, transparent 100%);
+  animation: btn-shimmer 3s ease-in-out infinite; pointer-events: none;
 }
-@keyframes btn-shimmer {
-  0%,80%,100% { left: -100%; opacity:0; }
-  40%         { left: 120%;  opacity:1; }
-}
-
+@keyframes btn-shimmer { 0%,80%,100% { left: -100%; opacity:0; } 40% { left: 120%; opacity:1; } }
 .lc-dl-btn:hover {
   transform: translateY(-2px);
-  box-shadow:
-    0 1px 0 rgba(255,255,255,.15) inset,
-    0 -2px 0 rgba(0,0,0,.5) inset,
-    2px 0 0 rgba(255,120,100,.1) inset,
-    -2px 0 0 rgba(0,0,0,.3) inset,
-    0 8px 0 #5a0606,
-    0 9px 0 #3d0404,
-    0 12px 28px rgba(139,0,0,.7),
-    0 24px 50px rgba(139,0,0,.3),
-    0 0 0 1px rgba(220,60,40,.8);
+  box-shadow: 0 1px 0 rgba(255,255,255,.15) inset, 0 -2px 0 rgba(0,0,0,.5) inset, 2px 0 0 rgba(255,120,100,.1) inset, -2px 0 0 rgba(0,0,0,.3) inset, 0 8px 0 #5a0606, 0 9px 0 #3d0404, 0 12px 28px rgba(139,0,0,.7), 0 24px 50px rgba(139,0,0,.3), 0 0 0 1px rgba(220,60,40,.8);
 }
+.lc-dl-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(255,255,255,.1) inset, 0 -1px 0 rgba(0,0,0,.4) inset, 0 2px 0 #5a0606, 0 3px 0 #3d0404, 0 4px 12px rgba(139,0,0,.5), 0 0 0 1px rgba(192,57,43,.6); }
+.lc-dl-btn:disabled { cursor: not-allowed; filter: saturate(.5) brightness(.7); }
 
-.lc-dl-btn:active {
-  transform: translateY(4px);
-  box-shadow:
-    0 1px 0 rgba(255,255,255,.1) inset,
-    0 -1px 0 rgba(0,0,0,.4) inset,
-    0 2px 0 #5a0606,
-    0 3px 0 #3d0404,
-    0 4px 12px rgba(139,0,0,.5),
-    0 0 0 1px rgba(192,57,43,.6);
-}
-
-.lc-dl-btn:disabled {
-  cursor: not-allowed;
-  filter: saturate(.5) brightness(.7);
-}
-
-/* ── Print Button ── */
 .lc-print-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  position: relative; display: inline-flex; align-items: center; gap: 8px;
   padding: 12px 26px 12px 22px;
   font-family: 'Barlow Condensed', sans-serif !important;
-  font-size: 11pt !important;
-  font-weight: 800 !important;
-  letter-spacing: .14em !important;
-  text-transform: uppercase;
-  color: #e8e0ff !important;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  overflow: hidden;
-  outline: none;
+  font-size: 11pt !important; font-weight: 800 !important; letter-spacing: .14em !important;
+  text-transform: uppercase; color: #e8e0ff !important;
+  border: none; border-radius: 10px; cursor: pointer; overflow: hidden; outline: none;
   transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s ease;
-
-  background: linear-gradient(160deg,
-    #0d1a3a 0%, #1a2d6b 18%, #1e3d88 40%,
-    #2251b3 55%, #1e3d88 70%, #1a2d6b 85%, #0a1530 100%);
-
-  box-shadow:
-    0 1px 0 rgba(255,255,255,.12) inset,
-    0 -2px 0 rgba(0,0,0,.5) inset,
-    2px 0 0 rgba(100,140,255,.08) inset,
-    -2px 0 0 rgba(0,0,0,.3) inset,
-    0 6px 0 #0a1530,
-    0 7px 0 #060e22,
-    0 8px 16px rgba(30,61,136,.6),
-    0 16px 40px rgba(30,61,136,.25),
-    0 0 0 1px rgba(34,81,179,.6);
-
+  background: linear-gradient(160deg, #0d1a3a 0%, #1a2d6b 18%, #1e3d88 40%, #2251b3 55%, #1e3d88 70%, #1a2d6b 85%, #0a1530 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 -2px 0 rgba(0,0,0,.5) inset, 2px 0 0 rgba(100,140,255,.08) inset, -2px 0 0 rgba(0,0,0,.3) inset, 0 6px 0 #0a1530, 0 7px 0 #060e22, 0 8px 16px rgba(30,61,136,.6), 0 16px 40px rgba(30,61,136,.25), 0 0 0 1px rgba(34,81,179,.6);
   text-shadow: 0 1px 3px rgba(0,0,0,.6);
 }
-
 .lc-print-btn::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg,
-    rgba(255,255,255,.12) 0%,
-    rgba(255,255,255,.03) 45%,
-    transparent 100%);
-  border-radius: inherit;
-  pointer-events: none;
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,.03) 45%, transparent 100%);
+  border-radius: inherit; pointer-events: none;
 }
 .lc-print-btn::after {
-  content: '';
-  position: absolute;
-  top: 0; left: -100%;
-  width: 60%; height: 100%;
-  background: linear-gradient(105deg,
-    transparent 0%,
-    rgba(255,255,255,.12) 50%,
-    transparent 100%);
-  animation: btn-shimmer 3.4s 1.2s ease-in-out infinite;
-  pointer-events: none;
+  content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+  background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,.12) 50%, transparent 100%);
+  animation: btn-shimmer 3.4s 1.2s ease-in-out infinite; pointer-events: none;
 }
-
 .lc-print-btn:hover {
   transform: translateY(-2px);
-  box-shadow:
-    0 1px 0 rgba(255,255,255,.15) inset,
-    0 -2px 0 rgba(0,0,0,.5) inset,
-    0 8px 0 #0a1530,
-    0 9px 0 #060e22,
-    0 12px 28px rgba(30,61,136,.7),
-    0 24px 50px rgba(30,61,136,.3),
-    0 0 0 1px rgba(60,100,220,.8);
+  box-shadow: 0 1px 0 rgba(255,255,255,.15) inset, 0 -2px 0 rgba(0,0,0,.5) inset, 0 8px 0 #0a1530, 0 9px 0 #060e22, 0 12px 28px rgba(30,61,136,.7), 0 24px 50px rgba(30,61,136,.3), 0 0 0 1px rgba(60,100,220,.8);
 }
+.lc-print-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(255,255,255,.1) inset, 0 2px 0 #0a1530, 0 3px 0 #060e22, 0 4px 12px rgba(30,61,136,.5), 0 0 0 1px rgba(34,81,179,.6); }
 
-.lc-print-btn:active {
-  transform: translateY(4px);
-  box-shadow:
-    0 1px 0 rgba(255,255,255,.1) inset,
-    0 2px 0 #0a1530,
-    0 3px 0 #060e22,
-    0 4px 12px rgba(30,61,136,.5),
-    0 0 0 1px rgba(34,81,179,.6);
-}
-    /* ── Back to List Button — dark forged steel ── */
 .lc-back-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  position: relative; display: inline-flex; align-items: center; gap: 8px;
   padding: 12px 26px 12px 22px;
   font-family: 'Barlow Condensed', sans-serif !important;
-  font-size: 11pt !important;
-  font-weight: 800 !important;
-  letter-spacing: .14em !important;
-  text-transform: uppercase;
-  color: #e8ddd0 !important;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  overflow: hidden;
-  outline: none;
+  font-size: 11pt !important; font-weight: 800 !important; letter-spacing: .14em !important;
+  text-transform: uppercase; color: #e8ddd0 !important;
+  border: none; border-radius: 10px; cursor: pointer; overflow: hidden; outline: none;
   transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s ease;
-
-  background: linear-gradient(160deg,
-    #0d0a08 0%, #1e1812 18%, #2e2418 40%,
-    #3a2e1e 55%, #2e2418 70%, #1e1812 85%, #0a0806 100%);
-
-  box-shadow:
-    0 1px 0 rgba(255,255,255,.10) inset,
-    0 -2px 0 rgba(0,0,0,.5) inset,
-    2px 0 0 rgba(200,160,80,.06) inset,
-    -2px 0 0 rgba(0,0,0,.3) inset,
-    0 6px 0 #0a0806,
-    0 7px 0 #060502,
-    0 8px 16px rgba(0,0,0,.55),
-    0 16px 40px rgba(0,0,0,.25),
-    0 0 0 1px rgba(180,140,60,.35);
-
+  background: linear-gradient(160deg, #0d0a08 0%, #1e1812 18%, #2e2418 40%, #3a2e1e 55%, #2e2418 70%, #1e1812 85%, #0a0806 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,.10) inset, 0 -2px 0 rgba(0,0,0,.5) inset, 2px 0 0 rgba(200,160,80,.06) inset, -2px 0 0 rgba(0,0,0,.3) inset, 0 6px 0 #0a0806, 0 7px 0 #060502, 0 8px 16px rgba(0,0,0,.55), 0 16px 40px rgba(0,0,0,.25), 0 0 0 1px rgba(180,140,60,.35);
   text-shadow: 0 1px 3px rgba(0,0,0,.7);
 }
-
 .lc-back-btn::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg,
-    rgba(255,255,255,.10) 0%,
-    rgba(255,255,255,.02) 45%,
-    transparent 100%);
-  border-radius: inherit;
-  pointer-events: none;
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,.02) 45%, transparent 100%);
+  border-radius: inherit; pointer-events: none;
 }
 .lc-back-btn::after {
-  content: '';
-  position: absolute;
-  top: 0; left: -100%;
-  width: 60%; height: 100%;
-  background: linear-gradient(105deg,
-    transparent 0%,
-    rgba(255,255,255,.10) 50%,
-    transparent 100%);
-  animation: btn-shimmer 4s 2s ease-in-out infinite;
-  pointer-events: none;
+  content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+  background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,.10) 50%, transparent 100%);
+  animation: btn-shimmer 4s 2s ease-in-out infinite; pointer-events: none;
 }
-
 .lc-back-btn:hover {
   transform: translateY(-2px);
-  box-shadow:
-    0 1px 0 rgba(255,255,255,.12) inset,
-    0 -2px 0 rgba(0,0,0,.5) inset,
-    0 8px 0 #0a0806,
-    0 9px 0 #060502,
-    0 12px 28px rgba(0,0,0,.6),
-    0 24px 50px rgba(0,0,0,.3),
-    0 0 0 1px rgba(200,160,80,.55);
+  box-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 -2px 0 rgba(0,0,0,.5) inset, 0 8px 0 #0a0806, 0 9px 0 #060502, 0 12px 28px rgba(0,0,0,.6), 0 24px 50px rgba(0,0,0,.3), 0 0 0 1px rgba(200,160,80,.55);
 }
-
-.lc-back-btn:active {
-  transform: translateY(4px);
-  box-shadow:
-    0 1px 0 rgba(255,255,255,.08) inset,
-    0 2px 0 #0a0806,
-    0 3px 0 #060502,
-    0 4px 12px rgba(0,0,0,.5),
-    0 0 0 1px rgba(180,140,60,.35);
-}
+.lc-back-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 2px 0 #0a0806, 0 3px 0 #060502, 0 4px 12px rgba(0,0,0,.5), 0 0 0 1px rgba(180,140,60,.35); }
 `;
 
 function injectButtonStyles() {
@@ -1945,12 +1592,11 @@ function injectButtonStyles() {
   st.textContent = BUTTON_CSS;
   document.head.appendChild(st);
 }
-getLogoBase64();
+
 /* ─────────────────────────────────────────────────────────────
    23.  BUTTON WIRING
    ───────────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', injectButtonStyles);
-// Also inject immediately in case DOM is already ready
 injectButtonStyles();
 
 document.addEventListener('click', function (e) {
@@ -1964,3 +1610,23 @@ document.addEventListener('click', function (e) {
     lcPrint();
   }
 }, true);
+
+// Pre-warm logo on script load
+getLogoBase64();
+
+/* ─────────────────────────────────────────────────────────────
+   24.  EXPOSE SHARED API for bulk-export.js
+        FIX v8.1: Moved OUT of renderPageToArrayBuffer closure
+   ───────────────────────────────────────────────────────────── */
+window.getLogoBase64           = getLogoBase64;
+window.buildExportHTML         = buildExportHTML;
+window.buildFullPage           = buildFullPage;
+window.buildPageHTML           = buildPageHTML;
+window.flattenRecords          = flattenRecords;
+window.sliceIntoPages          = sliceIntoPages;
+window.renderPageToArrayBuffer = renderPageToArrayBuffer;
+window.mergePageBuffers        = mergePageBuffers;
+window.showArmourOverlay       = showArmourOverlay;
+window.setOverlayProgress      = setOverlayProgress;
+window.hideArmourOverlay       = hideArmourOverlay;
+window.SHARED_CSS              = SHARED_CSS;
