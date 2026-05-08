@@ -1462,7 +1462,7 @@ function _laSubCard(a, tab, esc) {
         <span><strong>Working Days</strong>${a.num_working_days||'—'}</span>
         <span><strong>Commutation</strong>${esc(a.commutation||'—')}</span>
         ${a.attachment_name
-          ? `<span><strong>Attachment</strong><a class="sub-app-attachment" href="/storage/${esc(a.attachment_path||'')}" target="_blank">📎 ${esc(a.attachment_name)}</a></span>`
+          ? `<span><strong>Attachment</strong><a class="sub-app-attachment" href="${esc(a.attachment_path ? '/storage/' + a.attachment_path : '')}" target="_blank" rel="noopener noreferrer">📎 ${esc(a.attachment_name)}</a></span>`
           : '<span><strong>Attachment</strong>None</span>'}
       </div>
       ${tab === 'rejected' && a.rejection_reason ? `<div class="sub-rejected-reason">❌ ${esc(a.rejection_reason)}</div>` : ''}
