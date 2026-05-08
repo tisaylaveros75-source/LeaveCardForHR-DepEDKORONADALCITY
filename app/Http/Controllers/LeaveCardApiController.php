@@ -1176,7 +1176,7 @@ class LeaveCardApiController extends Controller
     {
         try {
             $role = $request->session()->get('lms_role', '');
-            if (!in_array($role, ['admin', 'encoder'])) {
+            if ($role !== 'admin') {
                 return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
             }
 
