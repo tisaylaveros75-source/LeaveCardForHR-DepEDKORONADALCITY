@@ -2095,56 +2095,6 @@ document.getElementById('csfDownloadBtn')?.addEventListener('click', async () =>
     }
   });
 }
-
-    /* ── 4. Settle time for fonts + layout ── */
-    await new Promise(r => setTimeout(r, 500));
-
-    /* ── 5. Render via html2pdf with same high-quality settings ── */
-    const name = ('CSF6_' + (a.surname || '') + '_' + (a.given || '') + '_' + (a.date_of_filing || 'leave'))
-      .replace(/\s+/g, '_') + '.pdf';
-
-    await new Promise((resolve, reject) => {
-      setTimeout(() => {
-        html2pdf()
-          .set({
-            margin: [0.3, 1.0, 0.3, 1.0],
-            filename:    name,
-            image:       { type: 'jpeg', quality: 0.99 },
-            html2canvas: {
-              scale:           2,
-              useCORS:         true,
-              logging:         false,
-              letterRendering: true,
-              allowTaint:      true,
-              backgroundColor: '#ffffff',
-              scrollX: 0, scrollY: 0, x: 0, y: 0,
-              windowHeight: 99999,
-             windowWidth:  950,
-                width:        900,
-            },
-            jsPDF: {
-              unit:        'in',
-              format:      [8.5, 13],
-              orientation: 'portrait',
-              compress:    true,
-            },
-            pagebreak: { mode: [] },
-          })
-          .from(wrapper)
-          .save()
-          .then(() => { wrapper.remove(); resolve(); })
-          .catch(err  => { wrapper.remove(); reject(err); });
-      }, 300);
-    });
-
-  } catch (err) {
-    console.error('[CSF PDF]', err);
-    alert('PDF generation failed: ' + err.message);
-  } finally {
-    btn.disabled    = false;
-    btn.textContent = origText;
-  }
-});
 }
 
 /* ══════════════════════════════════════════════════════════════
