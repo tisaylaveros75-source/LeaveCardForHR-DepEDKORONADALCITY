@@ -2060,36 +2060,98 @@ body {
   document.getElementById('laVwClose')?.addEventListener('click', close);
   document.getElementById('laVwOk')?.addEventListener('click',    close);
 
-  document.getElementById('csfDownloadBtn')?.addEventListener('click', () => {
-    const btn = document.getElementById('csfDownloadBtn');
-    if (typeof html2pdf === 'undefined') { alert('PDF library not loaded.'); return; }
-    btn.disabled = true;
-    btn.textContent = '⏳ Generating…';
+  document.getElementById('csfDownloadBtn')?.addEventListener('click', async () => {
+  const btn = document.getElementById('csfDownloadBtn');
+  if (typeof html2pdf === 'undefined') { alert('PDF library not loaded.'); return; }
 
-    const name = ('CSF6_' + (a.surname||'') + '_' + (a.given||'') + '_' + (a.date_of_filing||'leave')).replace(/\s+/g,'_') + '.pdf';
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = '⏳ Generating…';
 
-html2pdf().set({
-      margin:      [0.3, 0.3, 0.3, 0.3],
-      filename:    name,
-      image:       { type: 'jpeg', quality: 0.98 },
-html2canvas: {
-        scale: 3,
-        useCORS: true,
-        backgroundColor: '#fff',
-        logging: false,
-        windowWidth: 816,
-        scrollX: 0,
-        scrollY: 0
-      },
-      jsPDF: { unit: 'in', format: [8.5, 13], orientation: 'portrait' }
-    }).from(_csfHtmlStr, 'string').save().then(() => {
-      btn.disabled = false;
-      btn.textContent = '⬇ Download PDF';
-    }).catch(err => {
-      btn.disabled = false;
-      btn.textContent = '⬇ Download PDF';
-      alert('PDF generation failed: ' + err.message);
+  try {
+    /* ── 1. Build a hidden render div with the SAME html as the iframe ── */
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = [
+      'position:fixed', 'left:-9999px', 'top:0',
+      'width:816px', 'background:#fff',
+      'z-index:-9999', 'visibility:hidden',
+    ].join(';');
+    wrapper.innerHTML = _csfHtmlStr
+      .replace(/^<!DOCTYPE[^>]*>/i, '')
+      .replace(/<html[^>]*>/i, '')
+      .replace(/<\/html>/i, '')
+      .replace(/<head[\s\S]*?<\/head>/i, '')
+      .replace(/<\/?body[^>]*>/gi, '');
+    document.body.appendChild(wrapper);
+
+    /* ── 2. Wait for all images to load (avoids 0×0 canvas crash) ── */
+    await Promise.all(
+      [...wrapper.querySelectorAll('img')].map(img => {
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload  = resolve;
+          img.onerror = resolve;
+          if (img.src && !img.complete) { const s = img.src; img.src = ''; img.src = s; }
+        });
+      })
+    );
+
+    /* ── 3. GPU decode pass ── */
+    await Promise.all(
+      [...wrapper.querySelectorAll('img')].map(img =>
+        img.decode ? img.decode().catch(() => {}) : Promise.resolve()
+      )
+    );
+
+    /* ── 4. Settle time for fonts + layout ── */
+    await new Promise(r => setTimeout(r, 500));
+
+    /* ── 5. Render via html2pdf with same high-quality settings ── */
+    const name = ('CSF6_' + (a.surname || '') + '_' + (a.given || '') + '_' + (a.date_of_filing || 'leave'))
+      .replace(/\s+/g, '_') + '.pdf';
+
+    await new Promise((resolve, reject) => {
+      setTimeout(() => {
+        html2pdf()
+          .set({
+            margin:      [0.3, 0.3, 0.3, 0.3],
+            filename:    name,
+            image:       { type: 'jpeg', quality: 0.99 },
+            html2canvas: {
+              scale:           2,
+              useCORS:         true,
+              logging:         false,
+              letterRendering: true,
+              allowTaint:      true,
+              backgroundColor: '#ffffff',
+              scrollX: 0, scrollY: 0, x: 0, y: 0,
+              windowHeight: 99999,
+              windowWidth:  816,
+              width:        816,
+            },
+            jsPDF: {
+              unit:        'in',
+              format:      [8.5, 13],
+              orientation: 'portrait',
+              compress:    true,
+            },
+            pagebreak: { mode: [] },
+          })
+          .from(wrapper)
+          .save()
+          .then(() => { wrapper.remove(); resolve(); })
+          .catch(err  => { wrapper.remove(); reject(err); });
+      }, 300);
     });
+
+  } catch (err) {
+    console.error('[CSF PDF]', err);
+    alert('PDF generation failed: ' + err.message);
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = origText;
+  }
+});
   });
 }
 
