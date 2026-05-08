@@ -920,6 +920,12 @@ function showRegisterModal(emp) {
             <div class="f"><label>Date of Appointment</label><input id="reg_appt" type="date" value="${r.appt||''}"/></div>
             <div class="f"><label>TIN</label><input id="reg_tin" type="text" value="${_escMo(r.tin||'')}"/></div>
             <div class="f"><label>Rating</label><input id="reg_rating" type="text" value="${_escMo(r.rating||'')}"/></div>
+            <div class="f" style="grid-column:1/-1;">
+              <label>Assigned School Admin <span style="font-weight:400;font-size:10px;opacity:.6;">(optional)</span></label>
+              <select id="reg_assigned_sa_id">
+                <option value="">— None / Not Assigned —</option>
+              </select>
+            </div>
           </div>
 
           <div class="sdiv">🎓 Education &amp; Eligibility</div>
@@ -982,7 +988,22 @@ function showRegisterModal(emp) {
 
   _wireCombobox('reg_civil');
   _wireCombobox('reg_pos');
-_wireCombobox('reg_school');
+  _wireCombobox('reg_school');
+
+  // ── Load School Admins into dropdown ──
+  (async () => {
+    const saRes = await apiCall('get_school_admins', {}, 'GET');
+    const saSelect = document.getElementById('reg_assigned_sa_id');
+    if (saRes.ok && saSelect) {
+      (saRes.school_admins || []).forEach(sa => {
+        const opt = document.createElement('option');
+        opt.value = sa.id;
+        opt.textContent = sa.name;
+        if (r.assigned_sa_id && parseInt(r.assigned_sa_id) === sa.id) opt.selected = true;
+        saSelect.appendChild(opt);
+      });
+    }
+  })();
   setTimeout(() => {
     ['reg_dob','reg_appt','reg_dexam'].forEach(id => {
       const el = document.getElementById(id);
@@ -1075,6 +1096,7 @@ enforceAllCaps(mo);
       school:         getVal('reg_school').toUpperCase(),
       email:          emailUsername.toLowerCase() + '@deped.gov.ph',
       password:       mo.querySelector('#reg_pw').value,
+      assigned_sa_id: parseInt(mo.querySelector('#reg_assigned_sa_id')?.value) || null,
     };
 
     const res = await saveEmployeeAndHandleEra(body, (result) => {
