@@ -86,7 +86,7 @@ function _buildStats(db) {
 ───────────────────────────────────────────────────────── */
 function renderPersonnelList() {
   const el        = document.getElementById('pg-list');
-  const canAdmin  = window.state && window.state.isAdmin && !window.state.isEncoder;
+  const canAdmin  = window.state && (window.state.isAdmin || window.state.isEncoder);
   const db        = (window.state && window.state.db) || [];
   const positions = [...new Set(db.filter(e => e.pos).map(e => e.pos))].sort();
   const schools   = [...new Set(db.filter(e => e.school).map(e => e.school))].sort();
