@@ -218,13 +218,12 @@ function filterPersonnelTable() {
   if (!body) return;
 
   const saMap = {};
-  if (window.state && window.state.schoolAdmins) {
-    window.state.schoolAdmins.forEach(sa => { saMap[sa.id] = sa.name; });
-  }
+  const saList = window.state?.schoolAdmins || [];
+  saList.forEach(sa => { saMap[String(sa.id)] = sa.name; });
 
   const db = ((window.state && window.state.db) || []).map(e => ({
     ...e,
-    assigned_sa_name: e.assigned_sa_id ? (saMap[e.assigned_sa_id] || '—') : '—',
+    assigned_sa_name: e.assigned_sa_id ? (saMap[String(e.assigned_sa_id)] || '—') : '—',
   }));
   const q    = (document.getElementById('plSearch')?.value       || '').toLowerCase().trim();
   const cat  =  document.getElementById('plCatFilter')?.value    || '';
