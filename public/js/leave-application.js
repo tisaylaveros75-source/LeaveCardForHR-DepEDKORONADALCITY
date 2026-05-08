@@ -2065,8 +2065,8 @@ document.getElementById('csfDownloadBtn')?.addEventListener('click', () => {
     const iDoc = frameEl.contentDocument || frameEl.contentWindow.document;
     if (!iDoc) { alert('Could not access form.'); return; }
 
-    const name = ('CSF6_' + (a.surname || '') + '_' + (a.given || '') + '_' + (a.date_of_filing || 'leave'))
-      .replace(/\s+/g, '_') + '.pdf';
+const name = ('CSF6_' + (a.surname || '') + '_' + (a.given || '') + '_' + (a.date_of_filing || 'leave'))
+      .replace(/\s+/g, '_') + '.html';
 
     const originalHTML = iDoc.documentElement.outerHTML;
     const pdfHTML = originalHTML.replace(
