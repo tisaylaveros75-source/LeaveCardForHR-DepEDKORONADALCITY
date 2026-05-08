@@ -2089,12 +2089,11 @@ document.getElementById('csfDownloadBtn')?.addEventListener('click', async () =>
     } catch (err) {
       console.error('[CSF PDF]', err);
       alert('PDF generation failed: ' + err.message);
-    } finally {
+} finally {
       btn.disabled    = false;
       btn.textContent = origText;
     }
   });
-}
 }
 
 /* ══════════════════════════════════════════════════════════════
