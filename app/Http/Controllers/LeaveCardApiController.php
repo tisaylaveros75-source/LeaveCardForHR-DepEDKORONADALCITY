@@ -456,7 +456,8 @@ class LeaveCardApiController extends Controller
                 'appt'           => LeaveHelper::normaliseDate($p['appt']  ?? ''),
                 'status'         => $p['status']   ?? 'Teaching',
                 'account_status' => in_array($p['account_status'] ?? '', ['active', 'inactive'])
-                                        ? $p['account_status'] : 'active',
+                        ? $p['account_status'] : 'active',
+                'assigned_sa_id' => isset($p['assigned_sa_id']) ? (int)$p['assigned_sa_id'] : null,
                 'pos'            => $p['pos']    ?? '',
                 'school'         => $p['school'] ?? '',
                 'last_edited_at' => now(),
