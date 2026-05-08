@@ -932,9 +932,9 @@ function showRegisterModal(emp) {
           <div class="sdiv">🎓 Education &amp; Eligibility</div>
           <div class="ig">
             <div class="f"><label>Highest Education</label><input id="reg_edu" type="text" value="${_escMo(r.edu||'')}"/></div>
-            <div class="f"><label>Eligibility</label><input id="reg_elig" type="text" value="${_escMo(r.elig||'')}"/></div>
-            <div class="f"><label>Professional Exam</label><input id="reg_pexam" type="text" value="${_escMo(r.pexam||'')}"/></div>
+            <div class="f"><label>Eligibility / Professional Exam</label><input id="reg_elig" type="text" value="${_escMo(r.elig||'')}"/></div>
             <div class="f"><label>Date of Exam</label><input id="reg_dexam" type="text" placeholder="mm/dd/yyyy" value="${r.dexam ? fmtD(r.dexam) : ''}"/></div>
+            <input type="hidden" id="reg_pexam" value="${_escMo(r.pexam||'')}"/>
           </div>
 
           <div class="sdiv">📍 Contact Information</div>
@@ -1008,7 +1008,26 @@ function showRegisterModal(emp) {
   setTimeout(() => {
     ['reg_dob','reg_appt','reg_dexam'].forEach(id => {
       const el = document.getElementById(id);
-      if (el && !el._flatpickr) flatpickr(el, { dateFormat: 'm/d/Y', allowInput: true });
+      if (el && !el._flatpickr) flatpickr(el, {
+        dateFormat: 'm/d/Y',
+        allowInput: true,
+        onReady(_, __, fp) {
+          fp.altInput && (fp.altInput.placeholder = 'mm/dd/yyyy');
+        },
+      });
+      if (el) {
+        el.addEventListener('input', function () {
+          const digits = this.value.replace(/\D/g, '').slice(0, 8);
+          let out = digits;
+          if (digits.length > 2) out = digits.slice(0,2) + '/' + digits.slice(2);
+          if (digits.length > 4) out = digits.slice(0,2) + '/' + digits.slice(2,4) + '/' + digits.slice(4);
+          if (this.value !== out) {
+            const pos = out.length;
+            this.value = out;
+            this.setSelectionRange(pos, pos);
+          }
+        });
+      }
     });
   }, 100);
   
@@ -1088,7 +1107,7 @@ enforceAllCaps(mo);
       elig:           getVal('reg_elig').toUpperCase(),
       rating:         getVal('reg_rating').toUpperCase(),
       tin:            getVal('reg_tin').toUpperCase(),
-      pexam:          getVal('reg_pexam').toUpperCase(),
+      pexam:          getVal('reg_elig').toUpperCase(),
       dexam:          mo.querySelector('#reg_dexam').value,
       appt:           mo.querySelector('#reg_appt').value,
       status:         mo.querySelector('#reg_status').value,
