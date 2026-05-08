@@ -1550,9 +1550,9 @@ function _laViewCSFModal(a, esc) {
               style="background:linear-gradient(135deg,#5a0f16,#8b1a1a);color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:12px;font-weight:700;cursor:pointer;">
               🖨 Print CSF No. 6
             </button>
-            <button id="csfDownloadBtn"
+<button id="csfDownloadBtn"
               style="background:linear-gradient(135deg,#065f46,#059669);color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:12px;font-weight:700;cursor:pointer;">
-              ⬇ Download PDF
+              🖨 Save as PDF
             </button>
             ${a.attachment_path ? `<a href="/storage/${esc(a.attachment_path)}" target="_blank"
               style="background:linear-gradient(135deg,#1e3a6e,#3b82f6);color:#fff;border-radius:8px;padding:9px 22px;font-size:12px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
@@ -2059,41 +2059,35 @@ body {
   document.getElementById('laVwClose')?.addEventListener('click', close);
   document.getElementById('laVwOk')?.addEventListener('click',    close);
 
-document.getElementById('csfDownloadBtn')?.addEventListener('click', async () => {
-    const btn = document.getElementById('csfDownloadBtn');
-    if (typeof html2pdf === 'undefined') { alert('PDF library not loaded.'); return; }
+document.getElementById('csfDownloadBtn')?.addEventListener('click', () => {
+    const frameEl = document.getElementById('csfPrintFrame');
+    if (!frameEl) { alert('Form not loaded yet.'); return; }
+    const iDoc = frameEl.contentDocument || frameEl.contentWindow.document;
+    if (!iDoc) { alert('Could not access form.'); return; }
 
-    btn.disabled = true;
-    const origText = btn.textContent;
-    btn.textContent = '⏳ Generating…';
+    const name = ('CSF6_' + (a.surname || '') + '_' + (a.given || '') + '_' + (a.date_of_filing || 'leave'))
+      .replace(/\s+/g, '_');
 
-    try {
-      const name = ('CSF6_' + (a.surname || '') + '_' + (a.given || '') + '_' + (a.date_of_filing || 'leave'))
-        .replace(/\s+/g, '_') + '.pdf';
+    const printWin = window.open('', '_blank', 'width=900,height=1200');
+    printWin.document.open();
+    printWin.document.write(
+      '<!DOCTYPE html><html>' + iDoc.documentElement.outerHTML + '</html>'
+    );
+    printWin.document.close();
 
-      const frameEl = document.getElementById('csfPrintFrame');
-      if (!frameEl) throw new Error('Form not loaded yet.');
-      const frameBody = frameEl.contentDocument?.body || frameEl.contentWindow?.document?.body;
-      if (!frameBody) throw new Error('Could not access form body.');
+    /* Inject a print-trigger with the suggested filename shown in the tab */
+    printWin.document.title = name;
 
-      await new Promise(r => setTimeout(r, 300));
-
-      await html2pdf().set({
-        margin:      [0.3, 0.5, 0.3, 0.5],
-        filename:    name,
-        image:       { type: 'jpeg', quality: 0.99 },
-        html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0 },
-        jsPDF:       { unit: 'in', format: [8.5, 13], orientation: 'portrait', compress: true },
-        pagebreak:   { mode: [] },
-      }).from(frameBody).save();
-
-    } catch (err) {
-      console.error('[CSF PDF]', err);
-      alert('PDF generation failed: ' + err.message);
-    } finally {
-      btn.disabled    = false;
-      btn.textContent = origText;
-    }
+    printWin.onload = () => {
+      setTimeout(() => {
+        printWin.focus();
+        printWin.print();
+      }, 400);
+    };
+    /* Fallback if onload already fired */
+    setTimeout(() => {
+      try { printWin.focus(); printWin.print(); } catch(_) {}
+    }, 800);
   });
 }
 
