@@ -2061,17 +2061,32 @@ function _laViewCSFModal(a, esc) {
 
     const name = ('CSF6_' + (a.surname||'') + '_' + (a.given||'') + '_' + (a.date_of_filing||'leave')).replace(/\s+/g,'_') + '.pdf';
 
-    const iframeBody = document.getElementById('csfPrintFrame')?.contentDocument?.body;
-html2pdf().set({
-  margin:      [0.3, 0.3, 0.3, 0.3],
-  filename:    name,
-  image:       { type: 'jpeg', quality: 0.98 },
-  html2canvas: { scale: 3, useCORS: true, backgroundColor: '#fff', logging: false, windowWidth: 750 },
-  jsPDF:       { unit: 'in', format: [8.5, 13], orientation: 'portrait' }
-}).from(iframeBody).save().then(() => {
+const iframeDoc = document.getElementById('csfPrintFrame')?.contentDocument;
+    const iframeHtml = '<!DOCTYPE html><html>' + iframeDoc.documentElement.outerHTML + '</html>';
+    const container = document.createElement('div');
+    container.style.cssText = 'position:fixed;left:-9999px;top:0;width:750px;background:#fff;';
+    container.innerHTML = iframeHtml.replace(/<script[\s\S]*?<\/script>/gi,'');
+    // Copy computed styles from iframe
+    Array.from(iframeDoc.styleSheets).forEach(sheet => {
+      try {
+        const style = document.createElement('style');
+        style.textContent = Array.from(sheet.cssRules).map(r => r.cssText).join('\n');
+        container.prepend(style);
+      } catch(e) {}
+    });
+    document.body.appendChild(container);
+    html2pdf().set({
+      margin:      [0.3, 0.3, 0.3, 0.3],
+      filename:    name,
+      image:       { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 3, useCORS: true, backgroundColor: '#fff', logging: false, windowWidth: 750, scrollX: 0, scrollY: 0 },
+      jsPDF:       { unit: 'in', format: [8.5, 13], orientation: 'portrait' }
+    }).from(container).save().then(() => {
+      document.body.removeChild(container);
       btn.disabled = false;
       btn.textContent = '⬇ Download PDF';
-    }).catch(err => {
+}).catch(err => {
+      if (document.body.contains(container)) document.body.removeChild(container);
       btn.disabled = false;
       btn.textContent = '⬇ Download PDF';
       alert('PDF generation failed: ' + err.message);
