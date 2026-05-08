@@ -1594,7 +1594,7 @@ function _laViewCSFModal(a, esc) {
   iDoc.write(`<!DOCTYPE html><html><head>
     <meta charset="UTF-8"/>
     <style>
-      * { margin:0; padding:0; box-sizing:border-box; }
+
 body {
         font-family: Arial, sans-serif;
         font-size: 8pt;
