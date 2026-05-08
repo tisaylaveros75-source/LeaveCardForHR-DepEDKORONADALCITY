@@ -166,6 +166,7 @@ function renderPersonnelList() {
               <th class="pl-tcol-pos">Position</th>
               <th class="pl-tcol-school">School / Office</th>
               <th class="pl-th-center pl-tcol-card">Card Status</th>
+              <th class="pl-tcol-sa">Assigned SA</th>
               <th class="pl-th-center pl-tcol-acc">Account</th>
               <th class="pl-th-center pl-tcol-action no-print">Action</th>
             </tr>
@@ -216,7 +217,15 @@ function filterPersonnelTable() {
   const footer = document.getElementById('plFooter');
   if (!body) return;
 
-  const db   = (window.state && window.state.db) || [];
+  const saMap = {};
+  if (window.state && window.state.schoolAdmins) {
+    window.state.schoolAdmins.forEach(sa => { saMap[sa.id] = sa.name; });
+  }
+
+  const db = ((window.state && window.state.db) || []).map(e => ({
+    ...e,
+    assigned_sa_name: e.assigned_sa_id ? (saMap[e.assigned_sa_id] || '—') : '—',
+  }));
   const q    = (document.getElementById('plSearch')?.value       || '').toLowerCase().trim();
   const cat  =  document.getElementById('plCatFilter')?.value    || '';
   const pos  =  document.getElementById('plPosFilter')?.value    || '';
@@ -260,6 +269,7 @@ function filterPersonnelTable() {
       <td class="pl-td-pos">${_esc(e.pos || '—')}</td>
       <td class="pl-td-school">${_esc(e.school || '—')}</td>
       <td class="pl-td-center">${_cardStatusBadge(e)}</td>
+      <td class="pl-td-sa" style="font-size:12px;color:rgba(100,100,120,.9);">${_esc(e.assigned_sa_name || '—')}</td>
       <td class="pl-td-center">${_accountBadge(e.account_status)}</td>
       <td class="pl-td-actions no-print">
         <button class="pl-action-btn pl-action-btn--edit" data-pl-edit="${_esc(e.id)}">✏ Edit</button>
