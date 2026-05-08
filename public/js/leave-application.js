@@ -2069,32 +2069,47 @@ body {
   btn.textContent = '⏳ Generating…';
 
   try {
-    /* ── 1. Build a hidden render div with the SAME html as the iframe ── */
-    const wrapper = document.createElement('div');
-    wrapper.style.cssText = [
-      'position:fixed', 'left:-9999px', 'top:0',
-      'width:950px', 'background:#fff',
-        'z-index:-9999', 'opacity:0',
-    ].join(';');
-    wrapper.innerHTML = _csfHtmlStr
-      .replace(/^<!DOCTYPE[^>]*>/i, '')
-      .replace(/<html[^>]*>/i, '')
-      .replace(/<\/html>/i, '')
-      .replace(/<head[\s\S]*?<\/head>/i, '')
-      .replace(/<\/?body[^>]*>/gi, '');
-    document.body.appendChild(wrapper);
+    const name = ('CSF6_' + (a.surname || '') + '_' + (a.given || '') + '_' + (a.date_of_filing || 'leave'))
+      .replace(/\s+/g, '_') + '.pdf';
 
-    /* ── 2. Wait for all images to load (avoids 0×0 canvas crash) ── */
-    await Promise.all(
-      [...wrapper.querySelectorAll('img')].map(img => {
-        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-        return new Promise(resolve => {
-          img.onload  = resolve;
-          img.onerror = resolve;
-          if (img.src && !img.complete) { const s = img.src; img.src = ''; img.src = s; }
-        });
+    const frameBody = document.getElementById('csfPrintFrame')
+      ?.contentDocument?.body;
+
+    if (!frameBody) throw new Error('Form not loaded yet.');
+
+    await new Promise(r => setTimeout(r, 300));
+
+    await html2pdf()
+      .set({
+        margin:      [0.3, 0.5, 0.3, 0.5],
+        filename:    name,
+        image:       { type: 'jpeg', quality: 0.99 },
+        html2canvas: {
+          scale:           2,
+          useCORS:         true,
+          logging:         false,
+          backgroundColor: '#ffffff',
+          scrollX: 0, scrollY: 0,
+        },
+        jsPDF: {
+          unit:        'in',
+          format:      [8.5, 13],
+          orientation: 'portrait',
+          compress:    true,
+        },
+        pagebreak: { mode: [] },
       })
-    );
+      .from(frameBody)
+      .save();
+
+  } catch (err) {
+    console.error('[CSF PDF]', err);
+    alert('PDF generation failed: ' + err.message);
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = origText;
+  }
+});
 
     /* ── 3. GPU decode pass ── */
     await Promise.all(
