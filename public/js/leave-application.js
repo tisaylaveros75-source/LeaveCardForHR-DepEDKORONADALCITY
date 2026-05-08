@@ -2071,43 +2071,23 @@ document.getElementById('csfDownloadBtn')?.addEventListener('click', async () =>
       const name = ('CSF6_' + (a.surname || '') + '_' + (a.given || '') + '_' + (a.date_of_filing || 'leave'))
         .replace(/\s+/g, '_') + '.pdf';
 
-const srcFrame = document.getElementById('csfPrintFrame');
-      if (!srcFrame) throw new Error('Form not loaded yet.');
-      const srcDoc = srcFrame.contentDocument || srcFrame.contentWindow.document;
+      const frameEl = document.getElementById('csfPrintFrame');
+      if (!frameEl) throw new Error('Form not loaded yet.');
+      const frameBody = frameEl.contentDocument?.body || frameEl.contentWindow?.document?.body;
+      if (!frameBody) throw new Error('Could not access form body.');
 
-      // Clone full iframe into off-screen div WITH its styles so html2canvas
-      // renders exactly like the print preview
-      const wrapper = document.createElement('div');
-      wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:750px;background:#fff;';
-      const styleTag = document.createElement('style');
-      styleTag.textContent = Array.from(srcDoc.querySelectorAll('style'))
-        .map(s => s.textContent).join('\n');
-      wrapper.appendChild(styleTag);
-      wrapper.appendChild(srcDoc.body.cloneNode(true));
-      document.body.appendChild(wrapper);
-
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 300));
 
       await html2pdf().set({
-        margin:      [0.3, 0.3, 0.3, 0.3],
+        margin:      [0.3, 0.5, 0.3, 0.5],
         filename:    name,
-        image:       { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff',
-          windowWidth: 750,
-          width: 750,
-        },
+        image:       { type: 'jpeg', quality: 0.99 },
+        html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0 },
         jsPDF:       { unit: 'in', format: [8.5, 13], orientation: 'portrait', compress: true },
-        pagebreak:   { mode: ['avoid-all'] },
-      }).from(wrapper).save();
-
-document.body.removeChild(wrapper);
+        pagebreak:   { mode: [] },
+      }).from(frameBody).save();
 
     } catch (err) {
-      try { document.body.removeChild(wrapper); } catch(_) {}
       console.error('[CSF PDF]', err);
       alert('PDF generation failed: ' + err.message);
     } finally {
