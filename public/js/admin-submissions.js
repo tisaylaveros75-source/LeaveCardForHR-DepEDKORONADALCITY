@@ -747,7 +747,7 @@ function _asRenderList(apiCall) {
       if (!confirm(`Mark as Recorded?\n\nEmployee: ${app.surname}, ${app.given}\nLeave Type: ${app.leave_type}\nDates: ${app.inclusive_dates}\n\nThis confirms the leave has been officially recorded.`)) return;
       btn.disabled = true; btn.textContent = '⏳ Recording…';
       const r = await apiCall('mark_as_recorded', { app_id: +btn.dataset.asRecord });
-      if (r.ok) { _currentTab = 'recorded'; document.querySelectorAll('[data-atab]').forEach(b => b.classList.remove('active')); document.querySelector('[data-atab="recorded"]')?.classList.add('active'); await _asLoadAll(apiCall); _asRenderList(apiCall); }
+      if (r.ok) {   _currentTab = 'accepted';   await _asLoadAll(apiCall);   _asRenderList(apiCall); }
       else { alert(r.error || 'Failed.'); btn.disabled = false; btn.textContent = '📁 Mark as Recorded'; }
     });
   });
@@ -803,9 +803,9 @@ function _asCardHTML(a, tab) {
             <span class="as-card-detail-key">Attachment</span>
             <span class="as-card-detail-val">
               ${a.attachment_name
-                ? `<a href="/storage/${esc(a.attachment_path||'')}" target="_blank"
-                     style="color:#3b82f6;text-decoration:none;font-size:11.5px;">
-                     📎 ${esc(a.attachment_name)}</a>`
+                ? `<a href="${esc(a.attachment_path ? '/storage/' + a.attachment_path : '')}" target="_blank" rel="noopener noreferrer"
+                style="color:#3b82f6;text-decoration:none;font-size:11.5px;" onclick="event.stopPropagation();">
+                📎 ${esc(a.attachment_name)}</a>`
                 : '—'}
             </span>
           </div>
