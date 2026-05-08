@@ -2061,47 +2061,28 @@ function _laViewCSFModal(a, esc) {
 
     const name = ('CSF6_' + (a.surname||'') + '_' + (a.given||'') + '_' + (a.date_of_filing||'leave')).replace(/\s+/g,'_') + '.pdf';
 
-const iframeDoc = document.getElementById('csfPrintFrame')?.contentDocument;
-    const fullHtml = '<!DOCTYPE html><html>' + iframeDoc.documentElement.outerHTML + '</html>';
-
-    const printWin = window.open('', '_blank', 'width=900,height=1200,scrollbars=yes');
-    printWin.document.open();
-    printWin.document.write(fullHtml);
-    printWin.document.close();
-
-    setTimeout(() => {
-      try {
-        html2pdf().set({
-          margin:      [0.3, 0.3, 0.3, 0.3],
-          filename:    name,
-          image:       { type: 'jpeg', quality: 0.98 },
-          html2canvas: {
-            scale: 3,
-            useCORS: true,
-            backgroundColor: '#fff',
-            logging: false,
-            windowWidth: 816,
-            scrollX: 0,
-            scrollY: 0
-          },
-          jsPDF: { unit: 'in', format: [8.5, 13], orientation: 'portrait' }
-        }).from(printWin.document.body).save().then(() => {
-          printWin.close();
-          btn.disabled = false;
-          btn.textContent = '⬇ Download PDF';
-        }).catch(err => {
-          printWin.close();
-          btn.disabled = false;
-          btn.textContent = '⬇ Download PDF';
-          alert('PDF generation failed: ' + err.message);
-        });
-      } catch(err) {
-        printWin.close();
-        btn.disabled = false;
-        btn.textContent = '⬇ Download PDF';
-        alert('PDF generation failed: ' + err.message);
-      }
-    }, 800);
+html2pdf().set({
+      margin:      [0.3, 0.3, 0.3, 0.3],
+      filename:    name,
+      image:       { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: '#fff',
+        logging: false,
+        windowWidth: 750,
+        scrollX: 0,
+        scrollY: 0
+      },
+      jsPDF: { unit: 'in', format: [8.5, 13], orientation: 'portrait' }
+    }).from(_csfHtmlStr, 'string').save().then(() => {
+      btn.disabled = false;
+      btn.textContent = '⬇ Download PDF';
+    }).catch(err => {
+      btn.disabled = false;
+      btn.textContent = '⬇ Download PDF';
+      alert('PDF generation failed: ' + err.message);
+    });
   });
 }
 
