@@ -2065,22 +2065,12 @@ document.getElementById('csfDownloadBtn')?.addEventListener('click', () => {
     const iDoc = frameEl.contentDocument || frameEl.contentWindow.document;
     if (!iDoc) { alert('Could not access form.'); return; }
 
-const name = ('CSF6_' + (a.surname || '') + '_' + (a.given || '') + '_' + (a.date_of_filing || 'leave'))
+    const name = ('CSF6_' + (a.surname || '') + '_' + (a.given || '') + '_' + (a.date_of_filing || 'leave'))
       .replace(/\s+/g, '_') + '.html';
 
-    const originalHTML = iDoc.documentElement.outerHTML;
-    const pdfHTML = originalHTML.replace(
-      /<style[\s\S]*?<\/style>/i,
-      match => match + `
-        @page { size: 8.5in 13in portrait; margin: 0.3in; }
-        @media print { .no-print { display: none !important; } }
-      `
-    );
+    const fullHTML = '<!DOCTYPE html><html>' + iDoc.documentElement.outerHTML + '</html>';
 
-    const blob = new Blob(
-      ['<!DOCTYPE html><html>' + pdfHTML + '</html>'],
-      { type: 'text/html' }
-    );
+    const blob = new Blob([fullHTML], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a_tag = document.createElement('a');
     a_tag.href = url;
