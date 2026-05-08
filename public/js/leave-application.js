@@ -2439,8 +2439,7 @@ body {
   .es-sidebar-apply { padding: 10px 12px; }
   .es-content-header { padding: 14px 16px 12px; }
   .es-content-list { padding: 12px 14px; }
-  .es-app-card { padding: 13px 14px; }
-}
+.es-app-card { padding: 13px 14px; }
 }
 
 @media print {
