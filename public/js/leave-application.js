@@ -2104,12 +2104,9 @@ const srcFrame = document.getElementById('csfPrintFrame');
         pagebreak:   { mode: ['avoid-all'] },
       }).from(wrapper).save();
 
-      document.body.removeChild(wrapper);
+document.body.removeChild(wrapper);
 
     } catch (err) {
-      console.error('[CSF PDF]', err);
-      alert('PDF generation failed: ' + err.message);
-} catch (err) {
       try { document.body.removeChild(wrapper); } catch(_) {}
       console.error('[CSF PDF]', err);
       alert('PDF generation failed: ' + err.message);
