@@ -1326,6 +1326,22 @@ class LeaveCardApiController extends Controller
     }
 
     // ── GET /api/get_my_recorded_applications (employee) ────────
-    public function getMyRecordedApplications
+    public function getMyRecordedApplications(Request $request): JsonResponse
+    {
+        try {
+            $empId = $request->session()->get('lms_employee_id', '');
+            if (!$empId) return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
+            $rows = DB::table('leave_applications as la')
+                ->join('personnel as p', 'la.employee_id', '=', 'p.employee_id')
+                ->where('la.employee_id', $empId)
+                ->whereNotNull('la.recorded_at')
+                ->orderByDesc('la.recorded_at')
+                ->select('la.*', 'p.maternal')
+                ->get()
+                ->toArray();
+            return response()->json(['ok' => true, 'applications' => array_map(fn($r) => (array)$r, $rows)]);
+        } catch (Exception $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+        }
     }
 }
