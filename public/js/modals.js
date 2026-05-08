@@ -888,7 +888,7 @@ function showRegisterModal(emp) {
               <label>Civil Status</label>
               ${_buildCombobox({ id:'reg_civil', placeholder:'Select or type…', options:CIVIL_STATUS_OPTIONS, value:r.civil||'' })}
             </div>
-            <div class="f"><label>Date of Birth *</label><input id="reg_dob" type="date" value="${r.dob||''}"/></div>
+            <div class="f"><label>Date of Birth *</label><input id="reg_dob" type="text" placeholder="mm/dd/yyyy" value="${r.dob ? fmtD(r.dob) : ''}"/></div>
             <div class="f"><label>Place of Birth</label><input id="reg_pob" type="text" value="${_escMo(r.pob||'')}"/></div>
           </div>
 
@@ -917,7 +917,7 @@ function showRegisterModal(emp) {
               <label>School / Office *</label>
               ${_buildCombobox({ id:'reg_school', placeholder:'Select or type…', options:SCHOOL_OPTIONS, value:r.school||'' })}
             </div>
-            <div class="f"><label>Date of Appointment</label><input id="reg_appt" type="date" value="${r.appt||''}"/></div>
+            <div class="f"><label>Date of Appointment</label><input id="reg_appt" type="text" placeholder="mm/dd/yyyy" value="${r.appt ? fmtD(r.appt) : ''}"/></div>
             <div class="f"><label>TIN</label><input id="reg_tin" type="text" value="${_escMo(r.tin||'')}"/></div>
             <div class="f"><label>Rating</label><input id="reg_rating" type="text" value="${_escMo(r.rating||'')}"/></div>
             ${(!window.state?.isSchoolAdmin && !window.state?.isEncoder) ? `
@@ -934,7 +934,7 @@ function showRegisterModal(emp) {
             <div class="f"><label>Highest Education</label><input id="reg_edu" type="text" value="${_escMo(r.edu||'')}"/></div>
             <div class="f"><label>Eligibility</label><input id="reg_elig" type="text" value="${_escMo(r.elig||'')}"/></div>
             <div class="f"><label>Professional Exam</label><input id="reg_pexam" type="text" value="${_escMo(r.pexam||'')}"/></div>
-            <div class="f"><label>Date of Exam</label><input id="reg_dexam" type="date" value="${r.dexam||''}"/></div>
+            <div class="f"><label>Date of Exam</label><input id="reg_dexam" type="text" placeholder="mm/dd/yyyy" value="${r.dexam ? fmtD(r.dexam) : ''}"/></div>
           </div>
 
           <div class="sdiv">📍 Contact Information</div>
