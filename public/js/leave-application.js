@@ -1595,24 +1595,31 @@ function _laViewCSFModal(a, esc) {
     <meta charset="UTF-8"/>
     <style>
       * { margin:0; padding:0; box-sizing:border-box; }
-      body {
+body {
         font-family: Arial, sans-serif;
         font-size: 8pt;
         color: #000;
         background: #fff;
         padding: 0;
         margin: 0;
-        width: 750px;
+        width: 816px;
         box-sizing: border-box;
       }
       @page {
         size: 8.5in 13in portrait;
         margin: 0.3in;
       }
-      @media print {
+@media print {
         body { padding: 0; }
         .no-print { display: none !important; }
         .form-wrapper { width: 100%; }
+      }
+      * {
+.form-wrapper, .form-wrapper * {
+        background-color: #fff !important;
+        background-image: none !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
       }
 
       /* Outer border around whole form */
@@ -2065,12 +2072,12 @@ html2pdf().set({
       margin:      [0.3, 0.3, 0.3, 0.3],
       filename:    name,
       image:       { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
+html2canvas: {
         scale: 3,
         useCORS: true,
         backgroundColor: '#fff',
         logging: false,
-        windowWidth: 750,
+        windowWidth: 816,
         scrollX: 0,
         scrollY: 0
       },
