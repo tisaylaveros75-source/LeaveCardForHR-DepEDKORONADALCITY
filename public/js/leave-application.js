@@ -2060,63 +2060,41 @@ body {
   document.getElementById('laVwClose')?.addEventListener('click', close);
   document.getElementById('laVwOk')?.addEventListener('click',    close);
 
-  document.getElementById('csfDownloadBtn')?.addEventListener('click', async () => {
-  const btn = document.getElementById('csfDownloadBtn');
-  if (typeof html2pdf === 'undefined') { alert('PDF library not loaded.'); return; }
+document.getElementById('csfDownloadBtn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('csfDownloadBtn');
+    if (typeof html2pdf === 'undefined') { alert('PDF library not loaded.'); return; }
 
-  btn.disabled = true;
-  const origText = btn.textContent;
-  btn.textContent = '⏳ Generating…';
+    btn.disabled = true;
+    const origText = btn.textContent;
+    btn.textContent = '⏳ Generating…';
 
-  try {
-    const name = ('CSF6_' + (a.surname || '') + '_' + (a.given || '') + '_' + (a.date_of_filing || 'leave'))
-      .replace(/\s+/g, '_') + '.pdf';
+    try {
+      const name = ('CSF6_' + (a.surname || '') + '_' + (a.given || '') + '_' + (a.date_of_filing || 'leave'))
+        .replace(/\s+/g, '_') + '.pdf';
 
-    const frameBody = document.getElementById('csfPrintFrame')
-      ?.contentDocument?.body;
+      const frameBody = document.getElementById('csfPrintFrame')?.contentDocument?.body;
+      if (!frameBody) throw new Error('Form not loaded yet.');
 
-    if (!frameBody) throw new Error('Form not loaded yet.');
+      await new Promise(r => setTimeout(r, 300));
 
-    await new Promise(r => setTimeout(r, 300));
-
-    await html2pdf()
-      .set({
+      await html2pdf().set({
         margin:      [0.3, 0.5, 0.3, 0.5],
         filename:    name,
         image:       { type: 'jpeg', quality: 0.99 },
-        html2canvas: {
-          scale:           2,
-          useCORS:         true,
-          logging:         false,
-          backgroundColor: '#ffffff',
-          scrollX: 0, scrollY: 0,
-        },
-        jsPDF: {
-          unit:        'in',
-          format:      [8.5, 13],
-          orientation: 'portrait',
-          compress:    true,
-        },
-        pagebreak: { mode: [] },
-      })
-      .from(frameBody)
-      .save();
+        html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0 },
+        jsPDF:       { unit: 'in', format: [8.5, 13], orientation: 'portrait', compress: true },
+        pagebreak:   { mode: [] },
+      }).from(frameBody).save();
 
-  } catch (err) {
-    console.error('[CSF PDF]', err);
-    alert('PDF generation failed: ' + err.message);
-  } finally {
-    btn.disabled    = false;
-    btn.textContent = origText;
-  }
-});
-
-    /* ── 3. GPU decode pass ── */
-    await Promise.all(
-      [...wrapper.querySelectorAll('img')].map(img =>
-        img.decode ? img.decode().catch(() => {}) : Promise.resolve()
-      )
-    );
+    } catch (err) {
+      console.error('[CSF PDF]', err);
+      alert('PDF generation failed: ' + err.message);
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = origText;
+    }
+  });
+}
 
     /* ── 4. Settle time for fonts + layout ── */
     await new Promise(r => setTimeout(r, 500));
