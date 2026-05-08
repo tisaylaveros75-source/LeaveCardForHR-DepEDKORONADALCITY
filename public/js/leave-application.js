@@ -2073,7 +2073,7 @@ body {
     const wrapper = document.createElement('div');
     wrapper.style.cssText = [
       'position:fixed', 'left:-9999px', 'top:0',
-      'width:750px', 'background:#fff',
+      'width:950px', 'background:#fff',
         'z-index:-9999', 'opacity:0',
     ].join(';');
     wrapper.innerHTML = _csfHtmlStr
@@ -2126,8 +2126,8 @@ body {
               backgroundColor: '#ffffff',
               scrollX: 0, scrollY: 0, x: 0, y: 0,
               windowHeight: 99999,
-             windowWidth:  750,
-                width:        700,
+             windowWidth:  950,
+                width:        900,
             },
             jsPDF: {
               unit:        'in',
