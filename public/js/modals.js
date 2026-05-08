@@ -1097,7 +1097,9 @@ enforceAllCaps(mo);
       school:         getVal('reg_school').toUpperCase(),
       email:          emailUsername.toLowerCase() + '@deped.gov.ph',
       password:       mo.querySelector('#reg_pw').value,
-      assigned_sa_id: parseInt(mo.querySelector('#reg_assigned_sa_id')?.value) || null,
+      assigned_sa_id: window.state?.isSchoolAdmin
+        ? (window.state.schoolAdminCfg?.dbId || null)
+        : (parseInt(mo.querySelector('#reg_assigned_sa_id')?.value) || null),
     };
 
     const res = await saveEmployeeAndHandleEra(body, (result) => {
