@@ -1692,17 +1692,19 @@ function _laViewCSFModal(a, esc) {
         line-height: 1.3;
       }
       .chk-box {
-        width: 10px;
-        height: 10px;
-        border: 0.5pt solid #000;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 8pt;
-        flex-shrink: 0;
-        margin-top: 1px;
-      }
-      .chk-box.checked { background: #000; color: #fff; border-color: #000; }
+  width: 13px;
+  height: 13px;
+  border: 1pt solid #000;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11pt;
+  font-weight: 900;
+  flex-shrink: 0;
+  margin-top: 1px;
+  line-height: 1;
+}
+.chk-box.checked { background: #fff; color: #000; border-color: #000; }
       .inline-line {
         border-bottom: 0.5pt solid #000;
         display: inline-block;
@@ -2059,13 +2061,14 @@ function _laViewCSFModal(a, esc) {
 
     const name = ('CSF6_' + (a.surname||'') + '_' + (a.given||'') + '_' + (a.date_of_filing||'leave')).replace(/\s+/g,'_') + '.pdf';
 
-    html2pdf().set({
-      margin:      [0.3, 0.3, 0.3, 0.3],
-      filename:    name,
-      image:       { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#fff', logging: false, windowWidth: 750, scrollX: 0, scrollY: 0, x: 0, y: 0 },
-      jsPDF:       { unit: 'in', format: [8.5, 13], orientation: 'portrait' }
-    }).from(_csfHtmlStr, 'string').save().then(() => {
+    const iframeBody = document.getElementById('csfPrintFrame')?.contentDocument?.body;
+html2pdf().set({
+  margin:      [0.3, 0.3, 0.3, 0.3],
+  filename:    name,
+  image:       { type: 'jpeg', quality: 0.98 },
+  html2canvas: { scale: 3, useCORS: true, backgroundColor: '#fff', logging: false, windowWidth: 750 },
+  jsPDF:       { unit: 'in', format: [8.5, 13], orientation: 'portrait' }
+}).from(iframeBody).save().then(() => {
       btn.disabled = false;
       btn.textContent = '⬇ Download PDF';
     }).catch(err => {
@@ -2348,13 +2351,20 @@ function _laViewCSFModal(a, esc) {
 .es-empty-text { font-size: 13px; }
 
 /* ── RESPONSIVE ─────────────────────────── */
-@media (max-width: 640px) {
-  .es-shell { flex-direction: column; }
-  .es-sidebar { width: 100%; min-width: unset; }
-  .es-sidebar-nav { display: flex; flex-direction: row; padding: 8px; gap: 4px; overflow-x: auto; }
-  .es-nav-item { flex-direction: column; padding: 8px 10px; gap: 4px; border-left: none; border-bottom: 3px solid transparent; min-width: 70px; }
-  .es-nav-item.active { border-left-color: transparent; border-bottom-color: #fcd34d; }
-  .es-nav-item-label { font-size: 10px; }
+@media (max-width: 768px) {
+  .es-shell { flex-direction: column; border-radius: 14px; }
+  .es-sidebar { width: 100%; min-width: unset; border-radius: 14px 14px 0 0; }
+  .es-sidebar-header { padding: 14px 16px 12px; }
+  .es-sidebar-nav { display: flex; flex-direction: row; padding: 6px 8px; gap: 3px; overflow-x: auto; flex-wrap: nowrap; }
+  .es-nav-item { flex-direction: column; padding: 8px 6px; gap: 3px; border-left: none; border-bottom: 3px solid transparent; min-width: 65px; flex: 1; text-align: center; align-items: center; border-radius: 8px; }
+  .es-nav-item.active { border-left-color: transparent; border-bottom-color: #fcd34d; background: rgba(255,255,255,.18); }
+  .es-nav-item-label { font-size: 9.5px; }
+  .es-nav-item-badge { font-size: 8.5px; padding: 1px 5px; }
+  .es-sidebar-apply { padding: 10px 12px; }
+  .es-content-header { padding: 14px 16px 12px; }
+  .es-content-list { padding: 12px 14px; }
+  .es-app-card { padding: 13px 14px; }
+}
 }
 
 @media print {
