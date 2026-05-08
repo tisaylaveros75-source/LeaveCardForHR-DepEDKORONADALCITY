@@ -2066,28 +2066,29 @@ document.getElementById('csfDownloadBtn')?.addEventListener('click', () => {
     if (!iDoc) { alert('Could not access form.'); return; }
 
     const name = ('CSF6_' + (a.surname || '') + '_' + (a.given || '') + '_' + (a.date_of_filing || 'leave'))
-      .replace(/\s+/g, '_');
+      .replace(/\s+/g, '_') + '.pdf';
 
-    const printWin = window.open('', '_blank', 'width=900,height=1200');
-    printWin.document.open();
-    printWin.document.write(
-      '<!DOCTYPE html><html>' + iDoc.documentElement.outerHTML + '</html>'
+    const originalHTML = iDoc.documentElement.outerHTML;
+    const pdfHTML = originalHTML.replace(
+      /<style[\s\S]*?<\/style>/i,
+      match => match + `
+        @page { size: 8.5in 13in portrait; margin: 0.3in; }
+        @media print { .no-print { display: none !important; } }
+      `
     );
-    printWin.document.close();
 
-    /* Inject a print-trigger with the suggested filename shown in the tab */
-    printWin.document.title = name;
-
-    printWin.onload = () => {
-      setTimeout(() => {
-        printWin.focus();
-        printWin.print();
-      }, 400);
-    };
-    /* Fallback if onload already fired */
-    setTimeout(() => {
-      try { printWin.focus(); printWin.print(); } catch(_) {}
-    }, 800);
+    const blob = new Blob(
+      ['<!DOCTYPE html><html>' + pdfHTML + '</html>'],
+      { type: 'text/html' }
+    );
+    const url = URL.createObjectURL(blob);
+    const a_tag = document.createElement('a');
+    a_tag.href = url;
+    a_tag.download = name;
+    document.body.appendChild(a_tag);
+    a_tag.click();
+    document.body.removeChild(a_tag);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
   });
 }
 
