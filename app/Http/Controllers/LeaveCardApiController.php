@@ -109,9 +109,13 @@ class LeaveCardApiController extends Controller
             $limit  = min(200, (int)$request->input('limit', 100));
             $offset = ($page - 1) * $limit;
 
-            $total = DB::table('personnel')->count();
-            $rows  = DB::table('personnel')
-                ->orderBy('surname')
+            $saId  = $request->session()->get('lms_db_id', 0);
+            $query = DB::table('personnel');
+            if ($role === 'school_admin' && $saId) {
+                $query->where('assigned_sa_id', $saId);
+            }
+            $total = $query->count();
+            $rows  = $query->orderBy('surname')
                 ->orderBy('given')
                 ->limit($limit)
                 ->offset($offset)
@@ -1300,23 +1304,28 @@ class LeaveCardApiController extends Controller
         }
     }
 
-    // ── GET /api/get_my_recorded_applications (employee) ────────
-    public function getMyRecordedApplications(Request $request): JsonResponse
+   // ── POST /api/assign_school_admin ───────────────────────────
+    public function assignSchoolAdmin(Request $request): JsonResponse
     {
         try {
-            $empId = $request->session()->get('lms_employee_id', '');
-            if (!$empId) return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
-            $rows = DB::table('leave_applications as la')
-                ->join('personnel as p', 'la.employee_id', '=', 'p.employee_id')
-                ->where('la.employee_id', $empId)
-                ->whereNotNull('la.recorded_at')
-                ->orderByDesc('la.recorded_at')
-                ->select('la.*', 'p.maternal')
-                ->get()
-                ->toArray();
-            return response()->json(['ok' => true, 'applications' => array_map(fn($r) => (array)$r, $rows)]);
+            $role  = $request->session()->get('lms_role', '');
+            if (!in_array($role, ['admin', 'encoder'])) {
+                return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
+            }
+            $empId = $request->input('employee_id');
+            $saId  = $request->input('assigned_sa_id');
+            if (!$empId) return response()->json(['ok' => false, 'error' => 'employee_id required.'], 400);
+            DB::table('personnel')->where('employee_id', $empId)->update([
+                'assigned_sa_id' => $saId ? (int)$saId : null,
+                'updated_at'     => now(),
+            ]);
+            return response()->json(['ok' => true]);
         } catch (Exception $e) {
             return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
         }
+    }
+
+    // ── GET /api/get_my_recorded_applications (employee) ────────
+    public function getMyRecordedApplications
     }
 }
