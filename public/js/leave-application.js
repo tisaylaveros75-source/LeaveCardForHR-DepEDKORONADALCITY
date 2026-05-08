@@ -2073,7 +2073,7 @@ body {
     const wrapper = document.createElement('div');
     wrapper.style.cssText = [
       'position:fixed', 'left:-9999px', 'top:0',
-      'width:816px', 'background:#fff',
+      'width:750px', 'background:#fff',
         'z-index:-9999', 'opacity:0',
     ].join(';');
     wrapper.innerHTML = _csfHtmlStr
@@ -2114,7 +2114,7 @@ body {
       setTimeout(() => {
         html2pdf()
           .set({
-            margin:      [0.3, 0.3, 0.3, 0.3],
+            margin: [0.3, 1.0, 0.3, 1.0],
             filename:    name,
             image:       { type: 'jpeg', quality: 0.99 },
             html2canvas: {
@@ -2126,8 +2126,8 @@ body {
               backgroundColor: '#ffffff',
               scrollX: 0, scrollY: 0, x: 0, y: 0,
               windowHeight: 99999,
-             windowWidth:  816,
-                width:        750,
+             windowWidth:  750,
+                width:        700,
             },
             jsPDF: {
               unit:        'in',
