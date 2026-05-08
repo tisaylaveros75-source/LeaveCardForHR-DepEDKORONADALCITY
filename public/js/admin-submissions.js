@@ -657,7 +657,7 @@ async function _asLoadAll(apiCall) {
   ]);
 
   const pend = pendRes.ok  ? (pendRes.applications  || []) : [];
-  const acc  = accRes.ok   ? (accRes.applications   || []) : [];
+  const acc  = accRes.ok   ? (accRes.applications   || []).filter(a => !a.recorded_at) : [];
   const rej  = rejRes.ok   ? (rejRes.applications   || []) : [];
   _recApps   = recRes.ok   ? (recRes.applications   || []) : [];
 
