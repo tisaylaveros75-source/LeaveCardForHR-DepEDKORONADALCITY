@@ -1605,7 +1605,7 @@ body {
         width: 750px;
         box-sizing: border-box;
       }
-      @page {
+@page {
         size: 8.5in 13in portrait;
         margin: 0.3in;
       }
@@ -1614,8 +1614,7 @@ body {
         .no-print { display: none !important; }
         .form-wrapper { width: 100%; }
       }
-      * {
-.form-wrapper, .form-wrapper * {
+     .form-wrapper, .form-wrapper * {
         background-color: #fff !important;
         background-image: none !important;
         box-shadow: none !important;
