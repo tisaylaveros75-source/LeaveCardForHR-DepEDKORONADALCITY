@@ -2032,7 +2032,7 @@ function _laViewCSFModal(a, esc) {
         </td>
       </tr>
       <tr>
-        <td colspan="2" style="text-align:center;padding:65px 6px 3px;border-top:0.5pt solid #000;border-left:none;border-right:none;">
+        <td colspan="2" style="text-align:center;padding:65px 6px 7.5px;border-top:0.5pt solid #000;border-left:none;border-right:none;">
           <div class="bold underline" style="font-size:11pt;letter-spacing:0.3px;">NERISSA A. ALFAFARA, CESO VI</div>
           <div style="font-size:8pt;">Assistant Schools Division Superintendent</div>
         </td>
