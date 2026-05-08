@@ -1672,7 +1672,7 @@ function _laViewCSFModal(a, esc) {
         font-size: 9pt;
         text-transform: uppercase;
         text-align: center;
-        background: #f0f0f0;
+        background: #fff;
         padding: 3px;
         border-bottom: 0.5pt solid #000;
       }
@@ -1702,7 +1702,7 @@ function _laViewCSFModal(a, esc) {
         flex-shrink: 0;
         margin-top: 1px;
       }
-      .chk-box.checked { background: #000; color: #fff; }
+      .chk-box.checked { background: #000; color: #fff; border-color: #000; }
       .inline-line {
         border-bottom: 0.5pt solid #000;
         display: inline-block;
@@ -1936,7 +1936,7 @@ function _laViewCSFModal(a, esc) {
             </div>
             <span>Requested</span>
           </div>
-          <div class="sig-line" style="margin-top:6px;">(Signature of Applicant)</div>
+          <div class="sig-line" style="margin-top:50px;">(Signature of Applicant)</div>
         </td>
       </tr>
     </table>
@@ -1955,9 +1955,9 @@ function _laViewCSFModal(a, esc) {
           <div style="display:flex;flex-direction:column;align-items:center;margin-top:4px;">
             <table class="approval-table" style="width:auto;">
               <tr>
-                <th style="width:130px;background:#f5f5f5;">&nbsp;</th>
-                <th style="width:80px;text-align:center;background:#f5f5f5;">Vacation Leave</th>
-                <th style="width:70px;text-align:center;background:#f5f5f5;">Sick Leave</th>
+                <th style="width:130px;background:#fff;">&nbsp;</th>
+              <th style="width:80px;text-align:center;background:#fff;">Vacation Leave</th>
+              <th style="width:70px;text-align:center;background:#fff;">Sick Leave</th>
               </tr>
               <tr>
                 <td>Total Earned</td>
@@ -1975,7 +1975,7 @@ function _laViewCSFModal(a, esc) {
                 <td>&nbsp;</td>
               </tr>
             </table>
-            <div style="text-align:center;margin-top:8px;">
+            <div style="text-align:center;margin-top:60px;">
               <div class="bold" style="font-size:8.5pt;">FAIZAL B. MACASAYON</div>
               <div class="small">Administrative Officer IV/ HRMO</div>
             </div>
