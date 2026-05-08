@@ -2074,7 +2074,7 @@ body {
     wrapper.style.cssText = [
       'position:fixed', 'left:-9999px', 'top:0',
       'width:816px', 'background:#fff',
-      'z-index:-9999', 'visibility:hidden',
+        'z-index:-9999', 'opacity:0',
     ].join(';');
     wrapper.innerHTML = _csfHtmlStr
       .replace(/^<!DOCTYPE[^>]*>/i, '')
@@ -2126,8 +2126,8 @@ body {
               backgroundColor: '#ffffff',
               scrollX: 0, scrollY: 0, x: 0, y: 0,
               windowHeight: 99999,
-              windowWidth:  816,
-              width:        816,
+             windowWidth:  816,
+                width:        750,
             },
             jsPDF: {
               unit:        'in',
