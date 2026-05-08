@@ -1602,7 +1602,7 @@ body {
         background: #fff;
         padding: 0;
         margin: 0;
-        width: 816px;
+        width: 750px;
         box-sizing: border-box;
       }
       @page {
