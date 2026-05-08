@@ -166,7 +166,7 @@ function renderPersonnelList() {
               <th class="pl-tcol-pos">Position</th>
               <th class="pl-tcol-school">School / Office</th>
               <th class="pl-th-center pl-tcol-card">Card Status</th>
-              <th class="pl-tcol-sa">Assigned SA</th>
+              <th class="pl-tcol-sa">Assigned School Admin</th>
               <th class="pl-th-center pl-tcol-acc">Account</th>
               <th class="pl-th-center pl-tcol-action no-print">Action</th>
             </tr>
