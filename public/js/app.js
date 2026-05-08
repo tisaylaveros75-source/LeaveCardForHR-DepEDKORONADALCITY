@@ -401,6 +401,8 @@ async function doLogin(res) {
   renderTopbar();
   renderSidebar();
   await loadAllPersonnel();
+  const saRes = await apiCall('get_school_admins', {}, 'GET');
+  if (saRes.ok) window.state.schoolAdmins = saRes.school_admins || [];
 
   if (state.role === 'employee') setPage('user');
   else                           setPage('home');
