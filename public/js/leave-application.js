@@ -2059,26 +2059,75 @@ body {
   document.getElementById('laVwClose')?.addEventListener('click', close);
   document.getElementById('laVwOk')?.addEventListener('click',    close);
 
-document.getElementById('csfDownloadBtn')?.addEventListener('click', () => {
+document.getElementById('csfDownloadBtn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('csfDownloadBtn');
     const frameEl = document.getElementById('csfPrintFrame');
     if (!frameEl) { alert('Form not loaded yet.'); return; }
     const iDoc = frameEl.contentDocument || frameEl.contentWindow.document;
     if (!iDoc) { alert('Could not access form.'); return; }
 
+    btn.disabled = true;
+    btn.textContent = '⏳ Generating PDF…';
+
     const name = ('CSF6_' + (a.surname || '') + '_' + (a.given || '') + '_' + (a.date_of_filing || 'leave'))
-      .replace(/\s+/g, '_') + '.html';
+      .replace(/\s+/g, '_') + '.pdf';
 
-    const fullHTML = '<!DOCTYPE html><html>' + iDoc.documentElement.outerHTML + '</html>';
+    /* Load libraries if not already loaded */
+    async function loadScript(src) {
+      if (document.querySelector(`script[src="${src}"]`)) return;
+      return new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = src; s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
 
-    const blob = new Blob([fullHTML], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a_tag = document.createElement('a');
-    a_tag.href = url;
-    a_tag.download = name;
-    document.body.appendChild(a_tag);
-    a_tag.click();
-    document.body.removeChild(a_tag);
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    try {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+
+      const formEl = iDoc.querySelector('.form-wrapper') || iDoc.body;
+
+      const canvas = await html2canvas(formEl, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        windowWidth: formEl.scrollWidth,
+        windowHeight: formEl.scrollHeight,
+      });
+
+      const { jsPDF } = window.jspdf;
+      /* Folio: 8.5 x 13 inches */
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'in', format: [8.5, 13] });
+
+      const pageW = 8.5;
+      const pageH = 13;
+      const margin = 0.3;
+      const contentW = pageW - margin * 2;
+      const contentH = pageH - margin * 2;
+
+      const imgW = canvas.width;
+      const imgH = canvas.height;
+      const ratio = imgW / imgH;
+
+      let drawW = contentW;
+      let drawH = drawW / ratio;
+
+      if (drawH > contentH) {
+        drawH = contentH;
+        drawW = drawH * ratio;
+      }
+
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      pdf.addImage(imgData, 'JPEG', margin, margin, drawW, drawH);
+      pdf.save(name);
+
+    } catch (err) {
+      alert('PDF generation failed: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '🖨 Save as PDF';
+    }
   });
 }
 
