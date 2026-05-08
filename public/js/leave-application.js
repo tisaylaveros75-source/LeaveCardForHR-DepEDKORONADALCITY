@@ -2071,24 +2071,49 @@ document.getElementById('csfDownloadBtn')?.addEventListener('click', async () =>
       const name = ('CSF6_' + (a.surname || '') + '_' + (a.given || '') + '_' + (a.date_of_filing || 'leave'))
         .replace(/\s+/g, '_') + '.pdf';
 
-      const frameBody = document.getElementById('csfPrintFrame')?.contentDocument?.body;
-      if (!frameBody) throw new Error('Form not loaded yet.');
+const srcFrame = document.getElementById('csfPrintFrame');
+      if (!srcFrame) throw new Error('Form not loaded yet.');
+      const srcDoc = srcFrame.contentDocument || srcFrame.contentWindow.document;
 
-      await new Promise(r => setTimeout(r, 300));
+      // Clone full iframe into off-screen div WITH its styles so html2canvas
+      // renders exactly like the print preview
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:750px;background:#fff;';
+      const styleTag = document.createElement('style');
+      styleTag.textContent = Array.from(srcDoc.querySelectorAll('style'))
+        .map(s => s.textContent).join('\n');
+      wrapper.appendChild(styleTag);
+      wrapper.appendChild(srcDoc.body.cloneNode(true));
+      document.body.appendChild(wrapper);
+
+      await new Promise(r => setTimeout(r, 500));
 
       await html2pdf().set({
-        margin:      [0.3, 0.5, 0.3, 0.5],
+        margin:      [0.3, 0.3, 0.3, 0.3],
         filename:    name,
-        image:       { type: 'jpeg', quality: 0.99 },
-        html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0 },
+        image:       { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+          windowWidth: 750,
+          width: 750,
+        },
         jsPDF:       { unit: 'in', format: [8.5, 13], orientation: 'portrait', compress: true },
-        pagebreak:   { mode: [] },
-      }).from(frameBody).save();
+        pagebreak:   { mode: ['avoid-all'] },
+      }).from(wrapper).save();
+
+      document.body.removeChild(wrapper);
 
     } catch (err) {
       console.error('[CSF PDF]', err);
       alert('PDF generation failed: ' + err.message);
-} finally {
+} catch (err) {
+      try { document.body.removeChild(wrapper); } catch(_) {}
+      console.error('[CSF PDF]', err);
+      alert('PDF generation failed: ' + err.message);
+    } finally {
       btn.disabled    = false;
       btn.textContent = origText;
     }
