@@ -23,13 +23,13 @@
 'use strict';
 
 const LEAVE_TYPES = [
-  'Monthly Accrual', 'Service Credit', 'Vacation Leave', 'Sick Leave',
-  'Force/Mandatory Leave', 'Force/Mandatory Leave (Disapproved)',
+  'Monthly Accrual', 'Vacation Leave', 'Sick Leave',
+  'Forced/Mandatory Leave', 'Forced/Mandatory Leave (Disapproved)',
   'Personal Leave (W/O Pay)', 'Monetization', 'Monetization (Disapproved)',
   'Terminal Leave', 'Maternity Leave', 'Paternity Leave',
   'Magna Carta (SLB)', 'Credit Entry', 'Solo Parent Leave',
   'Wellness Leave', 'Special Privilege Leave (SPL)',
-  'CTO/Compensatory Leave', 'Disapproved Leave', 'VAWC Leave',
+  'Disapproved Leave', 'VAWC Leave',
   'Rehabilitation Leave', 'Study Leave',
 ];
 
