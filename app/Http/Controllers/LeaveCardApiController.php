@@ -24,18 +24,18 @@ class LeaveCardApiController extends Controller
             $row = DB::table('admin_config')->whereRaw('LOWER(login_id) = ?', [$id])->first();
             if ($row && $row->password === $password) {
                 $request->session()->put('lms_role',     $row->role);
-                $request->session()->put('lms_name',     $row->name);
-                $request->session()->put('lms_login_id', $row->login_id);
-                if ($row->role === 'school_admin') {
-                    $request->session()->put('lms_db_id', $row->id);
-                }
-                return response()->json([
-                    'ok'       => true,
-                    'role'     => $row->role,
-                    'name'     => $row->name,
-                    'login_id' => $row->login_id,
-                    'db_id'    => $row->id,
-                ]);
+$request->session()->put('lms_name',     $row->name);
+$request->session()->put('lms_login_id', $row->login_id);
+if (in_array($row->role, ['school_admin', 'encoder'])) {
+    $request->session()->put('lms_db_id', $row->id);
+}
+return response()->json([
+    'ok'       => true,
+    'role'     => $row->role,
+    'name'     => $row->name,
+    'login_id' => $row->login_id,
+    'db_id'    => $row->id,
+]);
             }
 
             $emp = DB::table('personnel')->whereRaw('LOWER(email) = ?', [$id])->first();
