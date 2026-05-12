@@ -768,9 +768,9 @@ function _laStep2() {
     _laNext();
   });
 }
-
 /* ════════════════════════════════════════════════════
    STEP 3 — 6B Details + 6C Dates + 6D Commutation
+   FIXED: template string was not closed before wire-up JS
    ════════════════════════════════════════════════════ */
 function _laStep3() {
   const body   = document.getElementById('laFormBody');
@@ -783,6 +783,7 @@ function _laStep3() {
   const showStudy    = lt === 'Study Leave';
   const showAnyB     = showVacation || showSick || showWomen || showStudy;
 
+  // ── HTML injected into DOM ──────────────────────────────────────────
   body.innerHTML = `
     ${showAnyB ? `
     <div class="la-card">
@@ -968,20 +969,10 @@ function _laStep3() {
         <div class="la-err" id="la3Err"></div>
       </div>
     </div>
+  `;
+  // ── END of innerHTML — wire-up JS starts here ───────────────────────
 
-  /* ── Wire radio groups ── */
-  const _wireRadios = (sel, storeProp, onSelect) => {
-    document.querySelectorAll(sel).forEach(row => {
-      row.addEventListener('click', () => {
-        document.querySelectorAll(sel).forEach(r => r.classList.remove('selected'));
-        row.classList.add('selected');
-        _laData[storeProp] = row.dataset[Object.keys(row.dataset)[0]];
-        if (onSelect) onSelect(row.dataset[Object.keys(row.dataset)[0]]);
-      });
-    });
-  };
-
-  /* Vacation */
+  /* Vacation radio */
   document.querySelectorAll('[data-vd]').forEach(row => {
     row.addEventListener('click', () => {
       document.querySelectorAll('[data-vd]').forEach(r => r.classList.remove('selected'));
@@ -992,7 +983,7 @@ function _laStep3() {
     });
   });
 
-  /* Sick */
+  /* Sick radio */
   document.querySelectorAll('[data-sd]').forEach(row => {
     row.addEventListener('click', () => {
       document.querySelectorAll('[data-sd]').forEach(r => r.classList.remove('selected'));
@@ -1003,7 +994,7 @@ function _laStep3() {
     });
   });
 
-  /* Study */
+  /* Study radio */
   document.querySelectorAll('[data-std]').forEach(row => {
     row.addEventListener('click', () => {
       document.querySelectorAll('[data-std]').forEach(r => r.classList.remove('selected'));
@@ -1013,7 +1004,7 @@ function _laStep3() {
   });
 
   /* Other Purpose (toggle) */
-document.querySelectorAll('[data-op]').forEach(row => {
+  document.querySelectorAll('[data-op]').forEach(row => {
     row.addEventListener('click', () => {
       if (row.classList.contains('selected')) {
         row.classList.remove('selected');
@@ -1023,27 +1014,18 @@ document.querySelectorAll('[data-op]').forEach(row => {
         row.classList.add('selected');
         _laData.other_purpose = row.dataset.op;
       }
-      // Clear stale date data and re-render step so date section updates
-      _laData.date_from = '';
-      _laData.date_to   = '';
+      // Clear stale date data and re-render so date section updates
+      _laData.date_from        = '';
+      _laData.date_to          = '';
       _laData.inclusive_dates  = '';
       _laData.num_working_days = '';
-      _laData.mon_month = '';
-      _laData.mon_year  = '';
+      _laData.mon_month        = '';
+      _laData.mon_year         = '';
       _laStep3();
     });
   });
 
-  /* Commutation */
-  document.querySelectorAll('[data-cm]').forEach(row => {
-    row.addEventListener('click', () => {
-      document.querySelectorAll('[data-cm]').forEach(r => r.classList.remove('selected'));
-      row.classList.add('selected');
-      _laData.commutation = row.dataset.cm;
-    });
-  });
-
-  /* ── Date pickers ── */
+  /* Date pickers (normal mode) */
   function updateDates() {
     const from = document.getElementById('la3_from')?.value;
     const to   = document.getElementById('la3_to')?.value;
@@ -1061,12 +1043,15 @@ document.querySelectorAll('[data-op]').forEach(row => {
 
   document.getElementById('la3_from')?.addEventListener('change', function () {
     const toEl = document.getElementById('la3_to');
-    if (toEl) { toEl.min = this.value; if (toEl.value && toEl.value < this.value) toEl.value = this.value; }
+    if (toEl) {
+      toEl.min = this.value;
+      if (toEl.value && toEl.value < this.value) toEl.value = this.value;
+    }
     updateDates();
   });
   document.getElementById('la3_to')?.addEventListener('change', updateDates);
 
-/* ── Monetization month/year ── */
+  /* Monetization month/year */
   if (_isMonetization()) {
     const MONTH_NAMES = ['January','February','March','April','May','June',
                          'July','August','September','October','November','December'];
@@ -1088,15 +1073,16 @@ document.querySelectorAll('[data-op]').forEach(row => {
     }
     document.getElementById('la3_mon_month')?.addEventListener('change', updateMonDate);
     document.getElementById('la3_mon_year')?.addEventListener('change',  updateMonDate);
-    // Restore if already set
     if (_laData.mon_month && _laData.mon_year) updateMonDate();
   }
-  /* ── Footer ── */
+
+  /* Footer */
   footer.innerHTML = `
     <button class="la-btn-prev" id="la3Prev">&larr; Back</button>
     <button class="la-btn-next" id="la3Next">Next: Upload Document &rarr;</button>`;
 
   document.getElementById('la3Prev').addEventListener('click', _laPrev);
+
   document.getElementById('la3Next').addEventListener('click', () => {
     const errEl = document.getElementById('la3Err');
     errEl.classList.remove('show');
@@ -1106,7 +1092,7 @@ document.querySelectorAll('[data-op]').forEach(row => {
     _laData.sick_specify   = document.getElementById('la3_sick')?.value?.trim()   || '';
     _laData.women_specify  = document.getElementById('la3_women')?.value?.trim()  || '';
 
-   if (_isMonetization()) {
+    if (_isMonetization()) {
       if (!_laData.mon_month || !_laData.mon_year) {
         errEl.textContent = '⚠️ Please select both a month and year for monetization.';
         errEl.classList.add('show'); return;
