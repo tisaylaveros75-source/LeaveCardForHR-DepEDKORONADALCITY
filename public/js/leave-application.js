@@ -437,7 +437,8 @@ const LA_TYPES = [
   { label:'Special Leave Benefits for Women',   cite:'R.A. No. 9710 / CSC MC No. 25, s. 2010' },
   { label:'Special Emergency (Calamity) Leave', cite:'CSC MC No. 2, s. 2012, as amended' },
   { label:'Adoption Leave',                     cite:'R.A. No. 8552' },
-  { label:'Others',                             cite:'' },
+  { label:'Monetization',                       cite:'CSC MC No. 14, s. 1999, as amended' },
+  { label:'Others',                        cite:'' },
 ];
 
 /* Keep original LEAVE_TYPES compatible */
