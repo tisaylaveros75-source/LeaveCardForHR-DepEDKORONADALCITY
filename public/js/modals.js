@@ -921,10 +921,16 @@ function showRegisterModal(emp) {
             <div class="f"><label>TIN</label><input id="reg_tin" type="text" value="${_escMo(r.tin||'')}"/></div>
             <div class="f"><label>Rating</label><input id="reg_rating" type="text" value="${_escMo(r.rating||'')}"/></div>
             ${(!window.state?.isSchoolAdmin && !window.state?.isEncoder) ? `
-            <div class="f" style="grid-column:1/-1;">
+            <div class="f">
               <label>Assigned School Admin <span style="font-weight:400;font-size:10px;opacity:.6;">(optional)</span></label>
               <select id="reg_assigned_sa_id">
-                <option value="">— None / Not Assigned —</option>
+                <option value="">— None —</option>
+              </select>
+            </div>
+            <div class="f">
+              <label>Assigned Encoder <span style="font-weight:400;font-size:10px;opacity:.6;">(optional)</span></label>
+              <select id="reg_assigned_encoder_id">
+                <option value="">— None —</option>
               </select>
             </div>` : ''}
           </div>
@@ -992,9 +998,12 @@ function showRegisterModal(emp) {
   _wireCombobox('reg_school');
 
   // ── Load School Admins into dropdown ──
+// ── Load School Admins and Encoders into dropdowns ──
   if (!window.state?.isSchoolAdmin && !window.state?.isEncoder) (async () => {
-    const saList = window.state?.schoolAdmins || [];
-    const saSelect = document.getElementById('reg_assigned_sa_id');
+    const saList  = window.state?.schoolAdmins || [];
+    const encList = window.state?.encoders     || [];
+    const saSelect  = document.getElementById('reg_assigned_sa_id');
+    const encSelect = document.getElementById('reg_assigned_encoder_id');
     if (saSelect && saList.length) {
       saList.forEach(sa => {
         const opt = document.createElement('option');
@@ -1002,6 +1011,15 @@ function showRegisterModal(emp) {
         opt.textContent = sa.name;
         if (r.assigned_sa_id && parseInt(r.assigned_sa_id) === sa.id) opt.selected = true;
         saSelect.appendChild(opt);
+      });
+    }
+    if (encSelect && encList.length) {
+      encList.forEach(enc => {
+        const opt = document.createElement('option');
+        opt.value = enc.id;
+        opt.textContent = enc.name;
+        if (r.assigned_encoder_id && parseInt(r.assigned_encoder_id) === enc.id) opt.selected = true;
+        encSelect.appendChild(opt);
       });
     }
   })();
@@ -1119,6 +1137,9 @@ enforceAllCaps(mo);
       assigned_sa_id: window.state?.isSchoolAdmin
         ? (window.state.schoolAdminCfg?.dbId || null)
         : (parseInt(mo.querySelector('#reg_assigned_sa_id')?.value) || null),
+      assigned_encoder_id: window.state?.isEncoder
+        ? (window.state.encoderCfg?.dbId || null)
+        : (parseInt(mo.querySelector('#reg_assigned_encoder_id')?.value) || null),
     };
 
     const res = await saveEmployeeAndHandleEra(body, (result) => {
