@@ -643,7 +643,7 @@ function _laStep1() {
           </div>
           <div class="la-field">
             <label class="la-label">Date of Filing <span class="la-req">*</span></label>
-            <input class="la-input" type="date" id="la1_filing" value="${_esc(_laData.date_of_filing || '')}"/>
+            <input class="la-input" type="date" id="la1_filing" value="${_esc(_laData.date_of_filing || '')}" lang="en-US"/>
           </div>
         </div>
         <div class="la-field-row col-2">
@@ -977,7 +977,7 @@ function _laStep3() {
             <label class="la-label">📅 From Date <span class="la-req">*</span></label>
             <div style="position:relative;">
               <input class="la-input" type="date" id="la3_from" value="${_esc(_laData.date_from || '')}"
-                style="cursor:pointer;padding-right:40px;"/>
+                style="cursor:pointer;padding-right:40px;" lang="en-US"/>
               <span onclick="document.getElementById('la3_from').showPicker()"
                 style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
                        font-size:18px;cursor:pointer;pointer-events:auto;user-select:none;">📅</span>
@@ -988,7 +988,7 @@ function _laStep3() {
             <label class="la-label">📅 To Date <span class="la-req">*</span></label>
             <div style="position:relative;">
               <input class="la-input" type="date" id="la3_to" value="${_esc(_laData.date_to || '')}"
-                style="cursor:pointer;padding-right:40px;"/>
+                style="cursor:pointer;padding-right:40px;" lang="en-US"/>
               <span onclick="document.getElementById('la3_to').showPicker()"
                 style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
                        font-size:18px;cursor:pointer;pointer-events:auto;user-select:none;">📅</span>
