@@ -166,7 +166,7 @@ function renderPersonnelList() {
               <th class="pl-tcol-pos">Position</th>
               <th class="pl-tcol-school">School / Office</th>
               <th class="pl-th-center pl-tcol-card">Card Status</th>
-              <th class="pl-tcol-sa">Assigned School Admin</th>
+              <th class="pl-tcol-sa">Assigned School Admin / Encoder</th>
               <th class="pl-th-center pl-tcol-acc">Account</th>
               <th class="pl-th-center pl-tcol-action no-print">Action</th>
             </tr>
@@ -217,14 +217,18 @@ function filterPersonnelTable() {
   const footer = document.getElementById('plFooter');
   if (!body) return;
 
-  const saMap = {};
-  const saList = window.state?.schoolAdmins || [];
-  saList.forEach(sa => { saMap[String(sa.id)] = sa.name; });
+  const saMap  = {};
+  const encMap = {};
+  (window.state?.schoolAdmins || []).forEach(sa  => { saMap[String(sa.id)]   = sa.name; });
+  (window.state?.encoders     || []).forEach(enc => { encMap[String(enc.id)] = enc.name; });
 
-  const db = ((window.state && window.state.db) || []).map(e => ({
-    ...e,
-    assigned_sa_name: e.assigned_sa_id ? (saMap[String(e.assigned_sa_id)] || '—') : '—',
-  }));
+  const db = ((window.state && window.state.db) || []).map(e => {
+    const saName  = e.assigned_sa_id      ? (saMap[String(e.assigned_sa_id)]   || null) : null;
+    const encName = e.assigned_encoder_id ? (encMap[String(e.assigned_encoder_id)] || null) : null;
+    const parts   = [saName, encName].filter(Boolean);
+    return { ...e, assigned_sa_name: parts.length ? parts.join(' / ') : '—' };
+  });
+    
   const q    = (document.getElementById('plSearch')?.value       || '').toLowerCase().trim();
   const cat  =  document.getElementById('plCatFilter')?.value    || '';
   const pos  =  document.getElementById('plPosFilter')?.value    || '';
