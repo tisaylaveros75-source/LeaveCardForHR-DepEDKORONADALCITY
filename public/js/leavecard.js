@@ -88,7 +88,8 @@ async function openLeaveCardInContainer(emp, container) {
     </div>
     ${profileHtml}
     ${canEdit ? buildLeaveEntryForm(emp) : ''}
-    ${canEdit ? buildPersonnelEntryForm() : ''}
+${canEdit ? buildPersonnelEntryForm() : ''}
+    <div id="prcTableWrap" style="padding:0 4px;"></div>
     <div id="lcTableWrap"></div>
   </div>`;
 
@@ -101,9 +102,34 @@ sortRecordsInPlace(emp.records);
 lcPrimeForPrint(emp); // ← ADD THIS LINE
 renderLeaveCardTable(emp);
 
+  // Store emp reference for personnel table row actions
+  window._currentPrcEmp = emp;
+
+  // Load existing personnel records
+  if (!emp.personnelRecords) {
+    const prcRes = await apiCall('get_personnel_records', { employee_id: emp.id }, 'GET');
+    if (prcRes.ok) emp.personnelRecords = prcRes.records || [];
+    else emp.personnelRecords = [];
+  }
+
+  // Render personnel table
+  renderPersonnelTable(emp);
+
+  // Wire personnel entry form
+  if (canEdit) wirePersonnelEntryForm(emp, null);
+
   // Wire "Add Record" button
   document.getElementById('cAddRec')?.addEventListener('click', () => {
     if (canEdit) wireLeaveEntryForm(emp, null);
+  });
+
+  // Wire "Add Personnel Record" button
+  document.getElementById('cAddPrcRec')?.addEventListener('click', () => {
+    if (canEdit) {
+      resetPersonnelForm();
+      wirePersonnelEntryForm(emp, null);
+      document.getElementById('prcEntryPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   });
 
   // Wire Force Leave button
