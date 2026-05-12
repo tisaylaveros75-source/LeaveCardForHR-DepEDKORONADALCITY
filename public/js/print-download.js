@@ -721,8 +721,8 @@ html, body {
   display: flex; gap: 20px;
   font-size: 7pt; color: #000; font-style: italic;
 }
-.lc-prc-field-sublabel span,
-.lc-prc-field-line span { flex: 1; text-align: center; }
+.lc-prc-field-sublabel span { flex: 1; text-align: center; }
+.lc-prc-field-line span { flex: 1; text-align: center; border-bottom: 1pt solid #000; padding-bottom: 1px; }
 
 /* Name label prefix */
 .lc-prc-name-prefix {
