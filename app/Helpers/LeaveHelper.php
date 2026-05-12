@@ -679,12 +679,16 @@ class LeaveHelper
     }
 
     public static function validateDepedEmail(string $email): ?string
-    {
-        if (!$email) return 'Email address is required.';
-        if (!str_ends_with($email, '@deped.gov.ph')) return 'Email must use @deped.gov.ph domain.';
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return 'Invalid email format.';
-        return null;
+{
+    if (!$email) return 'Email address is required.';
+    if (!str_ends_with($email, '@deped.gov.ph')) return 'Email must use @deped.gov.ph domain.';
+    $local = substr($email, 0, strrpos($email, '@'));
+    if (!$local) return 'Email username is required.';
+    if (!preg_match('/^[a-zA-Z0-9._+\-\xC0-\xFF]+$/u', $local)) {
+        return 'Invalid email format.';
     }
+    return null;
+}
 
     public static function validateLeaveEntry(array $empRecords, array $newRec, int $editIdx, string $empStatus): ?string
     {
