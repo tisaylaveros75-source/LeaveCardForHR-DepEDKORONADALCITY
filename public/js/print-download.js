@@ -1514,30 +1514,13 @@ async function lcDownloadPDF(emp) {
     const logoSrc = await getLogoBase64();
     setOverlayProgress(12, 'Loading insignia…', 0);
 
-    const eras = flattenByEra(emp);
-    const eraPageData = eras.map(era => ({
-      era,
-      pages: sliceIntoPages(era.flat.length ? era.flat : []),
-      label: era.label,
-    }));
-    const totalPages = eraPageData.reduce((sum, e) => sum + Math.max(e.pages.length, 1), 0);
-    setOverlayProgress(18, `Laying out ${totalPages} page${totalPages>1?'s':''}…`, 0);
+    setOverlayProgress(18, 'Building document layout…', 0);
+    setOverlayProgress(40, 'Rendering document…', 1);
+    const html = buildFullPage(emp, logoSrc);
+    const buf  = await renderPageToArrayBuffer(html);
+    const buffers = [buf];
 
-    const buffers = [];
-    let globalPageNum = 0;
-    for (const { pages, label } of eraPageData) {
-      const eraPages = pages.length ? pages : [[]];
-      for (let i = 0; i < eraPages.length; i++) {
-        const pct = 20 + Math.round((globalPageNum / totalPages) * 50);
-        setOverlayProgress(pct, `Rendering page ${globalPageNum+1} of ${totalPages}…`, 1);
-        const html = buildPageHTML(globalPageNum, eraPages[i], emp, logoSrc, totalPages, label);
-        const buf  = await renderPageToArrayBuffer(html);
-        buffers.push(buf);
-        globalPageNum++;
-      }
-    }
-
-    setOverlayProgress(72, 'Welding pages together…', 2);
+    setOverlayProgress(72, 'Finalising document…', 2);
     const mergedBytes = await mergePageBuffers(buffers);
 
     setOverlayProgress(92, 'Sealing the document…', 3);
