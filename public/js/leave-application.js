@@ -912,7 +912,7 @@ function _laStep3() {
                 .map((m, i) => `<option value="${String(i+1).padStart(2,'0')}" ${
                   _laData.mon_month === String(i+1).padStart(2,'0') ? 'selected' : ''
                 }>${m}</option>`).join('')}
-            </select>
+              <option value="other" ${_laData.mon_month === 'other' ? 'selected' : ''}>Other (specify)</option>
           </div>
           <div class="la-field">
             <label class="la-label">📅 Year <span class="la-req">*</span></label>
@@ -922,7 +922,22 @@ function _laStep3() {
                 .map(y => `<option value="${y}" ${
                   +_laData.mon_year === y ? 'selected' : ''
                 }>${y}</option>`).join('')}
+              <option value="other" ${_laData.mon_year === 'other' ? 'selected' : ''}>Other (specify)</option>
             </select>
+          </div>
+        </div>
+        <div id="la3MonOtherMonth" style="${_laData.mon_month === 'other' ? '' : 'display:none;'};margin-bottom:12px;">
+          <div class="la-field">
+            <label class="la-label">Specify Month <span class="la-req">*</span></label>
+            <input class="la-input" type="text" id="la3_mon_month_text" placeholder="e.g. January"
+                   value="${_esc(_laData.mon_month_text || '')}"/>
+          </div>
+        </div>
+        <div id="la3MonOtherYear" style="${_laData.mon_year === 'other' ? '' : 'display:none;'};margin-bottom:12px;">
+          <div class="la-field">
+            <label class="la-label">Specify Year <span class="la-req">*</span></label>
+            <input class="la-input" type="text" id="la3_mon_year_text" placeholder="e.g. 2030"
+                   value="${_esc(_laData.mon_year_text || '')}"/>
           </div>
         </div>
         <div class="la-days-display">
@@ -1056,13 +1071,30 @@ function _laStep3() {
     const MONTH_NAMES = ['January','February','March','April','May','June',
                          'July','August','September','October','November','December'];
     function updateMonDate() {
-      const mo = document.getElementById('la3_mon_month')?.value;
-      const yr = document.getElementById('la3_mon_year')?.value;
+      let mo = document.getElementById('la3_mon_month')?.value;
+      let yr = document.getElementById('la3_mon_year')?.value;
+
+      if (mo === 'other') mo = document.getElementById('la3_mon_month_text')?.value?.trim();
+      if (yr === 'other') yr = document.getElementById('la3_mon_year_text')?.value?.trim();
+
       if (mo && yr) {
-        const monthName = MONTH_NAMES[+mo - 1];
-        const label     = `${monthName} ${yr}`;
-        _laData.mon_month        = mo;
-        _laData.mon_year         = yr;
+        const moNum = parseInt(mo, 10);
+        const monthName = (!isNaN(moNum) && moNum >= 1 && moNum <= 12)
+          ? MONTH_NAMES[moNum - 1] : mo;
+        const label = `${monthName} ${yr}`;
+
+        _laData.mon_month        = document.getElementById('la3_mon_month')?.value;
+        _laData.mon_month_text   = mo;
+        _laData.mon_year         = document.getElementById('la3_mon_year')?.value;
+        _laData.mon_year_text    = yr;
+        _laData.date_from        = `${yr}-${String(moNum || 1).padStart(2,'0')}-01`;
+        _laData.date_to          = `${yr}-${String(moNum || 1).padStart(2,'0')}-01`;
+        _laData.inclusive_dates  = label;
+        _laData.num_working_days = 1;
+        document.getElementById('la3DaysNum').textContent   = label;
+        document.getElementById('la3DaysRange').textContent = 'Monetization period';
+      }
+    }
         _laData.date_from        = `${yr}-${mo}-01`;
         _laData.date_to          = `${yr}-${mo}-01`;
         _laData.inclusive_dates  = label;
@@ -1071,8 +1103,20 @@ function _laStep3() {
         document.getElementById('la3DaysRange').textContent = 'Monetization period';
       }
     }
-    document.getElementById('la3_mon_month')?.addEventListener('change', updateMonDate);
-    document.getElementById('la3_mon_year')?.addEventListener('change',  updateMonDate);
+   /* Show/hide custom month/year inputs */
+    function toggleMonOther() {
+      const mo = document.getElementById('la3_mon_month')?.value;
+      const yr = document.getElementById('la3_mon_year')?.value;
+      const mw = document.getElementById('la3MonOtherMonth');
+      const yw = document.getElementById('la3MonOtherYear');
+      if (mw) mw.style.display = mo === 'other' ? '' : 'none';
+      if (yw) yw.style.display = yr === 'other' ? '' : 'none';
+    }
+
+    document.getElementById('la3_mon_month')?.addEventListener('change', () => { toggleMonOther(); updateMonDate(); });
+    document.getElementById('la3_mon_year')?.addEventListener('change',  () => { toggleMonOther(); updateMonDate(); });
+    document.getElementById('la3_mon_month_text')?.addEventListener('input', updateMonDate);
+    document.getElementById('la3_mon_year_text')?.addEventListener('input',  updateMonDate);
     if (_laData.mon_month && _laData.mon_year) updateMonDate();
   }
 
@@ -1129,7 +1173,7 @@ function _laStep4() {
       <div class="la-card-head">
         <span class="la-card-head-icon">📎</span>
         <div>
-          <div class="la-card-head-title">Supporting Document${!isEdit ? ' (Required)' : ''}</div>
+          <div class="la-card-head-title">Supporting Document (Optional)</div>
           <div class="la-card-head-sub">${
             isEdit && _laData.attachment_name
               ? `Current: <strong>${_esc(_laData.attachment_name)}</strong> — upload a new file to replace`
@@ -1221,11 +1265,6 @@ function _laStep4() {
     const errEl     = document.getElementById('la4Err');
     const submitBtn = document.getElementById('la4Submit');
     errEl.classList.remove('show');
-
-    if (!isEdit && !_laFile) {
-      errEl.textContent = '⚠️ A supporting document is required. Please attach a file.';
-      errEl.classList.add('show'); return;
-    }
 
     submitBtn.disabled    = true;
     submitBtn.textContent = '⏳ Submitting…';
