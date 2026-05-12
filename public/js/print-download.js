@@ -289,6 +289,22 @@ function pf(lbl, val) {
 /* ─────────────────────────────────────────────────────────────
    12.  BUILD LETTERHEAD + PROFILE CARD HTML
    ───────────────────────────────────────────────────────────── */
+function buildPersonnelTableRows(emp) {
+  const rows = emp.personnelRecords || [];
+  const displayRows = rows.length > 0 ? rows : Array(5).fill(null);
+  return displayRows.map(r => `
+    <tr>
+      <td style="height:22px;">${r ? esc(r.effectiveDate || '') : ''}</td>
+      <td>${r ? esc(r.designation || '') : ''}</td>
+      <td>${r ? esc(r.statusReg || '') : ''}</td>
+      <td>${r ? esc(r.salary || '') : ''}</td>
+      <td>${r ? esc(r.station || '') : ''}</td>
+      <td>${r ? esc(r.sourceOfFund || '') : ''}</td>
+      <td>${r ? esc(r.lastPromotion || '') : ''}</td>
+      <td>${r ? esc(r.remarks || '') : ''}</td>
+    </tr>`).join('');
+}
+
 function buildHeaderSection(emp, logoSrc) {
   const records = emp.records || [];
   const lastConv = [...records].reverse().find(r => r._conversion);
@@ -306,53 +322,116 @@ function buildHeaderSection(emp, logoSrc) {
     <div class="lc-letterhead">
       ${logoImgLetterhead}
       <div class="lc-letterhead-text">
-        <div class="lc-letterhead-gov">Republic of the Philippines &bull; Department of Education</div>
-        <div class="lc-letterhead-agency">SDO City of Koronadal &mdash; Region XII</div>
-        <div class="lc-letterhead-sub">Schools Division Office &mdash; Employee Leave Record</div>
+        <div class="lc-letterhead-gov">Republika ng Pilipinas &bull; Kagawaran ng Edukasyon</div>
+        <div class="lc-letterhead-region">Rehiyon XII</div>
+        <div class="lc-letterhead-agency">SANGAY NG PAARALANG LUNGSOD</div>
+        <div class="lc-letterhead-sub">Lungsod ng Koronadal</div>
       </div>
     </div>
-    <div class="lc-profile-card">
-      <div class="lc-profile-header">
-        ${logoImgHeader}
-        <span>${categoryLabel}</span>
-      </div>
-      <div class="lc-profile-grid">
-        <div class="lc-pf-row lc-pf-4col">
-          ${pf('SURNAME', emp.surname || '')}
-          ${pf('GIVEN NAME', emp.given || '')}
-          ${pf('SUFFIX', emp.suffix || '')}
-          ${pf('MATERNAL SURNAME', emp.maternal || '')}
+
+    <div class="lc-prc-title">PERSONNEL RECORD CARD</div>
+
+    <div class="lc-prc-personal">
+      <div class="lc-prc-name-row">
+        <div class="lc-prc-field-group" style="flex:2;">
+          <span class="lc-prc-field-line">
+            <span class="lc-prc-field-val">${eu(emp.surname || '')}</span>
+            <span class="lc-prc-field-val">${eu(emp.given || '')}</span>
+            <span class="lc-prc-field-val">${eu(emp.maternal || '')}</span>
+          </span>
+          <span class="lc-prc-field-sublabel">
+            <span>(Surname)</span>
+            <span>(Given Name)</span>
+            <span>(Maternal Surname)</span>
+          </span>
         </div>
-        <div class="lc-pf-row lc-pf-4col">
-          ${pf('SEX', emp.sex || '')}
-          ${pf('CIVIL STATUS', emp.civil || '')}
-          ${pf('DATE OF BIRTH', fmtDateEx(emp.dob || ''))}
-          ${pf('PLACE OF BIRTH', emp.pob || '')}
+        <div class="lc-prc-field-group lc-prc-inline">
+          <span class="lc-prc-label">Sex:</span>
+          <span class="lc-prc-field-val lc-prc-underline">${eu(emp.sex || '')}</span>
         </div>
-        <div class="lc-pf-row lc-pf-2col">
-          ${pf('PRESENT ADDRESS', emp.addr || '')}
-          ${pf('NAME OF SPOUSE', emp.spouse || '')}
-        </div>
-        <div class="lc-pf-row lc-pf-2col">
-          ${pf('EDUCATIONAL QUALIFICATION', emp.edu || '')}
-          ${pf('C.S. ELIGIBILITY: KIND OF EXAM', emp.elig || '')}
-        </div>
-        <div class="lc-pf-row lc-pf-4col">
-          ${pf('RATING', emp.rating || '')}
-          ${pf('TIN NUMBER', emp.tin || '')}
-          ${pf('PLACE OF EXAM', emp.pexam || '')}
-          ${pf('DATE OF EXAM', fmtDateEx(emp.dexam || ''))}
-        </div>
-        <div class="lc-pf-row lc-pf-3col">
-          ${pf('EMPLOYEE NUMBER', emp.id || '')}
-          ${pf('DATE OF ORIGINAL APPOINTMENT', fmtDateEx(emp.appt || ''))}
-          ${pf('POSITION', emp.pos || '')}
-        </div>
-        <div class="lc-pf-row lc-pf-1col">
-          ${pf('SCHOOL / OFFICE', emp.school || '')}
+        <div class="lc-prc-field-group lc-prc-inline">
+          <span class="lc-prc-label">Civil Status:</span>
+          <span class="lc-prc-field-val lc-prc-underline">${eu(emp.civil || '')}</span>
         </div>
       </div>
-    </div>`;
+
+      <div class="lc-prc-row">
+        <div class="lc-prc-field-group lc-prc-half">
+          <span class="lc-prc-label">Date of Birth:</span>
+          <span class="lc-prc-field-val lc-prc-underline">${esc(fmtDateEx(emp.dob || ''))}</span>
+        </div>
+        <div class="lc-prc-field-group lc-prc-half">
+          <span class="lc-prc-label">Place of Birth:</span>
+          <span class="lc-prc-field-val lc-prc-underline">${eu(emp.pob || '')}</span>
+        </div>
+      </div>
+
+      <div class="lc-prc-row">
+        <div class="lc-prc-field-group lc-prc-half">
+          <span class="lc-prc-label">Present Address:</span>
+          <span class="lc-prc-field-val lc-prc-underline">${eu(emp.addr || '')}</span>
+        </div>
+        <div class="lc-prc-field-group lc-prc-half">
+          <span class="lc-prc-label">Name of Spouse:</span>
+          <span class="lc-prc-field-val lc-prc-underline">${eu(emp.spouse || '')}</span>
+        </div>
+      </div>
+
+      <div class="lc-prc-row">
+        <div class="lc-prc-field-group lc-prc-half">
+          <span class="lc-prc-label">Educational Qualification:</span>
+          <span class="lc-prc-field-val lc-prc-underline">${eu(emp.edu || '')}</span>
+        </div>
+        <div class="lc-prc-field-group" style="flex:1;">
+          <span class="lc-prc-label">C.S. Eligibility: Kind of Exam:</span>
+          <span class="lc-prc-field-val lc-prc-underline">${eu(emp.elig || '')}</span>
+        </div>
+        <div class="lc-prc-field-group lc-prc-inline">
+          <span class="lc-prc-label">Rating:</span>
+          <span class="lc-prc-field-val lc-prc-underline">${esc(emp.rating || '')}</span>
+        </div>
+      </div>
+
+      <div class="lc-prc-row">
+        <div class="lc-prc-field-group" style="flex:1;justify-content:center;text-align:center;">
+          <span class="lc-prc-label">Place of Exam:</span>
+          <span class="lc-prc-field-val lc-prc-underline">${eu(emp.pexam || '')}</span>
+        </div>
+        <div class="lc-prc-field-group" style="flex:1;justify-content:center;text-align:center;">
+          <span class="lc-prc-label">Date:</span>
+          <span class="lc-prc-field-val lc-prc-underline">${esc(fmtDateEx(emp.dexam || ''))}</span>
+        </div>
+      </div>
+
+      <div class="lc-prc-row">
+        <div class="lc-prc-field-group lc-prc-inline">
+          <span class="lc-prc-label" style="font-weight:800;">EMPLOYEE NO.</span>
+          <span class="lc-prc-field-val lc-prc-underline">${esc(emp.id || '')}</span>
+        </div>
+        <div class="lc-prc-field-group lc-prc-inline" style="flex:2;">
+          <span class="lc-prc-label">Date of Original Appointment:</span>
+          <span class="lc-prc-field-val lc-prc-underline">${esc(fmtDateEx(emp.appt || ''))}</span>
+        </div>
+      </div>
+    </div>
+
+    <table class="lc-prc-table">
+      <thead>
+        <tr>
+          <th>Effective Date</th>
+          <th>Designation</th>
+          <th>Status Reg. Perm. Temp/Subt.</th>
+          <th>Mo. / Annual Salary</th>
+          <th>Name of Dist./ Station</th>
+          <th>Source of Fund - Nat'l Local</th>
+          <th>DATE OF LAST PROM...</th>
+          <th>Remarks</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${buildPersonnelTableRows(emp)}
+      </tbody>
+    </table>`;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -551,6 +630,96 @@ const SHARED_CSS = `
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
+/* ═══════════════════════════════════════
+   PERSONNEL RECORD CARD — PRC STYLES
+   ═══════════════════════════════════════ */
+.lc-letterhead-region {
+  font-size: 9pt; font-weight: 600; color: #555;
+  font-family: 'Barlow', Arial, sans-serif;
+}
+.lc-prc-title {
+  text-align: center;
+  font-family: 'Barlow Condensed', Arial, sans-serif;
+  font-size: 14pt; font-weight: 900;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: #1a0505; margin: 8px 0 10px;
+  border-bottom: 2px solid #1a0505;
+  padding-bottom: 4px;
+}
+.lc-prc-personal {
+  border: 1pt solid #333;
+  padding: 6px 10px 4px;
+  margin-bottom: 0;
+  font-family: 'Barlow', Arial, sans-serif;
+  font-size: 8.5pt;
+}
+.lc-prc-name-row {
+  display: flex; align-items: flex-end; gap: 10px;
+  margin-bottom: 4px;
+}
+.lc-prc-row {
+  display: flex; align-items: flex-end; gap: 10px;
+  margin-bottom: 4px;
+}
+.lc-prc-field-group {
+  display: flex; flex-direction: column;
+  flex: 1;
+}
+.lc-prc-field-group.lc-prc-half { flex: 1; }
+.lc-prc-field-group.lc-prc-inline {
+  flex-direction: row; align-items: flex-end;
+  gap: 4px; flex: 0 0 auto;
+}
+.lc-prc-label {
+  font-size: 7.5pt; color: #333; white-space: nowrap;
+}
+.lc-prc-field-val {
+  font-size: 9pt; font-weight: 600; color: #1a1a1a;
+  text-transform: uppercase; min-width: 40px;
+}
+.lc-prc-underline {
+  border-bottom: 1pt solid #333;
+  display: inline-block; min-width: 80px;
+  padding-bottom: 1px;
+}
+.lc-prc-field-line {
+  display: flex; gap: 14px;
+}
+.lc-prc-field-sublabel {
+  display: flex; gap: 14px; font-size: 6.5pt;
+  color: #666; font-style: italic;
+}
+.lc-prc-field-sublabel span, .lc-prc-field-line span {
+  flex: 1; text-align: center;
+}
+.lc-prc-table {
+  width: 100%; border-collapse: collapse;
+  font-family: 'Barlow', Arial, sans-serif;
+  font-size: 7.5pt; margin-top: 0;
+  table-layout: fixed;
+}
+.lc-prc-table th {
+  border: 1pt solid #333;
+  padding: 4px 3px; text-align: center;
+  font-weight: 700; font-size: 7pt;
+  background: #f5f5f5;
+  white-space: normal; word-break: break-word;
+  line-height: 1.3;
+}
+.lc-prc-table td {
+  border: 1pt solid #333;
+  padding: 3px; height: 20px;
+  text-align: center; vertical-align: middle;
+  font-size: 8pt;
+}
+.lc-prc-table col:nth-child(1) { width: 11%; }
+.lc-prc-table col:nth-child(2) { width: 15%; }
+.lc-prc-table col:nth-child(3) { width: 11%; }
+.lc-prc-table col:nth-child(4) { width: 11%; }
+.lc-prc-table col:nth-child(5) { width: 18%; }
+.lc-prc-table col:nth-child(6) { width: 12%; }
+.lc-prc-table col:nth-child(7) { width: 11%; }
+.lc-prc-table col:nth-child(8) { width: 11%; }
 html, body {
   width: 794px; margin: 0 auto; padding: 0;
   background: #ffffff;
