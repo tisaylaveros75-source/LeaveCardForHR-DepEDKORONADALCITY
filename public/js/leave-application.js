@@ -659,7 +659,16 @@ function _laStep1() {
           </div>
           <div class="la-field">
             <label class="la-label">Date of Filing <span class="la-req">*</span></label>
-            <input class="la-input" type="text" id="la1_filing" value="${_toMMDDYYYY(_laData.date_of_filing || '')}" placeholder="mm/dd/yyyy" maxlength="10"/>
+<div style="position:relative;">
+              <input class="la-input" type="text" id="la1_filing_display"
+                value="${_toMMDDYYYY(_laData.date_of_filing || '')}"
+                placeholder="mm/dd/yyyy" maxlength="10" style="padding-right:40px;"/>
+              <input type="date" id="la1_filing" value="${_esc(_laData.date_of_filing || '')}"
+                style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;"/>
+              <span onclick="document.getElementById('la1_filing').showPicker()"
+                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                       font-size:18px;cursor:pointer;user-select:none;">📅</span>
+            </div>
           </div>
         </div>
         <div class="la-field-row col-2">
@@ -705,8 +714,21 @@ function _laStep1() {
     <div></div>
     <button class="la-btn-next" id="la1Next">Next: Type of Leave &rarr;</button>`;
 
+ const _f1Hidden  = document.getElementById('la1_filing');
+  const _f1Display = document.getElementById('la1_filing_display');
+  _f1Hidden?.addEventListener('change', () => {
+    if (_f1Display) _f1Display.value = _toMMDDYYYY(_f1Hidden.value);
+  });
+  _f1Display?.addEventListener('input', () => {
+    _autoFmtDate(_f1Display);
+    const iso = _fromMMDDYYYY(_f1Display.value);
+    if (iso && _f1Hidden) _f1Hidden.value = iso;
+  });
+
   document.getElementById('la1Next').addEventListener('click', () => {
-    const filing = document.getElementById('la1_filing').value;
+const filingDisplay = document.getElementById('la1_filing_display')?.value || '';
+    const filingHidden  = document.getElementById('la1_filing')?.value || '';
+    const filing = filingHidden || _fromMMDDYYYY(filingDisplay);
     const errEl  = document.getElementById('la1Err');
     errEl.classList.remove('show');
     if (!filing) {
@@ -714,7 +736,7 @@ function _laStep1() {
       errEl.classList.add('show');
       return;
     }
-    _laData.date_of_filing  = _fromMMDDYYYY(filing) || filing;
+    _laData.date_of_filing  = filing;
     _laData.office_school   = document.getElementById('la1_office').value.trim();
     _laData.position        = document.getElementById('la1_pos').value.trim();
 _laData.salary_monthly  = document.getElementById('la1_salary').value;
@@ -992,16 +1014,28 @@ function _laStep3() {
           <div class="la-field">
             <label class="la-label">📅 From Date <span class="la-req">*</span></label>
             <div style="position:relative;">
-<input class="la-input" type="text" id="la3_from" value="${_toMMDDYYYY(_laData.date_from || '')}"
-                placeholder="mm/dd/yyyy" maxlength="10" style="cursor:text;"/>
+<input class="la-input" type="text" id="la3_from_display"
+                value="${_toMMDDYYYY(_laData.date_from || '')}"
+                placeholder="mm/dd/yyyy" maxlength="10" style="padding-right:40px;"/>
+              <input type="date" id="la3_from" value="${_esc(_laData.date_from || '')}"
+                style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;"/>
+              <span onclick="document.getElementById('la3_from').showPicker()"
+                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                       font-size:18px;cursor:pointer;user-select:none;">📅</span>
             </div>
           </div>
           <div style="font-size:20px;color:#c0a0a0;font-weight:700;padding-bottom:10px;text-align:center;">→</div>
           <div class="la-field">
             <label class="la-label">📅 To Date <span class="la-req">*</span></label>
             <div style="position:relative;">
-<input class="la-input" type="text" id="la3_to" value="${_toMMDDYYYY(_laData.date_to || '')}"
-                placeholder="mm/dd/yyyy" maxlength="10" style="cursor:text;"/>
+<input class="la-input" type="text" id="la3_to_display"
+                value="${_toMMDDYYYY(_laData.date_to || '')}"
+                placeholder="mm/dd/yyyy" maxlength="10" style="padding-right:40px;"/>
+              <input type="date" id="la3_to" value="${_esc(_laData.date_to || '')}"
+                style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;"/>
+              <span onclick="document.getElementById('la3_to').showPicker()"
+                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                       font-size:18px;cursor:pointer;user-select:none;">📅</span>
             </div>
           </div>
         </div>
@@ -1074,14 +1108,33 @@ function _laStep3() {
   });
 
   /* Date pickers (normal mode) */
-const fromEl = document.getElementById('la3_from');
-  const toEl2  = document.getElementById('la3_to');
-  fromEl?.addEventListener('input', () => _autoFmtDate(fromEl));
-  toEl2?.addEventListener('input',  () => _autoFmtDate(toEl2));
+const fromHidden  = document.getElementById('la3_from');
+  const fromDisplay = document.getElementById('la3_from_display');
+  const toHidden    = document.getElementById('la3_to');
+  const toDisplay   = document.getElementById('la3_to_display');
+
+  fromHidden?.addEventListener('change', () => {
+    if (fromDisplay) fromDisplay.value = _toMMDDYYYY(fromHidden.value);
+    updateDates();
+  });
+  fromDisplay?.addEventListener('input', () => {
+    _autoFmtDate(fromDisplay);
+    const iso = _fromMMDDYYYY(fromDisplay.value);
+    if (iso && fromHidden) { fromHidden.value = iso; updateDates(); }
+  });
+  toHidden?.addEventListener('change', () => {
+    if (toDisplay) toDisplay.value = _toMMDDYYYY(toHidden.value);
+    updateDates();
+  });
+  toDisplay?.addEventListener('input', () => {
+    _autoFmtDate(toDisplay);
+    const iso = _fromMMDDYYYY(toDisplay.value);
+    if (iso && toHidden) { toHidden.value = iso; updateDates(); }
+  });
 
   function updateDates() {
-    const from = _fromMMDDYYYY(document.getElementById('la3_from')?.value);
-    const to   = _fromMMDDYYYY(document.getElementById('la3_to')?.value);
+    const from = fromHidden?.value || _fromMMDDYYYY(fromDisplay?.value || '');
+    const to   = toHidden?.value   || _fromMMDDYYYY(toDisplay?.value   || '');
     if (from && to && from <= to) {
       const days    = computeWorkingDays(from, to);
       const dateStr = fmtDateRange(from, to);
@@ -1094,8 +1147,7 @@ const fromEl = document.getElementById('la3_from');
     }
   }
 
-document.getElementById('la3_from')?.addEventListener('change', updateDates);
-  document.getElementById('la3_to')?.addEventListener('change', updateDates);
+/* change events handled above via fromHidden/toHidden listeners */
 
   /* Monetization month/year */
   if (_isMonetization()) {
