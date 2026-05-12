@@ -703,8 +703,7 @@ function _laStep1() {
     _laData.position        = document.getElementById('la1_pos').value.trim();
 _laData.salary_monthly  = document.getElementById('la1_salary').value;
     _laData.hrmo_officer    = document.getElementById('la1_hrmo').value;
-    _laData.sds_officer     = document.getElementById('la1_sds').value;
-    _laNext();
+_laData.sds_officer     = document.getElementById('la1_sds').value;
     _laNext();
   });
 }
@@ -1307,7 +1306,6 @@ function _laStep4() {
       commutation:             _laData.commutation || 'Not Requested',
       hrmo_officer:            _laData.hrmo_officer || 'faizal',
       sds_officer:             _laData.sds_officer  || 'nerissa',
-    };
     };
     Object.entries(fields).forEach(([k, v]) => fd.append(k, v || ''));
     if (_laFile) fd.append('attachment', _laFile);
