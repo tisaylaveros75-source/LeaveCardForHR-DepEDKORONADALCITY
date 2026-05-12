@@ -913,6 +913,7 @@ function _laStep3() {
                   _laData.mon_month === String(i+1).padStart(2,'0') ? 'selected' : ''
                 }>${m}</option>`).join('')}
               <option value="other" ${_laData.mon_month === 'other' ? 'selected' : ''}>Other (specify)</option>
+            </select>
           </div>
           <div class="la-field">
             <label class="la-label">📅 Year <span class="la-req">*</span></label>
@@ -1095,14 +1096,7 @@ function _laStep3() {
         document.getElementById('la3DaysRange').textContent = 'Monetization period';
       }
     }
-        _laData.date_from        = `${yr}-${mo}-01`;
-        _laData.date_to          = `${yr}-${mo}-01`;
-        _laData.inclusive_dates  = label;
-        _laData.num_working_days = 1;
-        document.getElementById('la3DaysNum').textContent   = label;
-        document.getElementById('la3DaysRange').textContent = 'Monetization period';
-      }
-    }
+       
    /* Show/hide custom month/year inputs */
     function toggleMonOther() {
       const mo = document.getElementById('la3_mon_month')?.value;
