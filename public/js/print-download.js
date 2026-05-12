@@ -545,10 +545,11 @@ const PDF_OPT_BASE = {
 
 async function renderPageToArrayBuffer(htmlStr) {
   const wrapper = document.createElement('div');
-  wrapper.style.cssText = [
+wrapper.style.cssText = [
     'position:fixed','left:-9999px','top:0',
     'width:794px','background:#fff',
     'z-index:-9999','visibility:hidden',
+    'filter:grayscale(1)',
   ].join(';');
   wrapper.innerHTML = htmlStr;
   document.body.appendChild(wrapper);
@@ -686,7 +687,7 @@ html, body {
   padding: 0;
 }
 .lc-prc-name-row {
-  display: flex; align-items: flex-end; gap: 6px;
+  display: flex; align-items: baseline; gap: 6px;
   margin-bottom: 3px;
 }
 .lc-prc-row {
