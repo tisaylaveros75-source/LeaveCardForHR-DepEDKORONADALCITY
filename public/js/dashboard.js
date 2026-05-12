@@ -474,7 +474,118 @@
   .edb-hero-right { display:none; }
   .edb-wrap { padding:12px 14px; }
 }
-`;
+/* ── SPECIAL THANKS SECTION ─────────────────────────────────── */
+.edb-thanks {
+  position: relative; overflow: hidden;
+  background: linear-gradient(145deg, #0a0c18 0%, #0e1428 40%, #111830 100%);
+  border-radius: 20px; padding: 44px 44px 40px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 48px rgba(0,0,0,.35),
+              inset 0 1px 0 rgba(180,160,80,.12),
+              inset 0 -1px 0 rgba(0,0,0,.5);
+  border: 1px solid rgba(180,160,60,.25);
+}
+.edb-thanks-pattern {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(255,255,255,.025) 1px, transparent 0),
+    repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(180,160,40,.05) 80px, rgba(180,160,40,.05) 81px);
+  background-size: 28px 28px, 100% 100%;
+}
+.edb-thanks-inner { position: relative; z-index: 1; }
+.edb-thanks-eyebrow {
+  font-size: 9px; font-weight: 700; letter-spacing: 3px;
+  text-transform: uppercase; color: #c8a840; margin-bottom: 8px;
+  text-shadow: 0 0 12px rgba(200,168,64,.4);
+}
+.edb-thanks-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2rem; font-weight: 800; color: #fff;
+  margin-bottom: 8px; letter-spacing: -.3px;
+  text-shadow: 0 2px 16px rgba(0,0,0,.5);
+}
+.edb-thanks-sub {
+  font-size: 12px; color: rgba(255,255,255,.4);
+  margin-bottom: 32px; line-height: 1.6;
+}
+.edb-thanks-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 700px) { .edb-thanks-grid { grid-template-columns: 1fr; } }
+.edb-thanks-card {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(200,168,60,.2);
+  border-radius: 16px; padding: 26px 24px;
+  display: flex; align-items: flex-start; gap: 18px;
+  transition: background .22s, transform .22s, border-color .22s;
+  position: relative; overflow: hidden;
+}
+.edb-thanks-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(200,168,60,.5), transparent);
+  border-radius: 16px 16px 0 0;
+}
+.edb-thanks-card:hover {
+  background: rgba(255,255,255,.07);
+  border-color: rgba(200,168,60,.4);
+  transform: translateY(-4px);
+}
+.edb-thanks-avatar {
+  width: 72px; height: 72px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #1e3a6e, #4a7cc7);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; font-weight: 800; color: #fff;
+  border: 3px solid rgba(200,168,60,.35);
+  box-shadow: 0 4px 18px rgba(0,0,0,.4), 0 0 0 0 rgba(200,168,60,.2);
+  font-family: 'Playfair Display', serif;
+}
+.edb-thanks-body { flex: 1; min-width: 0; }
+.edb-thanks-badge {
+  display: inline-block;
+  background: rgba(200,168,60,.15);
+  border: 1px solid rgba(200,168,60,.3);
+  color: #c8a840; font-size: 8.5px; font-weight: 800;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 20px; margin-bottom: 8px;
+}
+.edb-thanks-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.1rem; font-weight: 800; color: #fff;
+  margin-bottom: 4px; line-height: 1.2;
+}
+.edb-thanks-role {
+  font-size: 10.5px; color: rgba(255,255,255,.45);
+  font-weight: 600; letter-spacing: .3px; margin-bottom: 10px;
+}
+.edb-thanks-desc {
+  font-size: 11.5px; color: rgba(255,255,255,.5);
+  line-height: 1.75;
+}
+.edb-thanks-quote {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(200,168,60,.07);
+  border-left: 3px solid rgba(200,168,60,.4);
+  border-radius: 0 8px 8px 0;
+  font-size: 11px; color: rgba(200,168,60,.8);
+  font-style: italic; line-height: 1.6;
+}
+.edb-thanks-footer {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 16px;
+  margin-top: 28px;
+}
+.edb-thanks-footer-line {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200,168,60,.3), transparent);
+}
+.edb-thanks-footer-text {
+  font-size: 10px; color: rgba(200,168,60,.5);
+  white-space: nowrap; font-weight: 600; letter-spacing: .4px;
+}
+  `;
   document.head.appendChild(s);
 })();
 
@@ -971,6 +1082,63 @@ function renderHomeDashboard() {
         <h3>The Solution: This System</h3>
         <p>Employees now look up their leave cards online — anytime, anywhere. No more trips to the office. No more manual errors. Just clean, fast, reliable digital leave records for everyone.</p>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SPECIAL THANKS ────────────────────────────────────────── -->
+<div class="edb-thanks">
+  <div class="edb-thanks-pattern"></div>
+  <div class="edb-thanks-inner">
+    <div class="edb-thanks-eyebrow">🏅 WITH GRATITUDE</div>
+    <h2 class="edb-thanks-title">Special Thanks</h2>
+    <p class="edb-thanks-sub">
+      This system would not exist without the guidance, trust, and expertise of these remarkable individuals
+      who believed in the vision and helped shape it into reality.
+    </p>
+    <div class="edb-thanks-grid">
+
+      <!-- Sir Faizal -->
+      <div class="edb-thanks-card">
+        <div class="edb-thanks-avatar">FM</div>
+        <div class="edb-thanks-body">
+          <div class="edb-thanks-badge">🏢 HR Administration</div>
+          <div class="edb-thanks-name">Sir Faizal B. Macasayon</div>
+          <div class="edb-thanks-role">Administrative Officer IV / HRMO · SDO Koronadal City</div>
+          <div class="edb-thanks-desc">
+            The first believer. Sir Faik championed this system from proposal to deployment —
+            accepting it into the HR office and trusting two developers to modernize a process
+            that had been done by hand for decades.
+          </div>
+          <div class="edb-thanks-quote">
+            "He opened the door for digital leave management in SDO Koronadal City." 🗝️
+          </div>
+        </div>
+      </div>
+
+      <!-- Sir Gregory -->
+      <div class="edb-thanks-card">
+        <div class="edb-thanks-avatar" style="background:linear-gradient(135deg,#065f46,#059669);">GJ</div>
+        <div class="edb-thanks-body">
+          <div class="edb-thanks-badge" style="background:rgba(5,150,105,.15);border-color:rgba(5,150,105,.3);color:#10b981;">📐 Consultancy</div>
+          <div class="edb-thanks-name">Sir Gregory John D. Jabido</div>
+          <div class="edb-thanks-role">Education Program Supervisor · SDO Koronadal City</div>
+          <div class="edb-thanks-desc">
+            Our systems consultant and compass. Sir Greg provided the direction, feedback, and
+            professional insight that transformed a functional tool into a truly reliable and
+            well-designed management system.
+          </div>
+          <div class="edb-thanks-quote" style="border-left-color:rgba(5,150,105,.4);color:rgba(16,185,129,.8);">
+            "He shaped what 'better' looks like for every feature in this system." ✨
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="edb-thanks-footer">
+      <div class="edb-thanks-footer-line"></div>
+      <span class="edb-thanks-footer-text">SDO Koronadal City · Leave Card System · Thank you for making this possible 🙏</span>
+      <div class="edb-thanks-footer-line"></div>
     </div>
   </div>
 </div>
