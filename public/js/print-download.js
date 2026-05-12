@@ -291,7 +291,12 @@ function pf(lbl, val) {
    ───────────────────────────────────────────────────────────── */
 function buildPersonnelTableRows(emp) {
   const rows = emp.personnelRecords || [];
-  const displayRows = rows.length > 0 ? rows : Array(5).fill(null);
+  const MIN_ROWS = 5;
+  const blanksNeeded = Math.max(0, MIN_ROWS - rows.length);
+  const displayRows = [
+    ...rows.map(r => r),
+    ...Array(blanksNeeded).fill(null),
+  ];
   return displayRows.map(r => `
     <tr>
       <td style="height:22px;">${r ? esc(r.effectiveDate || '') : ''}</td>
