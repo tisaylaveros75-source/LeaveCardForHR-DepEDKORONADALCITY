@@ -635,430 +635,308 @@ const SHARED_CSS = `
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
-/* ═══════════════════════════════════════
-   PERSONNEL RECORD CARD — PRC STYLES
-   ═══════════════════════════════════════ */
-.lc-letterhead-region {
-  font-size: 9pt; font-weight: 600; color: #555;
-  font-family: 'Barlow', Arial, sans-serif;
+html, body {
+  width: 794px; margin: 0 auto; padding: 0;
+  background: #ffffff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 9pt; color: #000000;
 }
+.lc-export-doc { width: 776px; background: #fff; padding: 8px; margin: 0 auto; }
+
+/* ═══════════════════════════════════
+   LETTERHEAD — plain centered text
+   ═══════════════════════════════════ */
+.lc-letterhead {
+  text-align: center;
+  padding: 8px 0 4px;
+  margin-bottom: 2px;
+  border: none;
+  background: #fff;
+}
+.lc-letterhead-gov {
+  font-size: 9pt; font-weight: 400; color: #000;
+}
+.lc-letterhead-region {
+  font-size: 9pt; font-weight: 400; color: #000;
+}
+.lc-letterhead-agency {
+  font-size: 9pt; font-weight: 700; color: #000;
+  text-transform: uppercase;
+}
+.lc-letterhead-sub {
+  font-size: 9pt; font-weight: 400; color: #000;
+}
+
+/* ═══════════════════════════════════
+   PERSONNEL RECORD CARD TITLE
+   ═══════════════════════════════════ */
 .lc-prc-title {
   text-align: center;
-  font-family: 'Barlow Condensed', Arial, sans-serif;
-  font-size: 14pt; font-weight: 900;
-  letter-spacing: .12em; text-transform: uppercase;
-  color: #1a0505; margin: 8px 0 10px;
-  border-bottom: 2px solid #1a0505;
-  padding-bottom: 4px;
+  font-size: 12pt; font-weight: 900;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: #000; margin: 6px 0 8px;
+  font-family: Arial, sans-serif;
 }
+
+/* ═══════════════════════════════════
+   PERSONAL DETAILS SECTION
+   ═══════════════════════════════════ */
 .lc-prc-personal {
-  border: 1pt solid #333;
-  padding: 6px 10px 4px;
+  font-family: Arial, sans-serif;
+  font-size: 9pt;
   margin-bottom: 0;
-  font-family: 'Barlow', Arial, sans-serif;
-  font-size: 8.5pt;
+  padding: 0;
 }
 .lc-prc-name-row {
-  display: flex; align-items: flex-end; gap: 10px;
-  margin-bottom: 4px;
+  display: flex; align-items: flex-end; gap: 6px;
+  margin-bottom: 3px;
 }
 .lc-prc-row {
-  display: flex; align-items: flex-end; gap: 10px;
-  margin-bottom: 4px;
+  display: flex; align-items: flex-end; gap: 6px;
+  margin-bottom: 3px;
 }
 .lc-prc-field-group {
-  display: flex; flex-direction: column;
-  flex: 1;
+  display: flex; flex-direction: column; flex: 1;
 }
 .lc-prc-field-group.lc-prc-half { flex: 1; }
 .lc-prc-field-group.lc-prc-inline {
   flex-direction: row; align-items: flex-end;
-  gap: 4px; flex: 0 0 auto;
+  gap: 3px; flex: 0 0 auto;
 }
 .lc-prc-label {
-  font-size: 7.5pt; color: #333; white-space: nowrap;
+  font-size: 8.5pt; color: #000; white-space: nowrap;
+  font-weight: 400;
 }
 .lc-prc-field-val {
-  font-size: 9pt; font-weight: 600; color: #1a1a1a;
-  text-transform: uppercase; min-width: 40px;
+  font-size: 9pt; font-weight: 400; color: #000;
+  text-transform: uppercase; min-width: 30px;
 }
 .lc-prc-underline {
-  border-bottom: 1pt solid #333;
+  border-bottom: 1pt solid #000;
   display: inline-block; min-width: 80px;
   padding-bottom: 1px;
 }
 .lc-prc-field-line {
-  display: flex; gap: 14px;
+  display: flex; gap: 20px;
 }
 .lc-prc-field-sublabel {
-  display: flex; gap: 14px; font-size: 6.5pt;
-  color: #666; font-style: italic;
+  display: flex; gap: 20px;
+  font-size: 7pt; color: #000; font-style: italic;
 }
-.lc-prc-field-sublabel span, .lc-prc-field-line span {
-  flex: 1; text-align: center;
+.lc-prc-field-sublabel span,
+.lc-prc-field-line span { flex: 1; text-align: center; }
+
+/* Name label prefix */
+.lc-prc-name-prefix {
+  font-size: 9pt; font-weight: 400;
+  white-space: nowrap; margin-right: 4px;
 }
+
+/* ═══════════════════════════════════
+   PERSONNEL TABLE
+   ═══════════════════════════════════ */
 .lc-prc-table {
   width: 100%; border-collapse: collapse;
-  font-family: 'Barlow', Arial, sans-serif;
-  font-size: 7.5pt; margin-top: 0;
+  font-family: Arial, sans-serif;
+  font-size: 8pt; margin-top: 4px;
   table-layout: fixed;
 }
 .lc-prc-table th {
-  border: 1pt solid #333;
-  padding: 4px 3px; text-align: center;
-  font-weight: 700; font-size: 7pt;
-  background: #f5f5f5;
+  border: 1pt solid #000;
+  padding: 3px 2px; text-align: center;
+  font-weight: 700; font-size: 7.5pt;
+  background: #fff; color: #000;
   white-space: normal; word-break: break-word;
   line-height: 1.3;
 }
 .lc-prc-table td {
-  border: 1pt solid #333;
-  padding: 3px; height: 20px;
+  border: 1pt solid #000;
+  padding: 2px; height: 20px;
   text-align: center; vertical-align: middle;
-  font-size: 8pt;
+  font-size: 8pt; color: #000;
+  background: #fff;
 }
-.lc-prc-table col:nth-child(1) { width: 11%; }
-.lc-prc-table col:nth-child(2) { width: 15%; }
-.lc-prc-table col:nth-child(3) { width: 11%; }
-.lc-prc-table col:nth-child(4) { width: 11%; }
-.lc-prc-table col:nth-child(5) { width: 18%; }
-.lc-prc-table col:nth-child(6) { width: 12%; }
-.lc-prc-table col:nth-child(7) { width: 11%; }
-.lc-prc-table col:nth-child(8) { width: 11%; }
-html, body {
-  width: 794px; margin: 0 auto; padding: 0;
-  background: #ffffff;
-  font-family: 'Barlow', Arial, Helvetica, sans-serif;
-  font-size: 9pt; color: #1e2530;
-}
-.lc-export-doc { width: 776px; background: #fff; padding: 0; margin: 0 auto; }
 
-/* ── Seamless Continuation Header — lives INSIDE .lc-export-era ── */
+/* ═══════════════════════════════════
+   CONTINUATION HEADER (page 2+)
+   ═══════════════════════════════════ */
 .continuation-header {
-  display: flex;
-  align-items: center;
+  display: flex; align-items: center;
   justify-content: space-between;
-  padding: 10px 16px 10px 14px;
-  background: linear-gradient(135deg,
-    #1a0000 0%, #5a0808 20%, #8b1414 45%,
-    #a01a1a 58%, #7a1010 78%, #3d0606 100%);
-  border-bottom: 2.5px solid #c0392b;
-  margin-bottom: 0;
-  box-shadow: inset 0 1px 0 rgba(255,80,80,.12);
+  padding: 6px 8px; border-bottom: 1pt solid #000;
+  margin-bottom: 4px; background: #fff;
 }
-.cont-left {
-  display: flex; align-items: center; gap: 12px;
-}
-.cont-logo {
-  width: 36px; height: 36px; border-radius: 50%;
-  border: 2px solid rgba(255,255,255,.25);
-  object-fit: cover;
-  box-shadow: 0 2px 8px rgba(0,0,0,.5);
-  flex-shrink: 0;
-}
-.cont-agency-block { display: flex; flex-direction: column; gap: 2px; }
+.cont-left { display: flex; align-items: center; gap: 8px; }
 .cont-agency {
-  font-family: 'Barlow Condensed', Arial, sans-serif;
-  font-size: 10pt; font-weight: 800; color: #fff;
-  letter-spacing: .08em; text-shadow: 0 1px 4px rgba(0,0,0,.4);
+  font-size: 9pt; font-weight: 700; color: #000;
 }
-.cont-sub {
-  font-family: 'Barlow', Arial, sans-serif;
-  font-size: 7pt; font-weight: 500;
-  color: rgba(255,200,180,.75); font-style: italic;
-}
+.cont-sub { font-size: 7.5pt; color: #000; font-style: italic; }
 .cont-page-badge {
   display: flex; flex-direction: column; align-items: center;
-  background: rgba(0,0,0,.35);
-  border: 1px solid rgba(255,80,80,.3);
-  border-radius: 6px;
-  padding: 4px 10px;
-  min-width: 44px;
+  border: 1pt solid #000; border-radius: 4px; padding: 2px 8px;
 }
-.cont-page-num {
-  font-family: 'Barlow Condensed', Arial, sans-serif;
-  font-size: 18pt; font-weight: 800; color: #ff8080;
-  line-height: 1; text-shadow: 0 0 10px rgba(255,60,60,.5);
-}
-.cont-page-of {
-  font-family: 'Barlow', Arial, sans-serif;
-  font-size: 5.5pt; font-weight: 600; color: rgba(255,180,180,.6);
-  text-transform: uppercase; letter-spacing: .08em;
-}
+.cont-page-num { font-size: 14pt; font-weight: 800; color: #000; line-height: 1; }
+.cont-page-of  { font-size: 6pt; color: #000; text-transform: uppercase; }
+.cont-logo     { display: none; }
 
-/* ═══════════════════════════════════════════════════
-   LETTERHEAD
-   ═══════════════════════════════════════════════════ */
-.lc-letterhead {
-  display: flex; align-items: center; justify-content: center;
-  gap: 16px; padding: 14px 20px 12px;
-  border-bottom: 3px solid #8b1a1a; margin-bottom: 0;
-  text-align: center;
-  background: linear-gradient(180deg, #fff8f8 0%, #ffffff 100%);
-}
-.lc-letterhead-logo {
-  width: 68px; height: 68px; border-radius: 50%; flex-shrink: 0;
-  object-fit: cover; border: 2.5px solid #c0392b;
-  box-shadow: 0 3px 12px rgba(139,26,26,.35), 0 0 0 4px rgba(192,57,43,.10);
-}
-.lc-letterhead-text  { text-align: center; line-height: 1.45; }
-.lc-letterhead-gov   {
-  font-size: 6.5pt; font-weight: 500; color: #888;
-  letter-spacing: .12em; text-transform: uppercase;
-  font-family: 'Barlow Condensed', Arial, sans-serif;
-}
-.lc-letterhead-agency{
-  font-size: 15pt; font-weight: 800; color: #1a0505;
-  font-family: 'Barlow Condensed', Arial, sans-serif; letter-spacing: .04em;
-}
-.lc-letterhead-sub   {
-  font-size: 7.5pt; font-weight: 500; color: #777; font-style: italic;
-  font-family: 'Barlow', Arial, sans-serif;
-}
-
-/* ═══════════════════════════════════════════════════
-   PROFILE CARD
-   ═══════════════════════════════════════════════════ */
-.lc-profile-card {
-  background: #0d0505; border: 1.5px solid #8b1a1a;
-  border-radius: 10px; overflow: hidden;
-  margin-top: 12px; margin-bottom: 0;
-  box-shadow: 0 0 0 1px rgba(192,57,43,.35),
-    0 6px 32px rgba(139,0,0,.40),
-    inset 0 1px 0 rgba(255,100,100,.08);
-}
-.lc-profile-header {
-  background: linear-gradient(135deg,
-    #1a0000 0%, #5a0808 18%, #8b1414 42%,
-    #a01a1a 55%, #7a1010 74%, #3d0606 100%);
-  color: #ffffff; padding: 15px 22px;
-  display: flex; align-items: center; justify-content: center;
-  gap: 14px; font-size: 11.5pt; font-weight: 800;
-  letter-spacing: .16em; text-transform: uppercase; text-align: center;
-  border-bottom: 3px solid #c0392b;
-  font-family: 'Barlow Condensed', Arial, sans-serif;
-  text-shadow: 0 1px 4px rgba(0,0,0,.5);
-}
-.lc-doc-banner-logo {
-  width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
-  border: 2px solid rgba(255,255,255,.30); object-fit: cover;
-  box-shadow: 0 2px 8px rgba(0,0,0,.4);
-}
-.lc-profile-grid { padding: 0; }
-.lc-pf-row {
-  display: grid; border-bottom: 1px solid rgba(139,0,0,.28);
-  background: linear-gradient(180deg, rgba(30,5,5,.93) 0%, rgba(20,3,3,.89) 100%);
-}
-.lc-pf-row:nth-child(even) {
-  background: linear-gradient(180deg, rgba(24,4,4,.96) 0%, rgba(15,2,2,.91) 100%);
-}
-.lc-pf-row:last-child { border-bottom: none; }
-.lc-pf-4col { grid-template-columns: repeat(4,1fr); }
-.lc-pf-3col { grid-template-columns: repeat(3,1fr); }
-.lc-pf-2col { grid-template-columns: repeat(2,1fr); }
-.lc-pf-1col { grid-template-columns: 1fr; }
-.lc-pf { padding: 9px 14px; border-right: 1px solid rgba(139,0,0,.22); }
-.lc-pf:last-child { border-right: none; }
-.lc-pf-label {
-  font-size: 5.5pt; font-weight: 700; color: #e07060;
-  letter-spacing: .12em; text-transform: uppercase; margin-bottom: 3px;
-  font-family: 'Barlow Condensed', Arial, sans-serif;
-}
-.lc-pf-value {
-  font-size: 9.5pt; font-weight: 600; color: #f5e8e0;
-  text-transform: uppercase; font-family: 'Barlow', Arial, sans-serif;
-  word-break: break-word; overflow-wrap: break-word;
-}
-
-/* ═══════════════════════════════════════════════════
-   ERA / TABLE WRAPPER
-   ═══════════════════════════════════════════════════ */
+/* ═══════════════════════════════════
+   LEAVE RECORD ERA / TABLE WRAPPER
+   ═══════════════════════════════════ */
 .lc-export-era {
-  border-radius: 10px;
-  overflow: hidden;
-  margin-top: 12px;
-  margin-bottom: 14px;
-  border: 1.5px solid rgba(139,0,0,.60);
-  page-break-inside: auto;
+  border: 1pt solid #000;
+  margin-top: 8px; margin-bottom: 6px;
   width: 100%; box-sizing: border-box;
-  box-shadow:
-    0 0 0 1px rgba(80,0,0,.18),
-    0 6px 28px rgba(0,0,0,.28),
-    0 2px 8px rgba(139,0,0,.22);
 }
-
 .lc-table-cap {
-  width: 100%;
-  padding: 10px 14px 8px;
-  background: linear-gradient(160deg,
-    #1a0000 0%, #5a0808 18%, #8b1414 42%,
-    #a01a1a 56%, #7a1010 76%, #3d0606 100%);
-  border-bottom: 2.5px solid #c0392b;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow: inset 0 1px 0 rgba(255,100,80,.14);
+  width: 100%; padding: 4px 8px;
+  background: #fff; border-bottom: 1pt solid #000;
+  display: flex; align-items: center; gap: 6px;
 }
 .lc-table-cap-line {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg,
-    rgba(255,80,60,.0) 0%,
-    rgba(255,80,60,.3) 40%,
-    rgba(255,80,60,.0) 100%);
+  flex: 1; height: 1px; background: #ccc;
 }
 .lc-table-cap-badge {
-  font-family: 'Barlow Condensed', Arial, sans-serif;
-  font-size: 6.5pt; font-weight: 800;
-  color: rgba(255,180,160,.55);
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  white-space: nowrap;
+  font-size: 7pt; font-weight: 700;
+  color: #000; letter-spacing: .1em;
+  text-transform: uppercase; white-space: nowrap;
 }
-
 .tw { overflow: visible; width: 100%; display: block; }
 
-/* ═══════════════════════════════════════════════════
-   TABLE
-   ═══════════════════════════════════════════════════ */
+/* ═══════════════════════════════════
+   LEAVE RECORD TABLE
+   ═══════════════════════════════════ */
 table {
   width: 100% !important; border-collapse: collapse !important;
   table-layout: fixed !important;
-  font-size: 7.8pt; font-family: 'Barlow', Arial, sans-serif;
+  font-size: 7.5pt; font-family: Arial, sans-serif;
 }
 thead { display: table-header-group; }
 thead tr:first-child th {
-  background: #1e0505; color: #fff;
-  font-size: 6.5pt; font-weight: 800; padding: 8px 4px 6px;
+  background: #fff !important; color: #000 !important;
+  font-size: 6.5pt; font-weight: 800; padding: 5px 3px 4px;
   text-align: center;
-  border-top: none !important;
-  border-left: .5pt solid #5a2a2a;
-  border-right: .5pt solid #5a2a2a;
-  border-bottom: .5pt solid #5a2a2a;
-  text-transform: uppercase; letter-spacing: .04em;
+  border: .5pt solid #000 !important;
+  text-transform: uppercase; letter-spacing: .03em;
   white-space: normal; word-break: break-word; line-height: 1.3;
-  font-family: 'Barlow Condensed', Arial, sans-serif;
+  font-family: Arial, sans-serif;
 }
-
 thead th.tha {
-  background: linear-gradient(180deg, #991f1f 0%, #7a1414 100%);
-  color: #ffe4e4; border-color: #701414;
+  background: #fff !important; color: #000 !important;
+  border: .5pt solid #000 !important;
 }
 thead th.thb {
-  background: linear-gradient(180deg, #1e3d78 0%, #162e5c 100%);
-  color: #cce0ff; border-color: #243f7a;
+  background: #fff !important; color: #000 !important;
+  border: .5pt solid #000 !important;
 }
 thead tr:nth-child(2) th {
-  font-size: 6pt; font-weight: 700; padding: 4px 3px;
-  text-align: center; border: .5pt solid #ccc;
+  background: #fff !important; color: #000 !important;
+  font-size: 6pt; font-weight: 700; padding: 3px 2px;
+  text-align: center; border: .5pt solid #000 !important;
   white-space: normal; word-break: break-word; line-height: 1.2;
-  font-family: 'Barlow Condensed', Arial, sans-serif; letter-spacing: .04em;
+  font-family: Arial, sans-serif;
 }
-thead th.ths.tha {
-  background: linear-gradient(180deg, #5a1010 0%, #420a0a 100%);
-  color: #ffb8b8;
-}
+thead th.ths.tha,
 thead th.ths.thb {
-  background: linear-gradient(180deg, #0f2550 0%, #0a1a3a 100%);
-  color: #a8c4ff;
+  background: #fff !important; color: #000 !important;
 }
 
-/* ═══════════════════════════════════════════════════
-   TBODY
-   ═══════════════════════════════════════════════════ */
+/* ── TBODY ── */
 tbody tr { page-break-inside: avoid !important; break-inside: avoid !important; }
 tbody td {
-  border: .5pt solid #d4b8b8; padding: 5pt 3pt;
-  font-size: 7.8pt; text-align: center; vertical-align: middle;
+  border: .5pt solid #000 !important;
+  padding: 3pt 2pt;
+  font-size: 7.5pt; text-align: center; vertical-align: middle;
   white-space: normal; word-break: break-word; overflow-wrap: break-word;
-  overflow: visible; line-height: 1.45; text-transform: uppercase;
-  font-family: 'Barlow', Arial, sans-serif;
+  overflow: visible; line-height: 1.35; text-transform: uppercase;
+  font-family: Arial, sans-serif;
+  background: #fff !important; color: #000 !important;
 }
-tbody tr:nth-child(even) td {
-  background: linear-gradient(180deg, #fdf5f5 0%, #faf0f0 100%);
-}
-tbody tr:nth-child(odd) td { background: #ffffff; }
+tbody tr:nth-child(even) td { background: #fff !important; }
+tbody tr:nth-child(odd)  td { background: #fff !important; }
 
 .bc {
-  background: linear-gradient(180deg, #fffde7 0%, #fff8d6 100%) !important;
-  font-weight: 800 !important; color: #6b4a10 !important;
-  font-family: 'Barlow Condensed', monospace, Arial, sans-serif !important;
-  font-size: 8.5pt !important; letter-spacing: .02em;
+  background: #fff !important; color: #000 !important;
+  font-weight: 800 !important; font-size: 8pt !important;
 }
-.rdc { color: #b91c1c !important; font-weight: 700 !important; background: #fff5f5 !important; }
+.rdc {
+  color: #000 !important; font-weight: 700 !important;
+  background: #fff !important;
+  text-decoration: underline !important;
+}
 .nc {
-  font-family: 'Barlow Condensed', 'Courier New', monospace !important;
-  white-space: nowrap !important; text-transform: uppercase !important; font-size: 8pt !important;
+  font-family: Arial, sans-serif !important;
+  white-space: nowrap !important; font-size: 7.5pt !important;
+  color: #000 !important;
 }
-.so-cell { font-size: 7pt !important; padding: 5px 2px !important; color: #555 !important; white-space: normal !important; word-break: break-word !important; overflow-wrap: break-word !important; }
-.num-cell { padding: 5px 3px !important; font-size: 8pt !important; }
+.so-cell {
+  font-size: 6.5pt !important; padding: 3px 2px !important;
+  color: #000 !important; white-space: normal !important;
+  word-break: break-word !important;
+}
+.num-cell { padding: 3px 2px !important; font-size: 7.5pt !important; }
 .period-cell {
-  text-align: left !important; padding: 5pt 6pt !important;
-  font-weight: 600 !important; line-height: 1.45 !important;
+  text-align: left !important; padding: 3pt 4pt !important;
+  font-weight: 600 !important; line-height: 1.35 !important;
   white-space: normal !important; word-break: break-word !important;
-  overflow-wrap: break-word !important; overflow: visible !important;
-  font-size: 7.5pt !important; text-transform: uppercase !important;
+  font-size: 7pt !important; text-transform: uppercase !important;
+  color: #000 !important;
 }
 .date-range {
-  display: block; font-size: 7.5pt; font-weight: 700; line-height: 1.4;
-  font-family: 'Barlow Condensed', Arial, sans-serif;
-  letter-spacing: .02em; color: inherit; text-transform: uppercase;
+  display: block; font-size: 7pt; font-weight: 700; line-height: 1.35;
+  font-family: Arial, sans-serif;
+  color: #000 !important; text-transform: uppercase;
 }
 .ampm-tag {
-  font-size: 5.5pt; color: #aaa; font-weight: 500;
-  font-family: 'Barlow', Arial, sans-serif;
+  font-size: 5.5pt; color: #000; font-weight: 400;
 }
 .remarks-cell {
-  text-align: left !important; padding: 5pt 8pt !important;
-  font-size: 7.5pt !important; white-space: normal !important;
-  word-break: break-word !important; overflow-wrap: break-word !important;
-  overflow: visible !important; line-height: 1.55 !important;
-  text-transform: uppercase !important; font-family: 'Barlow', Arial, sans-serif !important;
-  color: #2a1a1a !important; min-width: 0 !important;
+  text-align: left !important; padding: 3pt 5pt !important;
+  font-size: 7pt !important; white-space: normal !important;
+  word-break: break-word !important; overflow: visible !important;
+  line-height: 1.4 !important; text-transform: uppercase !important;
+  color: #000 !important;
 }
 .empty-row-cell {
-  text-align: center !important; padding: 12px !important;
-  color: #bbb !important; font-style: italic !important; font-size: 7.5pt !important;
+  text-align: center !important; padding: 10px !important;
+  color: #666 !important; font-style: italic !important;
+  font-size: 7.5pt !important;
 }
 
-/* ═══════════════════════════════════════════════════
-   FORWARD BALANCE ROW
-   ═══════════════════════════════════════════════════ */
-.era-fwd-row { border-top: 2pt solid #c9a227 !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+/* ── Forward balance row ── */
+.era-fwd-row {
+  border-top: 1.5pt solid #000 !important;
+  page-break-inside: avoid !important;
+}
 .fwd-label-cell {
-  text-align: left !important; padding: 6px 10px !important;
-  font-style: italic !important; font-size: 7.5pt !important;
-  background: linear-gradient(90deg, #fff9e0 0%, #fffbe8 100%) !important;
-  color: #7a5000 !important; font-weight: 700 !important;
-  font-family: 'Barlow Condensed', Arial, sans-serif !important;
-  border-color: #d4a843 !important; letter-spacing: .04em !important;
+  text-align: left !important; padding: 4px 8px !important;
+  font-style: italic !important; font-size: 7pt !important;
+  background: #f9f9f9 !important; color: #000 !important;
+  font-weight: 700 !important; border-color: #000 !important;
   white-space: normal !important; word-break: break-word !important;
-  overflow-wrap: break-word !important; overflow: visible !important;
 }
 .fwd-num-cell {
-  background: #fff9e0 !important; color: #7a5000 !important;
+  background: #f9f9f9 !important; color: #000 !important;
   font-weight: 700 !important; font-style: italic !important;
-  font-size: 7.5pt !important; border-color: #d4a843 !important;
-  padding: 5pt 3pt !important; text-align: center !important;
-  font-family: 'Barlow Condensed', monospace, Arial, sans-serif !important;
+  font-size: 7pt !important; border-color: #000 !important;
+  padding: 3pt 2pt !important; text-align: center !important;
 }
-.fwd-remarks-cell { background: #fff9e0 !important; border-color: #d4a843 !important; }
+.fwd-remarks-cell { background: #f9f9f9 !important; border-color: #000 !important; }
 
-/* Column widths */
-table col:nth-child(1)  { width: 5%   !important; }
-table col:nth-child(2)  { width: 16%  !important; }
-table col:nth-child(3)  { width: 5%   !important; }
-table col:nth-child(4)  { width: 5%   !important; }
-table col:nth-child(5)  { width: 5%   !important; }
-table col:nth-child(6)  { width: 5%   !important; }
-table col:nth-child(7)  { width: 5%   !important; }
-table col:nth-child(8)  { width: 5%   !important; }
-table col:nth-child(9)  { width: 5%   !important; }
-table col:nth-child(10) { width: 5%   !important; }
-table col:nth-child(11) { width: 34%  !important; }
+/* ── Column widths (leave table) ── */
+table col:nth-child(1)  { width: 5%  !important; }
+table col:nth-child(2)  { width: 14% !important; }
+table col:nth-child(3)  { width: 5%  !important; }
+table col:nth-child(4)  { width: 5%  !important; }
+table col:nth-child(5)  { width: 5%  !important; }
+table col:nth-child(6)  { width: 5%  !important; }
+table col:nth-child(7)  { width: 5%  !important; }
+table col:nth-child(8)  { width: 5%  !important; }
+table col:nth-child(9)  { width: 5%  !important; }
+table col:nth-child(10) { width: 5%  !important; }
+table col:nth-child(11) { width: 36% !important; }
 
-table th:nth-child(1), table td:nth-child(1) { width: 5%   !important; }
-table th:nth-child(2), table td:nth-child(2) { width: 16%  !important; }
+table th:nth-child(1),  table td:nth-child(1)  { width: 5%  !important; }
+table th:nth-child(2),  table td:nth-child(2)  { width: 14% !important; }
 table th:nth-child(3),  table td:nth-child(3),
 table th:nth-child(4),  table td:nth-child(4),
 table th:nth-child(5),  table td:nth-child(5),
@@ -1068,40 +946,23 @@ table th:nth-child(8),  table td:nth-child(8),
 table th:nth-child(9),  table td:nth-child(9),
 table th:nth-child(10), table td:nth-child(10) { width: 5% !important; }
 table th:nth-child(11), table td:nth-child(11) {
-  width: 34% !important; text-align: left !important; padding-left: 8px !important;
+  width: 36% !important;
+  text-align: left !important; padding-left: 6px !important;
 }
 
 @media print {
-  tr, .data-row, .era-fwd-row { page-break-inside: avoid !important; break-inside: avoid !important; }
-  td, th { overflow: visible !important; overflow-wrap: break-word !important; word-break: break-word !important; }
-  .remarks-cell { overflow: visible !important; }
-
-  /* Strip expensive visuals for print performance */
+  tr, .data-row, .era-fwd-row {
+    page-break-inside: avoid !important; break-inside: avoid !important;
+  }
+  td, th {
+    overflow: visible !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+  }
   *, *::before, *::after {
     box-shadow: none !important;
     text-shadow: none !important;
-    backdrop-filter: none !important;
-    filter: none !important;
   }
-  .lc-profile-header,
-  .continuation-header,
-  .lc-table-cap { background: #5a0808 !important; }
-  .lc-pf-row,
-  .lc-pf-row:nth-child(even) { background: #1a0404 !important; }
-  thead tr:first-child th     { background: #1e0505 !important; }
-  thead th.tha                { background: #7a1414 !important; }
-  thead th.thb                { background: #162e5c !important; }
-  thead th.ths.tha            { background: #420a0a !important; }
-  thead th.ths.thb            { background: #0a1a3a !important; }
-  tbody tr:nth-child(even) td { background: #faf0f0 !important; }
-  tbody tr:nth-child(odd)  td { background: #ffffff !important; }
-  .bc  { background: #fff8d6 !important; }
-  .rdc { background: #fff5f5 !important; }
-  .fwd-label-cell,
-  .fwd-num-cell,
-  .fwd-remarks-cell           { background: #fff9e0 !important; }
-  .lc-export-era,
-  .lc-profile-card            { border-radius: 0 !important; }
 }
 `;
 
@@ -1110,8 +971,7 @@ table th:nth-child(11), table td:nth-child(11) {
    ───────────────────────────────────────────────────────────── */
 function buildExportHTML(emp, logoSrc) {
   const records = emp.records || [];
-  const logoImgLetterhead = logoSrc
-    ? `<img class="lc-letterhead-logo" src="${logoSrc}" alt="SDO Logo"/>` : '';
+  const logoImgLetterhead = ''; // plain black & white — no logo
 
   const segments = [];
   let cur = { conv: null, recs: [] };
@@ -1145,95 +1005,83 @@ function buildExportHTML(emp, logoSrc) {
 
   return `
     <div class="lc-export-doc">
-      <div class="lc-letterhead">
-        ${logoImgLetterhead}
-        <div class="lc-letterhead-text">
-          <div class="lc-letterhead-gov">Republika ng Pilipinas &bull; Kagawaran ng Edukasyon</div>
-          <div class="lc-letterhead-region">Rehiyon XII</div>
-          <div class="lc-letterhead-agency">SANGAY NG PAARALANG LUNGSOD</div>
-          <div class="lc-letterhead-sub">Lungsod ng Koronadal</div>
-        </div>
+<div class="lc-letterhead">
+        <div class="lc-letterhead-gov">Republika ng Pilipinas</div>
+        <div class="lc-letterhead-gov">Kagawaran ng Edukasyon</div>
+        <div class="lc-letterhead-region">Rehiyon XII</div>
+        <div class="lc-letterhead-agency">SANGAY NG PAARALANG LUNGSOD</div>
+        <div class="lc-letterhead-sub">Lungsod ng Koronadal</div>
       </div>
 
       <div class="lc-prc-title">PERSONNEL RECORD CARD</div>
 
-      <div class="lc-prc-personal">
+<div class="lc-prc-personal">
+
         <div class="lc-prc-name-row">
-          <div class="lc-prc-field-group" style="flex:2;">
-            <span class="lc-prc-field-line">
-              <span class="lc-prc-field-val">${eu(emp.surname || '')}</span>
-              <span class="lc-prc-field-val">${eu(emp.given || '')}</span>
-              <span class="lc-prc-field-val">${eu(emp.maternal || '')}</span>
-            </span>
-            <span class="lc-prc-field-sublabel">
-              <span>(Surname)</span>
-              <span>(Given Name)</span>
-              <span>(Maternal Surname)</span>
-            </span>
-          </div>
-          <div class="lc-prc-field-group lc-prc-inline">
-            <span class="lc-prc-label">Sex:</span>
-            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.sex || '')}</span>
-          </div>
-          <div class="lc-prc-field-group lc-prc-inline">
-            <span class="lc-prc-label">Civil Status:</span>
-            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.civil || '')}</span>
-          </div>
-        </div>
-        <div class="lc-prc-row">
-          <div class="lc-prc-field-group lc-prc-half">
-            <span class="lc-prc-label">Date of Birth:</span>
-            <span class="lc-prc-field-val lc-prc-underline">${esc(fmtDateEx(emp.dob || ''))}</span>
-          </div>
-          <div class="lc-prc-field-group lc-prc-half">
-            <span class="lc-prc-label">Place of Birth:</span>
-            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.pob || '')}</span>
-          </div>
-        </div>
-        <div class="lc-prc-row">
-          <div class="lc-prc-field-group lc-prc-half">
-            <span class="lc-prc-label">Present Address:</span>
-            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.addr || '')}</span>
-          </div>
-          <div class="lc-prc-field-group lc-prc-half">
-            <span class="lc-prc-label">Name of Spouse:</span>
-            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.spouse || '')}</span>
-          </div>
-        </div>
-        <div class="lc-prc-row">
-          <div class="lc-prc-field-group lc-prc-half">
-            <span class="lc-prc-label">Educational Qualification:</span>
-            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.edu || '')}</span>
+          <span class="lc-prc-name-prefix">Name:</span>
+          <div class="lc-prc-field-group" style="flex:1;">
+            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.surname || '')}</span>
+            <span style="font-size:7pt;text-align:center;display:block;">(Surname)</span>
           </div>
           <div class="lc-prc-field-group" style="flex:1;">
-            <span class="lc-prc-label">C.S. Eligibility: Kind of Exam:</span>
-            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.elig || '')}</span>
+            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.given || '')}</span>
+            <span style="font-size:7pt;text-align:center;display:block;">(Given Name)</span>
           </div>
-          <div class="lc-prc-field-group lc-prc-inline">
-            <span class="lc-prc-label">Rating:</span>
-            <span class="lc-prc-field-val lc-prc-underline">${esc(emp.rating || '')}</span>
+          <div class="lc-prc-field-group" style="flex:1;">
+            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.maternal || '')}</span>
+            <span style="font-size:7pt;text-align:center;display:block;">(Maternal Surname)</span>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:3px;flex-shrink:0;">
+            <span class="lc-prc-label">Sex:</span>
+            <span class="lc-prc-field-val lc-prc-underline" style="min-width:50px;">${eu(emp.sex || '')}</span>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:3px;flex-shrink:0;">
+            <span class="lc-prc-label">Civil Status:</span>
+            <span class="lc-prc-field-val lc-prc-underline" style="min-width:70px;">${eu(emp.civil || '')}</span>
           </div>
         </div>
+
         <div class="lc-prc-row">
-          <div class="lc-prc-field-group" style="flex:1;text-align:center;">
+          <span class="lc-prc-label" style="white-space:nowrap;">Date of Birth:</span>
+          <span class="lc-prc-field-val lc-prc-underline" style="flex:1;">${esc(fmtDateEx(emp.dob || ''))}</span>
+          <span class="lc-prc-label" style="white-space:nowrap;margin-left:8px;">Place of Birth:</span>
+          <span class="lc-prc-field-val lc-prc-underline" style="flex:2;">${eu(emp.pob || '')}</span>
+        </div>
+
+        <div class="lc-prc-row">
+          <span class="lc-prc-label" style="white-space:nowrap;">Present Address:</span>
+          <span class="lc-prc-field-val lc-prc-underline" style="flex:2;">${eu(emp.addr || '')}</span>
+          <span class="lc-prc-label" style="white-space:nowrap;margin-left:8px;">Name of Spouse:</span>
+          <span class="lc-prc-field-val lc-prc-underline" style="flex:1.5;">${eu(emp.spouse || '')}</span>
+        </div>
+
+        <div class="lc-prc-row">
+          <span class="lc-prc-label" style="white-space:nowrap;">Educational Qualification:</span>
+          <span class="lc-prc-field-val lc-prc-underline" style="flex:1.5;">${eu(emp.edu || '')}</span>
+          <span class="lc-prc-label" style="white-space:nowrap;margin-left:8px;">C.S. ELIGIBILITY: Kind of Exam:</span>
+          <span class="lc-prc-field-val lc-prc-underline" style="flex:1;">${eu(emp.elig || '')}</span>
+          <span class="lc-prc-label" style="white-space:nowrap;margin-left:8px;">Rating:</span>
+          <span class="lc-prc-field-val lc-prc-underline" style="min-width:40px;">${esc(emp.rating || '')}</span>
+        </div>
+
+        <div class="lc-prc-row" style="justify-content:center;gap:30px;">
+          <div style="display:flex;gap:4px;align-items:flex-end;">
             <span class="lc-prc-label">Place of Exam:</span>
-            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.pexam || '')}</span>
+            <span class="lc-prc-field-val lc-prc-underline" style="min-width:120px;">${eu(emp.pexam || '')}</span>
           </div>
-          <div class="lc-prc-field-group" style="flex:1;text-align:center;">
+          <div style="display:flex;gap:4px;align-items:flex-end;">
             <span class="lc-prc-label">Date:</span>
-            <span class="lc-prc-field-val lc-prc-underline">${esc(fmtDateEx(emp.dexam || ''))}</span>
+            <span class="lc-prc-field-val lc-prc-underline" style="min-width:90px;">${esc(fmtDateEx(emp.dexam || ''))}</span>
           </div>
         </div>
+
         <div class="lc-prc-row">
-          <div class="lc-prc-field-group lc-prc-inline">
-            <span class="lc-prc-label" style="font-weight:800;">EMPLOYEE NO.</span>
-            <span class="lc-prc-field-val lc-prc-underline">${esc(emp.id || '')}</span>
-          </div>
-          <div class="lc-prc-field-group lc-prc-inline" style="flex:2;">
-            <span class="lc-prc-label">Date of Original Appointment:</span>
-            <span class="lc-prc-field-val lc-prc-underline">${esc(fmtDateEx(emp.appt || ''))}</span>
-          </div>
+          <span class="lc-prc-label" style="font-weight:800;white-space:nowrap;">EMPLOYEE NO.</span>
+          <span class="lc-prc-field-val lc-prc-underline" style="min-width:90px;">${esc(emp.id || '')}</span>
+          <span class="lc-prc-label" style="white-space:nowrap;margin-left:16px;">Date of Original Appointment:</span>
+          <span class="lc-prc-field-val lc-prc-underline" style="flex:1;">${esc(fmtDateEx(emp.appt || ''))}</span>
         </div>
+
       </div>
 
       <table class="lc-prc-table">
@@ -1304,6 +1152,16 @@ async function lcPrimeForPrint(emp) {
   const fullPage = buildFullPage(emp, logoSrc);
   _readyIframe   = await createCaptureIframe(fullPage);
   _readyForEmpId = emp.id;
+}
+function buildFullPage(emp, logoSrc) {
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<style>${SHARED_CSS}</style>
+</head>
+<body>${buildExportHTML(emp, logoSrc)}</body>
+</html>`;
 }
 window.lcPrimeForPrint = lcPrimeForPrint;
 
