@@ -1110,16 +1110,8 @@ table th:nth-child(11), table td:nth-child(11) {
    ───────────────────────────────────────────────────────────── */
 function buildExportHTML(emp, logoSrc) {
   const records = emp.records || [];
-  const lastConv = [...records].reverse().find(r => r._conversion);
-  const currentEraStatus = (lastConv ? lastConv.toStatus : emp.status) || '';
-  const categoryLabel = currentEraStatus
-    ? `&#9632; ${currentEraStatus.toUpperCase()} PERSONNEL LEAVE RECORD`
-    : '&#9632; NON-TEACHING PERSONNEL LEAVE RECORD';
-
   const logoImgLetterhead = logoSrc
     ? `<img class="lc-letterhead-logo" src="${logoSrc}" alt="SDO Logo"/>` : '';
-  const logoImgHeader = logoSrc
-    ? `<img class="lc-doc-banner-logo" src="${logoSrc}" alt="SDO Logo"/>` : '';
 
   const segments = [];
   let cur = { conv: null, recs: [] };
@@ -1156,66 +1148,120 @@ function buildExportHTML(emp, logoSrc) {
       <div class="lc-letterhead">
         ${logoImgLetterhead}
         <div class="lc-letterhead-text">
-          <div class="lc-letterhead-gov">Republic of the Philippines &bull; Department of Education</div>
-          <div class="lc-letterhead-agency">SDO City of Koronadal &mdash; Region XII</div>
-          <div class="lc-letterhead-sub">Schools Division Office &mdash; Employee Leave Record</div>
+          <div class="lc-letterhead-gov">Republika ng Pilipinas &bull; Kagawaran ng Edukasyon</div>
+          <div class="lc-letterhead-region">Rehiyon XII</div>
+          <div class="lc-letterhead-agency">SANGAY NG PAARALANG LUNGSOD</div>
+          <div class="lc-letterhead-sub">Lungsod ng Koronadal</div>
         </div>
       </div>
-      <div class="lc-profile-card">
-        <div class="lc-profile-header">
-          ${logoImgHeader}
-          <span>${categoryLabel}</span>
+
+      <div class="lc-prc-title">PERSONNEL RECORD CARD</div>
+
+      <div class="lc-prc-personal">
+        <div class="lc-prc-name-row">
+          <div class="lc-prc-field-group" style="flex:2;">
+            <span class="lc-prc-field-line">
+              <span class="lc-prc-field-val">${eu(emp.surname || '')}</span>
+              <span class="lc-prc-field-val">${eu(emp.given || '')}</span>
+              <span class="lc-prc-field-val">${eu(emp.maternal || '')}</span>
+            </span>
+            <span class="lc-prc-field-sublabel">
+              <span>(Surname)</span>
+              <span>(Given Name)</span>
+              <span>(Maternal Surname)</span>
+            </span>
+          </div>
+          <div class="lc-prc-field-group lc-prc-inline">
+            <span class="lc-prc-label">Sex:</span>
+            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.sex || '')}</span>
+          </div>
+          <div class="lc-prc-field-group lc-prc-inline">
+            <span class="lc-prc-label">Civil Status:</span>
+            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.civil || '')}</span>
+          </div>
         </div>
-        <div class="lc-profile-grid">
-          <div class="lc-pf-row lc-pf-4col">
-            ${pf('SURNAME', emp.surname || '')}
-            ${pf('GIVEN NAME', emp.given || '')}
-            ${pf('SUFFIX', emp.suffix || '')}
-            ${pf('MATERNAL SURNAME', emp.maternal || '')}
+        <div class="lc-prc-row">
+          <div class="lc-prc-field-group lc-prc-half">
+            <span class="lc-prc-label">Date of Birth:</span>
+            <span class="lc-prc-field-val lc-prc-underline">${esc(fmtDateEx(emp.dob || ''))}</span>
           </div>
-          <div class="lc-pf-row lc-pf-4col">
-            ${pf('SEX', emp.sex || '')}
-            ${pf('CIVIL STATUS', emp.civil || '')}
-            ${pf('DATE OF BIRTH', fmtDateEx(emp.dob || ''))}
-            ${pf('PLACE OF BIRTH', emp.pob || '')}
+          <div class="lc-prc-field-group lc-prc-half">
+            <span class="lc-prc-label">Place of Birth:</span>
+            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.pob || '')}</span>
           </div>
-          <div class="lc-pf-row lc-pf-2col">
-            ${pf('PRESENT ADDRESS', emp.addr || '')}
-            ${pf('NAME OF SPOUSE', emp.spouse || '')}
+        </div>
+        <div class="lc-prc-row">
+          <div class="lc-prc-field-group lc-prc-half">
+            <span class="lc-prc-label">Present Address:</span>
+            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.addr || '')}</span>
           </div>
-          <div class="lc-pf-row lc-pf-2col">
-            ${pf('EDUCATIONAL QUALIFICATION', emp.edu || '')}
-            ${pf('C.S. ELIGIBILITY: KIND OF EXAM', emp.elig || '')}
+          <div class="lc-prc-field-group lc-prc-half">
+            <span class="lc-prc-label">Name of Spouse:</span>
+            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.spouse || '')}</span>
           </div>
-          <div class="lc-pf-row lc-pf-4col">
-            ${pf('RATING', emp.rating || '')}
-            ${pf('TIN NUMBER', emp.tin || '')}
-            ${pf('PLACE OF EXAM', emp.pexam || '')}
-            ${pf('DATE OF EXAM', fmtDateEx(emp.dexam || ''))}
+        </div>
+        <div class="lc-prc-row">
+          <div class="lc-prc-field-group lc-prc-half">
+            <span class="lc-prc-label">Educational Qualification:</span>
+            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.edu || '')}</span>
           </div>
-          <div class="lc-pf-row lc-pf-3col">
-            ${pf('EMPLOYEE NUMBER', emp.id || '')}
-            ${pf('DATE OF ORIGINAL APPOINTMENT', fmtDateEx(emp.appt || ''))}
-            ${pf('POSITION', emp.pos || '')}
+          <div class="lc-prc-field-group" style="flex:1;">
+            <span class="lc-prc-label">C.S. Eligibility: Kind of Exam:</span>
+            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.elig || '')}</span>
           </div>
-          <div class="lc-pf-row lc-pf-1col">
-            ${pf('SCHOOL / OFFICE', emp.school || '')}
+          <div class="lc-prc-field-group lc-prc-inline">
+            <span class="lc-prc-label">Rating:</span>
+            <span class="lc-prc-field-val lc-prc-underline">${esc(emp.rating || '')}</span>
+          </div>
+        </div>
+        <div class="lc-prc-row">
+          <div class="lc-prc-field-group" style="flex:1;text-align:center;">
+            <span class="lc-prc-label">Place of Exam:</span>
+            <span class="lc-prc-field-val lc-prc-underline">${eu(emp.pexam || '')}</span>
+          </div>
+          <div class="lc-prc-field-group" style="flex:1;text-align:center;">
+            <span class="lc-prc-label">Date:</span>
+            <span class="lc-prc-field-val lc-prc-underline">${esc(fmtDateEx(emp.dexam || ''))}</span>
+          </div>
+        </div>
+        <div class="lc-prc-row">
+          <div class="lc-prc-field-group lc-prc-inline">
+            <span class="lc-prc-label" style="font-weight:800;">EMPLOYEE NO.</span>
+            <span class="lc-prc-field-val lc-prc-underline">${esc(emp.id || '')}</span>
+          </div>
+          <div class="lc-prc-field-group lc-prc-inline" style="flex:2;">
+            <span class="lc-prc-label">Date of Original Appointment:</span>
+            <span class="lc-prc-field-val lc-prc-underline">${esc(fmtDateEx(emp.appt || ''))}</span>
           </div>
         </div>
       </div>
+
+      <table class="lc-prc-table">
+        <colgroup>
+          <col style="width:11%;"/><col style="width:15%;"/>
+          <col style="width:11%;"/><col style="width:11%;"/>
+          <col style="width:18%;"/><col style="width:12%;"/>
+          <col style="width:11%;"/><col style="width:11%;"/>
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Effective Date</th>
+            <th>Designation</th>
+            <th>Status Reg. Perm. Temp/Subt.</th>
+            <th>Mo. / Annual Salary</th>
+            <th>Name of Dist./ Station</th>
+            <th>Source of Fund - Nat'l Local</th>
+            <th>DATE OF LAST PROM...</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${buildPersonnelTableRows(emp)}
+        </tbody>
+      </table>
+
       ${erasHtml}
     </div>`;
-}
-
-function buildFullPage(emp, logoSrc) {
-  return `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8"/>
-<style>${SHARED_CSS}</style>
-</head>
-<body>${buildExportHTML(emp, logoSrc)}</body>
-</html>`;
 }
 
 /* ─────────────────────────────────────────────────────────────
