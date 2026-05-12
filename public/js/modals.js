@@ -1132,7 +1132,7 @@ enforceAllCaps(mo);
       account_status: mo.querySelector('#reg_accstatus').value,
       pos:            getVal('reg_pos').toUpperCase(),
       school:         getVal('reg_school').toUpperCase(),
-      email:          emailUsername.toLowerCase() + '@deped.gov.ph',
+      email:          emailUsername.toLowerCase().normalize('NFC') + '@deped.gov.ph',
       password:       mo.querySelector('#reg_pw').value,
       assigned_sa_id: window.state?.isSchoolAdmin
         ? (window.state.schoolAdminCfg?.dbId || null)
