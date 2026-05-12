@@ -525,7 +525,9 @@ function showLeaveApplicationModal(emp, existingApp) {
       date_to:         '',
       num_working_days:'',
       inclusive_dates: '',
-      commutation:     'Not Requested',
+    commutation:     'Not Requested',
+      hrmo_officer:    'faizal',
+      sds_officer:     'nerissa',
     };
   }
 
@@ -661,6 +663,24 @@ function _laStep1() {
                    placeholder="e.g. 25000.00" value="${_esc(_laData.salary_monthly || '')}"/>
           </div>
         </div>
+        <div class="la-field-row col-2">
+          <div class="la-field">
+            <label class="la-label">Certifying Officer — Section 7A <span class="la-req">*</span></label>
+            <select class="la-input" id="la1_hrmo">
+              <option value="faizal" ${(_laData.hrmo_officer||'faizal')==='faizal'?'selected':''}>FAIZAL B. MACASAYON — Administrative Officer IV / HRMO</option>
+              <option value="danilo" ${_laData.hrmo_officer==='danilo'?'selected':''}>DANILO M. PAJEL JR. — Administrative Officer V</option>
+            </select>
+            <div class="la-hint">Who will certify your leave credits balance?</div>
+          </div>
+          <div class="la-field">
+            <label class="la-label">Approving Authority — Section 7C/7D <span class="la-req">*</span></label>
+            <select class="la-input" id="la1_sds">
+              <option value="nerissa" ${(_laData.sds_officer||'nerissa')==='nerissa'?'selected':''}>NERISSA A. ALFAFARA, CESO VI — Asst. Schools Division Superintendent</option>
+              <option value="roberto" ${_laData.sds_officer==='roberto'?'selected':''}>ROBERTO J. MONTERO, EdD, CESO VI — Schools Division Superintendent</option>
+            </select>
+            <div class="la-hint">Who will approve or disapprove your leave?</div>
+          </div>
+        </div>
         <div class="la-err" id="la1Err"></div>
       </div>
     </div>`;
@@ -681,7 +701,10 @@ function _laStep1() {
     _laData.date_of_filing  = filing;
     _laData.office_school   = document.getElementById('la1_office').value.trim();
     _laData.position        = document.getElementById('la1_pos').value.trim();
-    _laData.salary_monthly  = document.getElementById('la1_salary').value;
+_laData.salary_monthly  = document.getElementById('la1_salary').value;
+    _laData.hrmo_officer    = document.getElementById('la1_hrmo').value;
+    _laData.sds_officer     = document.getElementById('la1_sds').value;
+    _laNext();
     _laNext();
   });
 }
@@ -1282,6 +1305,9 @@ function _laStep4() {
       num_working_days:        _laData.num_working_days,
       inclusive_dates:         _laData.inclusive_dates,
       commutation:             _laData.commutation || 'Not Requested',
+      hrmo_officer:            _laData.hrmo_officer || 'faizal',
+      sds_officer:             _laData.sds_officer  || 'nerissa',
+    };
     };
     Object.entries(fields).forEach(([k, v]) => fd.append(k, v || ''));
     if (_laFile) fd.append('attachment', _laFile);
@@ -1629,7 +1655,7 @@ function _laViewCSFModal(a, esc) {
 
   const html = `
     <div class="mo open" id="laViewMo" style="z-index:10001;">
-      <div class="mb" style="max-width:780px!important;background:#fff!important;color:#111!important;">
+      <div class="mb" style="max-width:1100px!important;width:96vw!important;background:#fff!important;color:#111!important;">
         <div class="mh" style="background:linear-gradient(135deg,#5a0f16,#8b1a1a);">
           <h3>📋 CSF No. 6 — Leave Application</h3>
           <button class="mo-close-btn" id="laVwClose">✕</button>
@@ -1653,7 +1679,7 @@ function _laViewCSFModal(a, esc) {
           </div>
 
           <!-- CSF FORM PREVIEW (iframe for printing isolation) -->
-<iframe id="csfPrintFrame" style="width:100%;height:900px;border:none;display:block;"></iframe>
+<iframe id="csfPrintFrame" style="width:100%;height:1150px;border:none;display:block;"></iframe>
         </div>
         <div class="mf">
           <button class="btn b-slt" id="laVwOk">Close</button>
@@ -2094,15 +2120,8 @@ body {
               </tr>
             </table>
           <div style="text-align:center;margin-top:60px;">
-              <div class="no-print" style="margin-bottom:8px;">
-                <label style="font-size:7.5pt;color:#555;display:block;margin-bottom:4px;">Select Certifying Officer:</label>
-                <select id="csfHrmoSelect" style="font-size:8pt;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-family:Arial,sans-serif;cursor:pointer;">
-                  <option value="faizal">FAIZAL B. MACASAYON</option>
-                  <option value="danilo">DANILO M. PAJEL JR.</option>
-                </select>
-              </div>
-              <div class="bold" style="font-size:8.5pt;" id="csfHrmoName">FAIZAL B. MACASAYON</div>
-              <div class="small" id="csfHrmoPos">Administrative Officer IV/ HRMO</div>
+              <div class="bold" style="font-size:8.5pt;">${(a.hrmo_officer||'faizal')==='danilo'?'DANILO M. PAJEL JR.':'FAIZAL B. MACASAYON'}</div>
+              <div class="small">${(a.hrmo_officer||'faizal')==='danilo'?'Administrative Officer V':'Administrative Officer IV/ HRMO'}</div>
             </div>
           </div>
         </td>
@@ -2157,46 +2176,15 @@ body {
         </td>
       </tr>
 <tr>
+<tr>
         <td colspan="2" style="text-align:center;padding:65px 6px 23px;border-top:0.5pt solid #000;border-left:none;border-right:none;">
-          <div class="no-print" style="margin-bottom:10px;">
-            <label style="font-size:7.5pt;color:#555;display:block;margin-bottom:4px;">Select Approving Authority:</label>
-            <select id="csfSdsSelect" style="font-size:8pt;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-family:Arial,sans-serif;cursor:pointer;">
-              <option value="nerissa">NERISSA A. ALFAFARA, CESO VI</option>
-              <option value="roberto">ROBERTO J. MONTERO, EdD, CESO VI</option>
-            </select>
-          </div>
-          <div class="bold underline" style="font-size:11pt;letter-spacing:0.3px;" id="csfSdsName">NERISSA A. ALFAFARA, CESO VI</div>
-          <div style="font-size:8pt;" id="csfSdsPos">Assistant Schools Division Superintendent</div>
+          <div class="bold underline" style="font-size:11pt;letter-spacing:0.3px;">${(a.sds_officer||'nerissa')==='roberto'?'ROBERTO J. MONTERO, EdD, CESO VI':'NERISSA A. ALFAFARA, CESO VI'}</div>
+          <div style="font-size:8pt;">${(a.sds_officer||'nerissa')==='roberto'?'Schools Division Superintendent':'Assistant Schools Division Superintendent'}</div>
         </td>
       </tr>
     </table>
 
 </div><!-- /.form-wrapper -->
-
-  <script>
-    document.getElementById('csfHrmoSelect').addEventListener('change', function() {
-      const nameEl = document.getElementById('csfHrmoName');
-      const posEl  = document.getElementById('csfHrmoPos');
-      if (this.value === 'danilo') {
-        nameEl.textContent = 'DANILO M. PAJEL JR.';
-        posEl.textContent  = 'Administrative Officer V';
-      } else {
-        nameEl.textContent = 'FAIZAL B. MACASAYON';
-        posEl.textContent  = 'Administrative Officer IV/ HRMO';
-      }
-    });
-    document.getElementById('csfSdsSelect').addEventListener('change', function() {
-      const nameEl = document.getElementById('csfSdsName');
-      const posEl  = document.getElementById('csfSdsPos');
-      if (this.value === 'roberto') {
-        nameEl.textContent = 'ROBERTO J. MONTERO, EdD, CESO VI';
-        posEl.textContent  = 'Schools Division Superintendent';
-      } else {
-        nameEl.textContent = 'NERISSA A. ALFAFARA, CESO VI';
-        posEl.textContent  = 'Assistant Schools Division Superintendent';
-      }
-    });
-  </script>
 
   </body></html>`);
     
