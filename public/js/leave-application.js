@@ -460,6 +460,22 @@ function _esc(s) {
 }
 const _escH = () => window.escHtml || _esc;
 
+function _toMMDDYYYY(iso) {
+  if (!iso) return '';
+  const p = iso.split('-');
+  return p.length === 3 ? `${p[1]}/${p[2]}/${p[0]}` : '';
+}
+function _fromMMDDYYYY(s) {
+  if (!s) return '';
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  return m ? `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}` : '';
+}
+function _autoFmtDate(el) {
+  let v = el.value.replace(/[^\d]/g, '');
+  if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+  if (v.length > 5) v = v.slice(0,5) + '/' + v.slice(5);
+  el.value = v.slice(0, 10);
+}
 function computeWorkingDays(from, to) {
   if (!from || !to) return 0;
   const d1 = new Date(from + 'T00:00:00');
@@ -643,7 +659,7 @@ function _laStep1() {
           </div>
           <div class="la-field">
             <label class="la-label">Date of Filing <span class="la-req">*</span></label>
-            <input class="la-input" type="date" id="la1_filing" value="${_esc(_laData.date_of_filing || '')}" lang="en-US"/>
+            <input class="la-input" type="text" id="la1_filing" value="${_toMMDDYYYY(_laData.date_of_filing || '')}" placeholder="mm/dd/yyyy" maxlength="10"/>
           </div>
         </div>
         <div class="la-field-row col-2">
@@ -698,7 +714,7 @@ function _laStep1() {
       errEl.classList.add('show');
       return;
     }
-    _laData.date_of_filing  = filing;
+    _laData.date_of_filing  = _fromMMDDYYYY(filing) || filing;
     _laData.office_school   = document.getElementById('la1_office').value.trim();
     _laData.position        = document.getElementById('la1_pos').value.trim();
 _laData.salary_monthly  = document.getElementById('la1_salary').value;
@@ -976,22 +992,16 @@ function _laStep3() {
           <div class="la-field">
             <label class="la-label">📅 From Date <span class="la-req">*</span></label>
             <div style="position:relative;">
-              <input class="la-input" type="date" id="la3_from" value="${_esc(_laData.date_from || '')}"
-                style="cursor:pointer;padding-right:40px;" lang="en-US"/>
-              <span onclick="document.getElementById('la3_from').showPicker()"
-                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
-                       font-size:18px;cursor:pointer;pointer-events:auto;user-select:none;">📅</span>
+<input class="la-input" type="text" id="la3_from" value="${_toMMDDYYYY(_laData.date_from || '')}"
+                placeholder="mm/dd/yyyy" maxlength="10" style="cursor:text;"/>
             </div>
           </div>
           <div style="font-size:20px;color:#c0a0a0;font-weight:700;padding-bottom:10px;text-align:center;">→</div>
           <div class="la-field">
             <label class="la-label">📅 To Date <span class="la-req">*</span></label>
             <div style="position:relative;">
-              <input class="la-input" type="date" id="la3_to" value="${_esc(_laData.date_to || '')}"
-                style="cursor:pointer;padding-right:40px;" lang="en-US"/>
-              <span onclick="document.getElementById('la3_to').showPicker()"
-                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
-                       font-size:18px;cursor:pointer;pointer-events:auto;user-select:none;">📅</span>
+<input class="la-input" type="text" id="la3_to" value="${_toMMDDYYYY(_laData.date_to || '')}"
+                placeholder="mm/dd/yyyy" maxlength="10" style="cursor:text;"/>
             </div>
           </div>
         </div>
@@ -1064,9 +1074,14 @@ function _laStep3() {
   });
 
   /* Date pickers (normal mode) */
+const fromEl = document.getElementById('la3_from');
+  const toEl2  = document.getElementById('la3_to');
+  fromEl?.addEventListener('input', () => _autoFmtDate(fromEl));
+  toEl2?.addEventListener('input',  () => _autoFmtDate(toEl2));
+
   function updateDates() {
-    const from = document.getElementById('la3_from')?.value;
-    const to   = document.getElementById('la3_to')?.value;
+    const from = _fromMMDDYYYY(document.getElementById('la3_from')?.value);
+    const to   = _fromMMDDYYYY(document.getElementById('la3_to')?.value);
     if (from && to && from <= to) {
       const days    = computeWorkingDays(from, to);
       const dateStr = fmtDateRange(from, to);
@@ -1079,14 +1094,7 @@ function _laStep3() {
     }
   }
 
-  document.getElementById('la3_from')?.addEventListener('change', function () {
-    const toEl = document.getElementById('la3_to');
-    if (toEl) {
-      toEl.min = this.value;
-      if (toEl.value && toEl.value < this.value) toEl.value = this.value;
-    }
-    updateDates();
-  });
+document.getElementById('la3_from')?.addEventListener('change', updateDates);
   document.getElementById('la3_to')?.addEventListener('change', updateDates);
 
   /* Monetization month/year */
