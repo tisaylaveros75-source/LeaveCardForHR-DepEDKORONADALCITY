@@ -110,10 +110,12 @@ class LeaveCardApiController extends Controller
             $offset = ($page - 1) * $limit;
 
             $saId  = $request->session()->get('lms_db_id', 0);
-            $query = DB::table('personnel');
-            if ($role === 'school_admin' && $saId) {
-                $query->where('assigned_sa_id', $saId);
-            }
+$query = DB::table('personnel');
+if ($role === 'school_admin' && $saId) {
+    $query->where('assigned_sa_id', $saId);
+} elseif ($role === 'encoder' && $saId) {
+    $query->where('assigned_encoder_id', $saId);
+}
             $total = $query->count();
             $rows  = $query->orderBy('surname')
                 ->orderBy('given')
@@ -142,9 +144,10 @@ class LeaveCardApiController extends Controller
                 $arr = (array)$r;
                 $emp = LeaveHelper::personnelRowToJs($arr);
                 $emp['records']             = [];
-                $emp['card_status_updated'] = in_array($arr['employee_id'], $updatedIds);
-                $emp['force_leave_applied'] = in_array($arr['employee_id'], $forceAppliedIds);
-                $emp['password'] = $showPassword ? ($arr['password'] ?? '') : '';
+                $emp['card_status_updated']  = in_array($arr['employee_id'], $updatedIds);
+$emp['force_leave_applied']  = in_array($arr['employee_id'], $forceAppliedIds);
+$emp['password']             = $showPassword ? ($arr['password'] ?? '') : '';
+$emp['assigned_encoder_id']  = $arr['assigned_encoder_id'] ?? null;
                 return $emp;
             }, $rows);
 
@@ -195,14 +198,19 @@ class LeaveCardApiController extends Controller
 
     // ── GET /api/get_school_admins ──────────────────────────────
     public function getSchoolAdmins(): JsonResponse
-    {
-        try {
-            $rows = DB::table('admin_config')
-                ->where('role', 'school_admin')
-                ->orderBy('name')
-                ->get(['id', 'login_id', 'name', 'password'])
-                ->toArray();
-            return response()->json(['ok' => true, 'school_admins' => $rows]);
+{
+    try {
+        $rows = DB::table('admin_config')
+            ->where('role', 'school_admin')
+            ->orderBy('name')
+            ->get(['id', 'login_id', 'name', 'password'])
+            ->toArray();
+        $encoders = DB::table('admin_config')
+            ->where('role', 'encoder')
+            ->orderBy('name')
+            ->get(['id', 'login_id', 'name', 'password'])
+            ->toArray();
+        return response()->json(['ok' => true, 'school_admins' => $rows, 'encoders' => $encoders]);
         } catch (Exception $e) {
             return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
         }
@@ -461,7 +469,8 @@ class LeaveCardApiController extends Controller
                 'status'         => $p['status']   ?? 'Teaching',
                 'account_status' => in_array($p['account_status'] ?? '', ['active', 'inactive'])
                         ? $p['account_status'] : 'active',
-                'assigned_sa_id' => isset($p['assigned_sa_id']) ? (int)$p['assigned_sa_id'] : null,
+                'assigned_sa_id'      => isset($p['assigned_sa_id'])      ? (int)$p['assigned_sa_id']      : null,
+'assigned_encoder_id' => isset($p['assigned_encoder_id']) ? (int)$p['assigned_encoder_id'] : null,
                 'pos'            => $p['pos']    ?? '',
                 'school'         => $p['school'] ?? '',
                 'last_edited_at' => now(),
@@ -1306,20 +1315,21 @@ class LeaveCardApiController extends Controller
 
    // ── POST /api/assign_school_admin ───────────────────────────
     public function assignSchoolAdmin(Request $request): JsonResponse
-    {
-        try {
-            $role  = $request->session()->get('lms_role', '');
-            if (!in_array($role, ['admin', 'encoder'])) {
-                return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
-            }
-            $empId = $request->input('employee_id');
-            $saId  = $request->input('assigned_sa_id');
-            if (!$empId) return response()->json(['ok' => false, 'error' => 'employee_id required.'], 400);
-            DB::table('personnel')->where('employee_id', $empId)->update([
-                'assigned_sa_id' => $saId ? (int)$saId : null,
-                'updated_at'     => now(),
-            ]);
-            return response()->json(['ok' => true]);
+{
+    try {
+        $role  = $request->session()->get('lms_role', '');
+        if (!in_array($role, ['admin', 'encoder'])) {
+            return response()->json(['ok' => false, 'error' => 'Unauthorized.'], 403);
+        }
+        $empId      = $request->input('employee_id');
+        $saId       = $request->input('assigned_sa_id');
+        $encoderId  = $request->input('assigned_encoder_id');
+        if (!$empId) return response()->json(['ok' => false, 'error' => 'employee_id required.'], 400);
+        $update = ['updated_at' => now()];
+        if ($request->has('assigned_sa_id'))      $update['assigned_sa_id']      = $saId      ? (int)$saId      : null;
+        if ($request->has('assigned_encoder_id')) $update['assigned_encoder_id'] = $encoderId ? (int)$encoderId : null;
+        DB::table('personnel')->where('employee_id', $empId)->update($update);
+        return response()->json(['ok' => true]);
         } catch (Exception $e) {
             return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
         }
