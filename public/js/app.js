@@ -402,7 +402,10 @@ else        state.encoderCfg = { id: res.login_id, name: res.name, dbId: res.db_
   renderSidebar();
   await loadAllPersonnel();
   const saRes = await apiCall('get_school_admins', {}, 'GET');
-  if (saRes.ok) window.state.schoolAdmins = saRes.school_admins || [];
+if (saRes.ok) {
+    window.state.schoolAdmins = saRes.school_admins || [];
+    window.state.encoders     = saRes.encoders      || [];
+}
 
   if (state.role === 'employee') setPage('user');
   else                           setPage('home');
