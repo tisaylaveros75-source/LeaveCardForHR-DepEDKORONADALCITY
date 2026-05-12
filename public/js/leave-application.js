@@ -1663,10 +1663,22 @@ function _laViewCSFModal(a, esc) {
 
   document.body.insertAdjacentHTML('beforeend', html);
 
-  /* Inject CSF content into iframe */
+/* Inject CSF content into iframe */
   const iframe = document.getElementById('csfPrintFrame');
   const iDoc = iframe.contentDocument || iframe.contentWindow.document;
   let _csfHtmlForDownload = '';
+
+  /* Auto-compute "As of" from inclusive date */
+  const _asOf = (() => {
+    if (a.date_from) {
+      try {
+        const d = new Date(a.date_from + 'T00:00:00');
+        return d.toLocaleDateString('en-PH', { month: 'long', year: 'numeric' });
+      } catch(e) {}
+    }
+    const m = (a.inclusive_dates || '').match(/([A-Za-z]+)[^0-9]*(\d{4})/);
+    return m ? m[1] + ' ' + m[2] : '';
+  })();
 
   const typeChecks = [
     'Vacation Leave','Mandatory/Forced Leave','Sick Leave','Maternity Leave',
@@ -2055,8 +2067,8 @@ body {
       <tr>
         <td style="width:50%;padding:5px 6px;vertical-align:top;">
           <div class="bold small upper" style="margin-bottom:3px;">7. A. Certification of Leave Credits</div>
-          <div class="small" style="margin-bottom:3px;">
-            As of <span class="inline-line" style="min-width:120px;">&nbsp;</span>
+         <div class="small" style="margin-bottom:3px;">
+            As of <span class="inline-line" style="min-width:120px;">${_asOf}</span>
           </div>
           <div style="display:flex;flex-direction:column;align-items:center;margin-top:4px;">
             <table class="approval-table" style="width:auto;">
@@ -2081,9 +2093,16 @@ body {
                 <td>&nbsp;</td>
               </tr>
             </table>
-            <div style="text-align:center;margin-top:60px;">
-              <div class="bold" style="font-size:8.5pt;">FAIZAL B. MACASAYON</div>
-              <div class="small">Administrative Officer IV/ HRMO</div>
+          <div style="text-align:center;margin-top:60px;">
+              <div class="no-print" style="margin-bottom:8px;">
+                <label style="font-size:7.5pt;color:#555;display:block;margin-bottom:4px;">Select Certifying Officer:</label>
+                <select id="csfHrmoSelect" style="font-size:8pt;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-family:Arial,sans-serif;cursor:pointer;">
+                  <option value="faizal">FAIZAL B. MACASAYON</option>
+                  <option value="danilo">DANILO M. PAJEL JR.</option>
+                </select>
+              </div>
+              <div class="bold" style="font-size:8.5pt;" id="csfHrmoName">FAIZAL B. MACASAYON</div>
+              <div class="small" id="csfHrmoPos">Administrative Officer IV/ HRMO</div>
             </div>
           </div>
         </td>
@@ -2137,17 +2156,50 @@ body {
           </div>
         </td>
       </tr>
-      <tr>
+<tr>
         <td colspan="2" style="text-align:center;padding:65px 6px 23px;border-top:0.5pt solid #000;border-left:none;border-right:none;">
-          <div class="bold underline" style="font-size:11pt;letter-spacing:0.3px;">NERISSA A. ALFAFARA, CESO VI</div>
-          <div style="font-size:8pt;">Assistant Schools Division Superintendent</div>
+          <div class="no-print" style="margin-bottom:10px;">
+            <label style="font-size:7.5pt;color:#555;display:block;margin-bottom:4px;">Select Approving Authority:</label>
+            <select id="csfSdsSelect" style="font-size:8pt;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-family:Arial,sans-serif;cursor:pointer;">
+              <option value="nerissa">NERISSA A. ALFAFARA, CESO VI</option>
+              <option value="roberto">ROBERTO J. MONTERO, EdD, CESO VI</option>
+            </select>
+          </div>
+          <div class="bold underline" style="font-size:11pt;letter-spacing:0.3px;" id="csfSdsName">NERISSA A. ALFAFARA, CESO VI</div>
+          <div style="font-size:8pt;" id="csfSdsPos">Assistant Schools Division Superintendent</div>
         </td>
       </tr>
     </table>
 
-  </div><!-- /.form-wrapper -->
+</div><!-- /.form-wrapper -->
+
+  <script>
+    document.getElementById('csfHrmoSelect').addEventListener('change', function() {
+      const nameEl = document.getElementById('csfHrmoName');
+      const posEl  = document.getElementById('csfHrmoPos');
+      if (this.value === 'danilo') {
+        nameEl.textContent = 'DANILO M. PAJEL JR.';
+        posEl.textContent  = 'Administrative Officer V';
+      } else {
+        nameEl.textContent = 'FAIZAL B. MACASAYON';
+        posEl.textContent  = 'Administrative Officer IV/ HRMO';
+      }
+    });
+    document.getElementById('csfSdsSelect').addEventListener('change', function() {
+      const nameEl = document.getElementById('csfSdsName');
+      const posEl  = document.getElementById('csfSdsPos');
+      if (this.value === 'roberto') {
+        nameEl.textContent = 'ROBERTO J. MONTERO, EdD, CESO VI';
+        posEl.textContent  = 'Schools Division Superintendent';
+      } else {
+        nameEl.textContent = 'NERISSA A. ALFAFARA, CESO VI';
+        posEl.textContent  = 'Assistant Schools Division Superintendent';
+      }
+    });
+  </script>
 
   </body></html>`);
+    
   iDoc.close();
 
   /* Capture the rendered HTML for download */
