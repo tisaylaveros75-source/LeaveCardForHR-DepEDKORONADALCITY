@@ -318,10 +318,8 @@ function buildHeaderSection(emp, logoSrc) {
     ? `&#9632; ${currentEraStatus.toUpperCase()} PERSONNEL LEAVE RECORD`
     : '&#9632; NON-TEACHING PERSONNEL LEAVE RECORD';
 
-  const logoImgLetterhead = logoSrc
-    ? `<img class="lc-letterhead-logo" src="${logoSrc}" alt="SDO Logo"/>` : '';
-  const logoImgHeader = logoSrc
-    ? `<img class="lc-doc-banner-logo" src="${logoSrc}" alt="SDO Logo"/>` : '';
+const logoImgLetterhead = '';
+  const logoImgHeader = '';
 
   return `
     <div class="lc-letterhead">
@@ -708,7 +706,7 @@ html, body {
   font-weight: 400;
 }
 .lc-prc-field-val {
-  font-size: 9pt; font-weight: 400; color: #000;
+  font-size: 9pt; font-weight: 700; color: #000;
   text-transform: uppercase; min-width: 30px;
 }
 .lc-prc-underline {
@@ -793,7 +791,7 @@ html, body {
   display: flex; align-items: center; gap: 6px;
 }
 .lc-table-cap-line {
-  flex: 1; height: 1px; background: #ccc;
+  flex: 1; height: 1px; background: #000;
 }
 .lc-table-cap-badge {
   font-size: 7pt; font-weight: 700;
@@ -898,7 +896,7 @@ tbody tr:nth-child(odd)  td { background: #fff !important; }
 }
 .empty-row-cell {
   text-align: center !important; padding: 10px !important;
-  color: #666 !important; font-style: italic !important;
+  color: #000 !important; font-style: italic !important;
   font-size: 7.5pt !important;
 }
 
