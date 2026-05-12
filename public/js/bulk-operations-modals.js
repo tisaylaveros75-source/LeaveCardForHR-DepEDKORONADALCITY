@@ -267,6 +267,24 @@ async function showForceLeaveModal() {
   const now = new Date();
   const y   = now.getFullYear();
 
+  // Only allow posting during the last week of December (Dec 25–31)
+  const isDecember     = now.getMonth() === 11;
+  const isLastWeekDec  = isDecember && now.getDate() >= 25;
+  if (!isLastWeekDec) {
+    _bopOpen('forceMo',
+      `<div class="bop-title-icon">&#x26A0;</div> POST MANDATORY LEAVE (-5 VL)`,
+      `<div class="bop-done-screen">
+        <div class="bop-done-icon">🔒</div>
+        <div class="bop-done-title" style="color:#f87171;">NOT YET AVAILABLE</div>
+        <p class="bop-done-sub">Mandatory Leave posting is only allowed during the<br>
+        <strong style="color:rgba(255,200,150,.9);">last week of December (Dec 25–31)</strong>.<br><br>
+        Current date: <strong>${now.toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'})}</strong></p>
+      </div>`,
+      `<button class="bop-btn bop-btn-cancel" onclick="closeMo('forceMo')">&#x2715; Close</button>`
+    );
+    return;
+  }
+
   const allActive = (window.state?.db||[]).filter(e=>{
   const s = (e.status||'').toLowerCase();
   return (e.account_status||'active')==='active' && (s==='non-teaching'||s==='teaching related');
