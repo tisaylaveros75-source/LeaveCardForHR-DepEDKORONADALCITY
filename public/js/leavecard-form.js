@@ -580,3 +580,256 @@ function _val(panel, selector, value) {
   const el = panel.querySelector(selector);
   if (el) el.value = value;
 }
+// ── Personnel Record Card entry form ─────────────────────────────────
+function buildPersonnelEntryForm() {
+  return `
+    <div class="lc-entry-card no-print" id="prcEntryPanel" style="margin-top:12px;">
+      <div class="lc-entry-header" style="background:linear-gradient(135deg,#1a2d6b 0%,#2251b3 100%);">
+        <span>📋 PERSONNEL RECORD ENTRY</span>
+      </div>
+      <div class="lc-entry-body">
+        <div class="lc-entry-row">
+          <div class="lc-ef lc-ef-date">
+            <label>EFFECTIVE DATE</label>
+            <div class="lc-date-row">
+              <input id="prc_effectiveDate" class="date-text" type="text" placeholder="mm/dd/yyyy"/>
+              <button class="lc-cal-btn" tabindex="-1" data-dp-target="prc_effectiveDate">📅</button>
+            </div>
+          </div>
+          <div class="lc-ef lc-ef-wide">
+            <label>DESIGNATION</label>
+            <input id="prc_designation" type="text" placeholder="e.g. Teacher I"/>
+          </div>
+          <div class="lc-ef">
+            <label>STATUS (Reg/Perm/Temp/Subt)</label>
+            <select id="prc_statusReg">
+              <option value="">-- Select --</option>
+              <option>Permanent</option>
+              <option>Temporary</option>
+              <option>Substitute</option>
+              <option>Regular</option>
+              <option>Casual</option>
+            </select>
+          </div>
+          <div class="lc-ef">
+            <label>MO./ANNUAL SALARY</label>
+            <input id="prc_salary" type="text" placeholder="e.g. 25000"/>
+          </div>
+          <div class="lc-ef lc-ef-wide">
+            <label>NAME OF DIST./STATION</label>
+            <input id="prc_station" type="text" placeholder="e.g. Koronadal City NHS"/>
+          </div>
+          <div class="lc-ef">
+            <label>SOURCE OF FUND</label>
+            <select id="prc_sourceOfFund">
+              <option value="">-- Select --</option>
+              <option>National</option>
+              <option>Local</option>
+            </select>
+          </div>
+          <div class="lc-ef lc-ef-date">
+            <label>DATE OF LAST PROMOTION</label>
+            <div class="lc-date-row">
+              <input id="prc_lastPromotion" class="date-text" type="text" placeholder="mm/dd/yyyy"/>
+              <button class="lc-cal-btn" tabindex="-1" data-dp-target="prc_lastPromotion">📅</button>
+            </div>
+          </div>
+          <div class="lc-ef lc-ef-wide">
+            <label>REMARKS</label>
+            <input id="prc_remarks" type="text" placeholder="Optional"/>
+          </div>
+        </div>
+        <div class="lc-entry-row2">
+          <div id="prc_err" class="lc-err"></div>
+          <button class="btn lc-save-btn" id="prcSaveBtn" type="button"
+            style="background:#1e3a6e;">💾 SAVE PERSONNEL RECORD</button>
+          <button class="btn lc-cancel-edit-btn" id="prcCancelBtn" type="button"
+            style="display:none;">✕ CANCEL EDIT</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function wirePersonnelEntryForm(emp, editRecord) {
+  const panel = document.getElementById('prcEntryPanel');
+  if (!panel) return;
+
+  // Wire calendar pickers
+  panel.querySelectorAll('.lc-cal-btn').forEach(calBtn => {
+    const targetId = calBtn.dataset.dpTarget;
+    const txtInput = document.getElementById(targetId);
+    const hiddenPicker = document.createElement('input');
+    hiddenPicker.type = 'date';
+    hiddenPicker.style.cssText =
+      'position:fixed;opacity:0;pointer-events:none;width:1px;height:1px;';
+    document.body.appendChild(hiddenPicker);
+    const newCalBtn = calBtn.cloneNode(true);
+    calBtn.parentNode.replaceChild(newCalBtn, calBtn);
+    newCalBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (txtInput && txtInput.value) hiddenPicker.value = toISODate(txtInput.value) || '';
+      hiddenPicker.showPicker ? hiddenPicker.showPicker() : hiddenPicker.click();
+    });
+    hiddenPicker.addEventListener('change', () => {
+      if (hiddenPicker.value && txtInput) txtInput.value = fmtD(hiddenPicker.value);
+      hiddenPicker.value = '';
+    });
+  });
+
+  panel.querySelectorAll('.date-text').forEach(txt => {
+    txt.addEventListener('input', () => { txt.value = fmtDateInput(txt.value); });
+  });
+
+  // Pre-fill for edit
+  if (editRecord) {
+    document.getElementById('prc_effectiveDate').value  = editRecord.effectiveDate  || '';
+    document.getElementById('prc_designation').value    = editRecord.designation    || '';
+    document.getElementById('prc_statusReg').value      = editRecord.statusReg      || '';
+    document.getElementById('prc_salary').value         = editRecord.salary         || '';
+    document.getElementById('prc_station').value        = editRecord.station        || '';
+    document.getElementById('prc_sourceOfFund').value   = editRecord.sourceOfFund   || '';
+    document.getElementById('prc_lastPromotion').value  = editRecord.lastPromotion  || '';
+    document.getElementById('prc_remarks').value        = editRecord.remarks        || '';
+    panel.dataset.prcEditIdx = editRecord._idx;
+    document.getElementById('prcSaveBtn').textContent   = '💾 UPDATE PERSONNEL RECORD';
+    document.getElementById('prcCancelBtn').style.display = '';
+  } else {
+    panel.dataset.prcEditIdx = '';
+    document.getElementById('prcSaveBtn').textContent   = '💾 SAVE PERSONNEL RECORD';
+    document.getElementById('prcCancelBtn').style.display = 'none';
+  }
+
+  // Cancel
+  const cancelBtn    = document.getElementById('prcCancelBtn');
+  const newCancelBtn = cancelBtn.cloneNode(true);
+  cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+  newCancelBtn.addEventListener('click', () => resetPersonnelForm());
+
+  // Save
+  const saveBtn    = document.getElementById('prcSaveBtn');
+  const newSaveBtn = saveBtn.cloneNode(true);
+  saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+
+  newSaveBtn.addEventListener('click', async () => {
+    const errEl = document.getElementById('prc_err');
+    errEl.textContent = '';
+
+    const rec = {
+      effectiveDate : document.getElementById('prc_effectiveDate').value.trim(),
+      designation   : document.getElementById('prc_designation').value.trim(),
+      statusReg     : document.getElementById('prc_statusReg').value,
+      salary        : document.getElementById('prc_salary').value.trim(),
+      station       : document.getElementById('prc_station').value.trim(),
+      sourceOfFund  : document.getElementById('prc_sourceOfFund').value,
+      lastPromotion : document.getElementById('prc_lastPromotion').value.trim(),
+      remarks       : document.getElementById('prc_remarks').value.trim(),
+    };
+
+    if (!rec.effectiveDate && !rec.designation) {
+      errEl.textContent = 'Please fill in at least Effective Date or Designation.';
+      return;
+    }
+
+    newSaveBtn.disabled    = true;
+    newSaveBtn.textContent = 'Saving…';
+
+    const editIdx = panel.dataset.prcEditIdx !== '' ? +panel.dataset.prcEditIdx : null;
+    const apiRes  = editIdx !== null
+      ? await apiCall('update_personnel_record', { employee_id: emp.id, idx: editIdx, record: rec })
+      : await apiCall('save_personnel_record',   { employee_id: emp.id, record: rec });
+
+    newSaveBtn.disabled = false;
+
+    if (!apiRes.ok) {
+      errEl.textContent      = apiRes.error || 'Save failed.';
+      newSaveBtn.textContent = editIdx !== null ? '💾 UPDATE PERSONNEL RECORD' : '💾 SAVE PERSONNEL RECORD';
+      return;
+    }
+
+    // Refresh personnel records on the emp object
+    if (!emp.personnelRecords) emp.personnelRecords = [];
+    if (editIdx !== null) {
+      emp.personnelRecords[editIdx] = rec;
+    } else {
+      emp.personnelRecords.push(rec);
+    }
+
+    resetPersonnelForm();
+    renderPersonnelTable(emp);
+  });
+}
+
+function resetPersonnelForm() {
+  const panel = document.getElementById('prcEntryPanel');
+  if (!panel) return;
+  ['prc_effectiveDate','prc_designation','prc_salary',
+   'prc_station','prc_lastPromotion','prc_remarks'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  ['prc_statusReg','prc_sourceOfFund'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  panel.dataset.prcEditIdx = '';
+  const saveBtn   = document.getElementById('prcSaveBtn');
+  if (saveBtn)   saveBtn.textContent = '💾 SAVE PERSONNEL RECORD';
+  const cancelBtn = document.getElementById('prcCancelBtn');
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  const errEl     = document.getElementById('prc_err');
+  if (errEl)     errEl.textContent = '';
+}
+
+function renderPersonnelTable(emp) {
+  const wrap = document.getElementById('prcTableWrap');
+  if (!wrap) return;
+  const rows = emp.personnelRecords || [];
+  if (rows.length === 0) {
+    wrap.innerHTML = `<p style="color:#888;font-size:12px;padding:10px 0;">No personnel records yet.</p>`;
+    return;
+  }
+  const canEdit = window.state && (window.state.isAdmin || window.state.isEncoder);
+  wrap.innerHTML = `
+    <div class="tw" style="margin-top:8px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Effective Date</th><th>Designation</th><th>Status</th>
+            <th>Mo./Annual Salary</th><th>Name of Dist./Station</th>
+            <th>Source of Fund</th><th>Date of Last Prom.</th>
+            <th>Remarks</th>
+            ${canEdit ? '<th class="no-print">⋮</th>' : ''}
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((r, i) => `
+            <tr>
+              <td>${escHtml(r.effectiveDate || '')}</td>
+              <td style="text-align:left;padding-left:6px;">${escHtml(r.designation || '')}</td>
+              <td>${escHtml(r.statusReg || '')}</td>
+              <td>${escHtml(r.salary || '')}</td>
+              <td style="text-align:left;padding-left:6px;">${escHtml(r.station || '')}</td>
+              <td>${escHtml(r.sourceOfFund || '')}</td>
+              <td>${escHtml(r.lastPromotion || '')}</td>
+              <td style="text-align:left;padding-left:6px;">${escHtml(r.remarks || '')}</td>
+              ${canEdit ? `<td class="no-print">
+                <button onclick="wirePersonnelEntryForm(window._currentPrcEmp, {...window._currentPrcEmp.personnelRecords[${i}], _idx:${i}})"
+                  style="background:none;border:none;cursor:pointer;font-size:13px;" title="Edit">✏️</button>
+                <button onclick="deletePrcRow(${i})"
+                  style="background:none;border:none;cursor:pointer;font-size:13px;color:#c0392b;" title="Delete">🗑️</button>
+              </td>` : ''}
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+async function deletePrcRow(idx) {
+  if (!confirm('Delete this personnel record?')) return;
+  const emp = window._currentPrcEmp;
+  if (!emp) return;
+  const res = await apiCall('delete_personnel_record', { employee_id: emp.id, idx });
+  if (!res.ok) { alert(res.error || 'Delete failed.'); return; }
+  emp.personnelRecords.splice(idx, 1);
+  renderPersonnelTable(emp);
+}
