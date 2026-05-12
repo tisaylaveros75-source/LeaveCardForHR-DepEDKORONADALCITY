@@ -384,10 +384,10 @@ function initLogin() {
 async function doLogin(res) {
   if (res.role === 'admin' || res.role === 'encoder') {
     const isEnc = res.role === 'encoder';
-    state.isAdmin = true; state.isEncoder = isEnc; state.isSchoolAdmin = false;
-    state.role = res.role;
-    if (!isEnc) state.adminCfg   = { ...state.adminCfg, id: res.login_id, name: res.name };
-    else        state.encoderCfg = { id: res.login_id, name: res.name };
+state.isAdmin = true; state.isEncoder = isEnc; state.isSchoolAdmin = false;
+state.role = res.role;
+if (!isEnc) state.adminCfg   = { ...state.adminCfg, id: res.login_id, name: res.name };
+else        state.encoderCfg = { id: res.login_id, name: res.name, dbId: res.db_id || 0 };
   } else if (res.role === 'school_admin') {
     state.isSchoolAdmin = true; state.isAdmin = false; state.isEncoder = false;
     state.role = 'school_admin';
