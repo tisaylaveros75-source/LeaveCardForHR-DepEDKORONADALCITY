@@ -440,13 +440,19 @@ const LA_TYPES = [
   { label:'Monetization',                       cite:'CSC MC No. 14, s. 1999, as amended' },
   { label:'Others',                        cite:'' },
 ];
+    
 
 /* Keep original LEAVE_TYPES compatible */
 if (typeof LEAVE_TYPES === 'undefined') {
   var LEAVE_TYPES = LA_TYPES.map(t => t.label);
 }
 window.LEAVE_TYPES = LEAVE_TYPES;
-
+    
+function _isMonetization() {
+  const typeA = _laData.leave_type === 'Monetization of Leave Credits';
+  const typeB = _laData.other_purpose === 'Monetization of Leave Credits';
+  return typeA || typeB;
+}
 /* ── UTILITIES ───────────────────────────────────────────────── */
 function _esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
@@ -727,11 +733,16 @@ function _laStep2() {
         i.classList.remove('selected');
         i.querySelector('.la-type-cb').textContent = '';
       });
-      item.classList.add('selected');
+     item.classList.add('selected');
       item.querySelector('.la-type-cb').textContent = '✓';
       _laData.leave_type = item.dataset.lt;
       const ow = document.getElementById('laOtherWrap');
       if (ow) ow.style.display = _laData.leave_type === 'Others' ? '' : 'none';
+      // Clear monetization date if switching away
+      if (!_isMonetization()) {
+        _laData.mon_month = '';
+        _laData.mon_year  = '';
+      }
     });
   });
 
@@ -879,10 +890,49 @@ function _laStep3() {
         <span class="la-card-head-icon">📅</span>
         <div>
           <div class="la-card-head-title">6C. Working Days &amp; Inclusive Dates</div>
-          <div class="la-card-head-sub">Pick a date range — working days are computed automatically</div>
+          <div class="la-card-head-sub" id="la3DateSubLabel">${
+            _isMonetization()
+              ? 'Select the month and year for monetization'
+              : 'Pick a date range — working days are computed automatically'
+          }</div>
         </div>
       </div>
       <div class="la-card-body">
+
+        ${_isMonetization() ? `
+        <!-- MONETIZATION: Month/Year only -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
+          <div class="la-field">
+            <label class="la-label">📅 Month <span class="la-req">*</span></label>
+            <select class="la-input" id="la3_mon_month">
+              <option value="">-- Select Month --</option>
+              ${['January','February','March','April','May','June',
+                 'July','August','September','October','November','December']
+                .map((m, i) => `<option value="${String(i+1).padStart(2,'0')}" ${
+                  _laData.mon_month === String(i+1).padStart(2,'0') ? 'selected' : ''
+                }>${m}</option>`).join('')}
+            </select>
+          </div>
+          <div class="la-field">
+            <label class="la-label">📅 Year <span class="la-req">*</span></label>
+            <select class="la-input" id="la3_mon_year">
+              <option value="">-- Select Year --</option>
+              ${Array.from({length: 10}, (_, i) => new Date().getFullYear() - 2 + i)
+                .map(y => `<option value="${y}" ${
+                  +_laData.mon_year === y ? 'selected' : ''
+                }>${y}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="la-days-display">
+          <div class="la-days-num" id="la3DaysNum">${_laData.num_working_days || '—'}</div>
+          <div class="la-days-meta">
+            <div class="la-days-label">Working Days Applied For</div>
+            <div class="la-days-range" id="la3DaysRange">${_laData.inclusive_dates || 'Select month and year above'}</div>
+          </div>
+        </div>
+        ` : `
+        <!-- NORMAL: Date range -->
         <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:12px;margin-bottom:18px;">
           <div class="la-field">
             <label class="la-label">📅 From Date <span class="la-req">*</span></label>
@@ -906,7 +956,6 @@ function _laStep3() {
             </div>
           </div>
         </div>
-
         <div class="la-days-display">
           <div class="la-days-num" id="la3DaysNum">${_laData.num_working_days || '—'}</div>
           <div class="la-days-meta">
@@ -914,30 +963,11 @@ function _laStep3() {
             <div class="la-days-range" id="la3DaysRange">${_laData.inclusive_dates || 'Select dates above'}</div>
           </div>
         </div>
+        `}
 
         <div class="la-err" id="la3Err"></div>
       </div>
     </div>
-
-    <!-- 6D Commutation -->
-    <div class="la-card">
-      <div class="la-card-head">
-        <span class="la-card-head-icon">💸</span>
-        <div><div class="la-card-head-title">6D. Commutation</div></div>
-      </div>
-      <div class="la-card-body">
-        <div class="la-comm-row">
-          <div class="la-radio-row ${(_laData.commutation || 'Not Requested') === 'Not Requested' ? 'selected' : ''}" data-cm="Not Requested">
-            <div class="la-radio-dot"></div>
-            <span class="la-radio-label">Not Requested</span>
-          </div>
-          <div class="la-radio-row ${_laData.commutation === 'Requested' ? 'selected' : ''}" data-cm="Requested">
-            <div class="la-radio-dot"></div>
-            <span class="la-radio-label">Requested</span>
-          </div>
-        </div>
-      </div>
-    </div>`;
 
   /* ── Wire radio groups ── */
   const _wireRadios = (sel, storeProp, onSelect) => {
@@ -983,7 +1013,7 @@ function _laStep3() {
   });
 
   /* Other Purpose (toggle) */
-  document.querySelectorAll('[data-op]').forEach(row => {
+document.querySelectorAll('[data-op]').forEach(row => {
     row.addEventListener('click', () => {
       if (row.classList.contains('selected')) {
         row.classList.remove('selected');
@@ -993,6 +1023,14 @@ function _laStep3() {
         row.classList.add('selected');
         _laData.other_purpose = row.dataset.op;
       }
+      // Clear stale date data and re-render step so date section updates
+      _laData.date_from = '';
+      _laData.date_to   = '';
+      _laData.inclusive_dates  = '';
+      _laData.num_working_days = '';
+      _laData.mon_month = '';
+      _laData.mon_year  = '';
+      _laStep3();
     });
   });
 
@@ -1028,6 +1066,31 @@ function _laStep3() {
   });
   document.getElementById('la3_to')?.addEventListener('change', updateDates);
 
+/* ── Monetization month/year ── */
+  if (_isMonetization()) {
+    const MONTH_NAMES = ['January','February','March','April','May','June',
+                         'July','August','September','October','November','December'];
+    function updateMonDate() {
+      const mo = document.getElementById('la3_mon_month')?.value;
+      const yr = document.getElementById('la3_mon_year')?.value;
+      if (mo && yr) {
+        const monthName = MONTH_NAMES[+mo - 1];
+        const label     = `${monthName} ${yr}`;
+        _laData.mon_month        = mo;
+        _laData.mon_year         = yr;
+        _laData.date_from        = `${yr}-${mo}-01`;
+        _laData.date_to          = `${yr}-${mo}-01`;
+        _laData.inclusive_dates  = label;
+        _laData.num_working_days = 1;
+        document.getElementById('la3DaysNum').textContent   = label;
+        document.getElementById('la3DaysRange').textContent = 'Monetization period';
+      }
+    }
+    document.getElementById('la3_mon_month')?.addEventListener('change', updateMonDate);
+    document.getElementById('la3_mon_year')?.addEventListener('change',  updateMonDate);
+    // Restore if already set
+    if (_laData.mon_month && _laData.mon_year) updateMonDate();
+  }
   /* ── Footer ── */
   footer.innerHTML = `
     <button class="la-btn-prev" id="la3Prev">&larr; Back</button>
@@ -1043,13 +1106,20 @@ function _laStep3() {
     _laData.sick_specify   = document.getElementById('la3_sick')?.value?.trim()   || '';
     _laData.women_specify  = document.getElementById('la3_women')?.value?.trim()  || '';
 
-    if (!_laData.date_from || !_laData.date_to) {
-      errEl.textContent = '⚠️ Please select both a From and To date.';
-      errEl.classList.add('show'); return;
-    }
-    if (!_laData.num_working_days || +_laData.num_working_days < 0.5) {
-      errEl.textContent = '⚠️ Date range results in 0 working days. Please check your dates.';
-      errEl.classList.add('show'); return;
+   if (_isMonetization()) {
+      if (!_laData.mon_month || !_laData.mon_year) {
+        errEl.textContent = '⚠️ Please select both a month and year for monetization.';
+        errEl.classList.add('show'); return;
+      }
+    } else {
+      if (!_laData.date_from || !_laData.date_to) {
+        errEl.textContent = '⚠️ Please select both a From and To date.';
+        errEl.classList.add('show'); return;
+      }
+      if (!_laData.num_working_days || +_laData.num_working_days < 0.5) {
+        errEl.textContent = '⚠️ Date range results in 0 working days. Please check your dates.';
+        errEl.classList.add('show'); return;
+      }
     }
     _laNext();
   });
@@ -1123,7 +1193,9 @@ function _laStep4() {
               _laData.study_detail ? ['Study Leave', _laData.study_detail] : null,
               _laData.other_purpose? ['Other Purpose', _laData.other_purpose] : null,
               ['Inclusive Dates', _laData.inclusive_dates],
-              ['Working Days',    _laData.num_working_days ? _laData.num_working_days + ' day(s)' : ''],
+              ['Working Days / Period', _isMonetization()
+                ? (_laData.inclusive_dates || '')
+                : (_laData.num_working_days ? _laData.num_working_days + ' day(s)' : '')],
               ['Commutation',     _laData.commutation || 'Not Requested'],
             ].filter(r => r && r[1]).map(([k, v]) =>
               `<div class="la-review-row"><div class="la-review-key">${k}</div><div class="la-review-val">${_esc(v)}</div></div>`
@@ -1919,9 +1991,15 @@ body {
           <div class="bold small upper" style="margin-bottom:8px;">
             6. C. Number of Working Days Applied For
           </div>
-          <div style="margin:8px 0 6px 4px;">
+         <div style="margin:8px 0 6px 4px;">
             <span style="font-size:9.5pt;font-weight:bold;border-bottom:0.5pt solid #000;display:inline-block;min-width:120px;padding:0 4px;">
-              ${(() => { const n = parseFloat(a.num_working_days); return isNaN(n) ? (a.num_working_days || '') : (n % 1 === 0 ? String(Math.round(n)) : n.toFixed(1)); })()}
+              ${(() => {
+                const isMonField = a.leave_type === 'Monetization of Leave Credits'
+                                || a.other_purpose === 'Monetization of Leave Credits';
+                if (isMonField) return a.inclusive_dates || '';
+                const n = parseFloat(a.num_working_days);
+                return isNaN(n) ? (a.num_working_days || '') : (n % 1 === 0 ? String(Math.round(n)) : n.toFixed(1));
+              })()}
             </span>
           </div>
           <div class="small" style="margin-top:10px;font-style:italic;">Inclusive Dates</div>
