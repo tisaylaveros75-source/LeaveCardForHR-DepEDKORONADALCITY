@@ -910,17 +910,17 @@ tbody tr:nth-child(odd)  td { background: #fff !important; }
 .fwd-label-cell {
   text-align: left !important; padding: 4px 8px !important;
   font-style: italic !important; font-size: 7pt !important;
-  background: #f9f9f9 !important; color: #000 !important;
+background: #fff !important; color: #000 !important;
   font-weight: 700 !important; border-color: #000 !important;
   white-space: normal !important; word-break: break-word !important;
 }
 .fwd-num-cell {
-  background: #f9f9f9 !important; color: #000 !important;
+background: #fff !important; color: #000 !important;
   font-weight: 700 !important; font-style: italic !important;
   font-size: 7pt !important; border-color: #000 !important;
   padding: 3pt 2pt !important; text-align: center !important;
 }
-.fwd-remarks-cell { background: #f9f9f9 !important; border-color: #000 !important; }
+.fwd-remarks-cell { background: #fff !important; border-color: #000 !important; }
 
 /* ── Column widths (leave table) ── */
 table col:nth-child(1)  { width: 5%  !important; }
@@ -1003,19 +1003,11 @@ function buildExportHTML(emp, logoSrc) {
       </div>`;
   }).join('');
 
-  return `
+ return `
     <div class="lc-export-doc">
-<div class="lc-letterhead">
-        <div class="lc-letterhead-gov">Republika ng Pilipinas</div>
-        <div class="lc-letterhead-gov">Kagawaran ng Edukasyon</div>
-        <div class="lc-letterhead-region">Rehiyon XII</div>
-        <div class="lc-letterhead-agency">SANGAY NG PAARALANG LUNGSOD</div>
-        <div class="lc-letterhead-sub">Lungsod ng Koronadal</div>
-      </div>
-
-      <div class="lc-prc-title">PERSONNEL RECORD CARD</div>
-
-<div class="lc-prc-personal">
+      ${buildHeaderSection(emp, logoSrc)}
+      ${erasHtml}
+    </div>`;
 
         <div class="lc-prc-name-row">
           <span class="lc-prc-name-prefix">Name:</span>
