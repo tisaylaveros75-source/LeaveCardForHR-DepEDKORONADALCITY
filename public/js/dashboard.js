@@ -418,8 +418,7 @@
 /* ── DEVS MODAL ──────────────────────────────────────────── */
 .edb-devs-overlay { position:fixed; inset:0; z-index:99990; background:rgba(10,0,10,.75); backdrop-filter:blur(12px); display:flex; align-items:center; justify-content:center; padding:20px; animation:edb-overlay-in .3s ease both; }
 @keyframes edb-overlay-in { from{opacity:0;} to{opacity:1;} }
-.edb-devs-modal { position:relative; z-index:99991; background:linear-gradient(145deg,#fff0f8 0%,#ffe4f2 40%,#ffd6ee 75%,#ffe8f4 100%); border:2px solid #f9b8d8; border-radius:28px; padding:48px 44px 44px; width:100%; max-width:720px; box-shadow:0 32px 96px rgba(240,60,160,.25),0 4px 20px rgba(0,0,0,.15); animation:edb-modal-pop .4s cubic-bezier(.22,1,.36,1) both; overflow:hidden; max-height:90vh; overflow-y:auto; }
-@keyframes edb-modal-pop { from{opacity:0;transform:scale(.85) translateY(30px);} to{opacity:1;transform:none;} }
+.edb-devs-modal { position:relative; z-index:99991; background:linear-gradient(145deg,#fff0f8 0%,#ffe4f2 40%,#ffd6ee 75%,#ffe8f4 100%); border:2px solid #f9b8d8; border-radius:28px; padding:48px 44px 44px; width:100%; max-width:720px; box-shadow:0 32px 96px rgba(240,60,160,.25),0 4px 20px rgba(0,0,0,.15); animation:edb-modal-pop .4s cubic-bezier(.22,1,.36,1) both; overflow:hidden; max-height:92vh; overflow-y:auto; }@keyframes edb-modal-pop { from{opacity:0;transform:scale(.85) translateY(30px);} to{opacity:1;transform:none;} }
 .edb-modal-blobs { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
 .edb-modal-blob { position:absolute; border-radius:50%; filter:blur(70px); }
 .edb-modal-blob1 { width:380px; height:380px; background:#ffb3d9; opacity:.3; top:-120px; right:-100px; }
@@ -771,6 +770,60 @@ function _edbOpenDevsModal() {
           </div>
         </div>
       </div>
+<!-- ── Special Thanks ── -->
+      <div class="edb-thanks" style="margin-top:28px;padding:28px 26px 24px;border-radius:16px;">
+        <div class="edb-thanks-pattern"></div>
+        <div class="edb-thanks-inner">
+          <div class="edb-thanks-eyebrow">🏅 WITH GRATITUDE</div>
+          <h2 class="edb-thanks-title" style="font-size:1.5rem;margin-bottom:6px;">Special Thanks</h2>
+          <p class="edb-thanks-sub" style="margin-bottom:20px;">
+            This system would not exist without the vision and trust of these two remarkable individuals.
+          </p>
+          <div class="edb-thanks-grid">
+
+            <!-- Sir Faizal -->
+            <div class="edb-thanks-card">
+              <div class="edb-thanks-avatar">FM</div>
+              <div class="edb-thanks-body">
+                <div class="edb-thanks-badge">🏢 HR Administration</div>
+                <div class="edb-thanks-name">Sir Faizal B. Macasayon</div>
+                <div class="edb-thanks-role">Administrative Officer IV / HRMO</div>
+                <div class="edb-thanks-desc">
+                  The first believer. Sir Fyke championed this system from proposal to deployment —
+                  trusting two developers to modernize a process done by hand for decades.
+                </div>
+                <div class="edb-thanks-quote">
+                  "He opened the door for digital leave management in SDO Koronadal City." 🗝️
+                </div>
+              </div>
+            </div>
+
+            <!-- Sir Gregory -->
+            <div class="edb-thanks-card">
+              <div class="edb-thanks-avatar" style="background:linear-gradient(135deg,#065f46,#059669);">GJ</div>
+              <div class="edb-thanks-body">
+                <div class="edb-thanks-badge" style="background:rgba(5,150,105,.15);border-color:rgba(5,150,105,.3);color:#10b981;">📐 Consultancy</div>
+                <div class="edb-thanks-name">Sir John Gregory D. Jabido</div>
+                <div class="edb-thanks-role">Education Program Supervisor</div>
+                <div class="edb-thanks-desc">
+                  Our systems consultant and compass. Sir Greg's guidance transformed a functional
+                  tool into a reliable, well-designed system built for everyone here.
+                </div>
+                <div class="edb-thanks-quote" style="border-left-color:rgba(5,150,105,.4);color:rgba(16,185,129,.8);">
+                  "He shaped what 'better' looks like for every feature in this system." ✨
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <div class="edb-thanks-footer">
+            <div class="edb-thanks-footer-line"></div>
+            <span class="edb-thanks-footer-text">SDO Koronadal City · Thank you for making this possible 🙏</span>
+            <div class="edb-thanks-footer-line"></div>
+          </div>
+        </div>
+      </div><!-- /.edb-thanks -->
+
       <div class="edb-devs-modal-footer">
         <div class="edb-devs-footer-line"></div>
         <span class="edb-devs-footer-text">SDO Koronadal City · Leave Card Management System · Built with 🩷</span>
