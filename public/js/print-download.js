@@ -691,20 +691,22 @@ html, body {
   margin-bottom: 3px;
 }
 .lc-prc-row {
-  display: flex; align-items: stretch; gap: 6px;
-  margin-bottom: 3px;
+  display: flex; align-items: flex-end; gap: 6px;
+  margin-bottom: 5px;
 }
 .lc-prc-field-group {
-  display: flex; flex-direction: column; flex: 1; justify-content: flex-end;
+  display: flex; flex-direction: row; flex: 1;
+  align-items: flex-end; gap: 4px;
 }
-.lc-prc-field-group.lc-prc-half { flex: 1; justify-content: flex-end; }
+.lc-prc-field-group.lc-prc-half { flex: 1; align-items: flex-end; }
 .lc-prc-field-group.lc-prc-inline {
   flex-direction: row; align-items: flex-end;
   gap: 3px; flex: 0 0 auto;
 }
 .lc-prc-label {
   font-size: 8.5pt; color: #000; white-space: nowrap;
-  font-weight: 400;
+  font-weight: 400; align-self: flex-end;
+  line-height: 1; padding-bottom: 1px;
 }
 .lc-prc-field-val {
   font-size: 9pt; font-weight: 700; color: #000;
@@ -713,8 +715,8 @@ html, body {
 .lc-prc-underline {
   border-bottom: 1pt solid #000;
   display: inline-block; min-width: 80px;
-  padding-bottom: 1px; vertical-align: bottom;
-  line-height: 1.4; min-height: 16px;
+  padding-bottom: 0; line-height: 1;
+  vertical-align: bottom; align-self: flex-end;
 }
 .lc-prc-field-line {
   display: flex; gap: 20px;
@@ -724,7 +726,7 @@ html, body {
   font-size: 7pt; color: #000; font-style: italic;
 }
 .lc-prc-field-sublabel span { flex: 1; text-align: center; }
-.lc-prc-field-line span { flex: 1; text-align: center; border-bottom: 1pt solid #000; padding-bottom: 1px; }
+.lc-prc-field-line span { flex: 1; text-align: center; border-bottom: 1pt solid #000; padding-bottom: 0; line-height: 1.8; vertical-align: bottom; }
 
 /* Name label prefix */
 .lc-prc-name-prefix {
