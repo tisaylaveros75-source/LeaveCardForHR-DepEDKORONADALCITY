@@ -1104,9 +1104,9 @@ function renderHomeDashboard() {
         <div class="edb-thanks-body">
           <div class="edb-thanks-badge">🏢 HR Administration</div>
           <div class="edb-thanks-name">Sir Faizal B. Macasayon</div>
-          <div class="edb-thanks-role">Administrative Officer IV / HRMO · SDO Koronadal City</div>
+          <div class="edb-thanks-role">Administrative Officer IV / HRMO</div>
           <div class="edb-thanks-desc">
-            The first believer. Sir Faik championed this system from proposal to deployment —
+            The first believer. Sir Fyke championed this system from proposal to deployment —
             accepting it into the HR office and trusting two developers to modernize a process
             that had been done by hand for decades.
           </div>
@@ -1121,8 +1121,8 @@ function renderHomeDashboard() {
         <div class="edb-thanks-avatar" style="background:linear-gradient(135deg,#065f46,#059669);">GJ</div>
         <div class="edb-thanks-body">
           <div class="edb-thanks-badge" style="background:rgba(5,150,105,.15);border-color:rgba(5,150,105,.3);color:#10b981;">📐 Consultancy</div>
-          <div class="edb-thanks-name">Sir Gregory John D. Jabido</div>
-          <div class="edb-thanks-role">Education Program Supervisor · SDO Koronadal City</div>
+          <div class="edb-thanks-name">Sir John Gregory D. Jabido</div>
+          <div class="edb-thanks-role">Education Program Supervisor</div>
           <div class="edb-thanks-desc">
             Our systems consultant and compass. Sir Greg provided the direction, feedback, and
             professional insight that transformed a functional tool into a truly reliable and
