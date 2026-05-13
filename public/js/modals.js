@@ -1302,6 +1302,183 @@ function showCatChangeWarning(fromCat, toCat, selectEl) {
   });
 }
 window.showCatChangeWarning = showCatChangeWarning;
+/* ─────────────────────────────────────────────────────────
+   PERSONNEL RECORD MODAL
+   Add this function to the bottom of modals.js
+───────────────────────────────────────────────────────── */
+function showPersonnelRecordModal(emp, editRecord) {
+  document.getElementById('prcMo')?.remove();
+
+  const isEdit = !!editRecord;
+  const r = editRecord || {};
+
+  const STATUS_OPTS = ['Permanent','Temporary','Substitute','Regular','Casual'];
+  const FUND_OPTS   = ['National','Local'];
+
+  function esc(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  const html = `
+    <div class="mo open" id="prcMo" style="z-index:10002;">
+      <div class="mb" style="max-width:700px;width:97%;">
+        <div class="mo-orb mo-orb1"></div>
+        <div class="mo-orb mo-orb2"></div>
+
+        <div class="mh" style="background:linear-gradient(135deg,#0d1a3a 0%,#1a2d6b 40%,#2251b3 100%);">
+          <h3>📋 ${isEdit ? 'Edit' : 'Add'} Personnel Record</h3>
+          <button class="mo-close-btn" onclick="closeMo('prcMo')">✕</button>
+        </div>
+
+        <div class="md" style="padding-bottom:80px;">
+
+          <div class="ig ig-2col" style="grid-template-columns:1fr 1fr;gap:14px 20px;">
+
+            <div class="f">
+              <label>Effective Date</label>
+              <input id="prc_mo_effectiveDate" type="text" placeholder="mm/dd/yyyy"
+                     value="${esc(r.effectiveDate||'')}"/>
+            </div>
+
+            <div class="f">
+              <label>Date of Last Promotion</label>
+              <input id="prc_mo_lastPromotion" type="text" placeholder="mm/dd/yyyy"
+                     value="${esc(r.lastPromotion||'')}"/>
+            </div>
+
+            <div class="f" style="grid-column:1/-1;">
+              <label>Designation</label>
+              <input id="prc_mo_designation" type="text" placeholder="e.g. Teacher I"
+                     value="${esc(r.designation||'')}"/>
+            </div>
+
+            <div class="f">
+              <label>Status (Reg/Perm/Temp/Subt)</label>
+              <select id="prc_mo_statusReg">
+                <option value="">-- Select --</option>
+                ${STATUS_OPTS.map(o=>`<option value="${esc(o)}" ${r.statusReg===o?'selected':''}>${esc(o)}</option>`).join('')}
+              </select>
+            </div>
+
+            <div class="f">
+              <label>Mo. / Annual Salary</label>
+              <input id="prc_mo_salary" type="text" placeholder="e.g. 25000"
+                     value="${esc(r.salary||'')}"/>
+            </div>
+
+            <div class="f" style="grid-column:1/-1;">
+              <label>Name of Dist. / Station</label>
+              <input id="prc_mo_station" type="text" placeholder="e.g. Koronadal City NHS"
+                     value="${esc(r.station||'')}"/>
+            </div>
+
+            <div class="f">
+              <label>Source of Fund</label>
+              <select id="prc_mo_sourceOfFund">
+                <option value="">-- Select --</option>
+                ${FUND_OPTS.map(o=>`<option value="${esc(o)}" ${r.sourceOfFund===o?'selected':''}>${esc(o)}</option>`).join('')}
+              </select>
+            </div>
+
+            <div class="f">
+              <label>Remarks <span style="font-weight:400;font-size:10px;opacity:.6;">(optional)</span></label>
+              <input id="prc_mo_remarks" type="text" placeholder="Optional"
+                     value="${esc(r.remarks||'')}"/>
+            </div>
+
+          </div>
+
+          <div id="prc_mo_err" style="color:#f87171;font-size:12px;margin-top:10px;min-height:14px;"></div>
+        </div>
+
+        <div class="mf" style="
+          background:linear-gradient(to top,#0d1228 80%,rgba(13,18,40,0)) !important;
+          border-top:1px solid rgba(34,81,179,.35) !important;">
+          <button class="btn"
+            style="background:rgba(255,255,255,.08);color:rgba(200,220,255,.8);
+                   border:1px solid rgba(34,81,179,.4)!important;"
+            onclick="closeMo('prcMo')">Cancel</button>
+          <button class="btn" id="prcMoSave"
+            style="background:linear-gradient(135deg,#1e3a6e,#2251b3);color:#fff;
+                   box-shadow:0 4px 18px rgba(30,58,110,.5);">
+            💾 ${isEdit ? 'Update Record' : 'Save Record'}
+          </button>
+        </div>
+      </div>
+    </div>`;
+
+  document.body.insertAdjacentHTML('beforeend', html);
+  const mo = document.getElementById('prcMo');
+
+  // Wire date inputs — auto-format as user types (mm/dd/yyyy)
+  ['prc_mo_effectiveDate','prc_mo_lastPromotion'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    // Use flatpickr if available, else raw input formatting
+    if (typeof flatpickr !== 'undefined' && !el._flatpickr) {
+      flatpickr(el, { dateFormat: 'm/d/Y', allowInput: true });
+    } else {
+      el.addEventListener('input', function () {
+        const digits = this.value.replace(/\D/g,'').slice(0,8);
+        let out = digits;
+        if (digits.length > 2) out = digits.slice(0,2)+'/'+digits.slice(2);
+        if (digits.length > 4) out = digits.slice(0,2)+'/'+digits.slice(2,4)+'/'+digits.slice(4);
+        if (this.value !== out) { this.value = out; }
+      });
+    }
+  });
+
+  // Save handler
+  document.getElementById('prcMoSave').addEventListener('click', async () => {
+    const errEl = document.getElementById('prc_mo_err');
+    errEl.textContent = '';
+
+    const rec = {
+      effectiveDate : document.getElementById('prc_mo_effectiveDate').value.trim(),
+      designation   : document.getElementById('prc_mo_designation').value.trim(),
+      statusReg     : document.getElementById('prc_mo_statusReg').value,
+      salary        : document.getElementById('prc_mo_salary').value.trim(),
+      station       : document.getElementById('prc_mo_station').value.trim(),
+      sourceOfFund  : document.getElementById('prc_mo_sourceOfFund').value,
+      lastPromotion : document.getElementById('prc_mo_lastPromotion').value.trim(),
+      remarks       : document.getElementById('prc_mo_remarks').value.trim(),
+    };
+
+    if (!rec.effectiveDate && !rec.designation) {
+      errEl.textContent = 'Please fill in at least Effective Date or Designation.';
+      return;
+    }
+
+    const saveBtn = document.getElementById('prcMoSave');
+    saveBtn.disabled    = true;
+    saveBtn.textContent = 'Saving…';
+
+    const editIdx = isEdit ? editRecord._idx : null;
+    const apiRes  = editIdx !== null
+      ? await apiCall('update_personnel_record', { employee_id: emp.id, idx: editIdx, record: rec })
+      : await apiCall('save_personnel_record',   { employee_id: emp.id, record: rec });
+
+    saveBtn.disabled = false;
+
+    if (!apiRes.ok) {
+      errEl.textContent   = apiRes.error || 'Save failed.';
+      saveBtn.textContent = isEdit ? '💾 Update Record' : '💾 Save Record';
+      return;
+    }
+
+    // Update local emp object
+    if (!emp.personnelRecords) emp.personnelRecords = [];
+    if (editIdx !== null) {
+      emp.personnelRecords[editIdx] = rec;
+    } else {
+      emp.personnelRecords.push(rec);
+    }
+
+    closeMo('prcMo');
+    if (typeof renderPersonnelTable === 'function') renderPersonnelTable(emp);
+  });
+}
+window.showPersonnelRecordModal = showPersonnelRecordModal;
 
 /* ─────────────────────────────────────────────────────────
    LOGOUT MODAL — Red Armoured Spectacular
