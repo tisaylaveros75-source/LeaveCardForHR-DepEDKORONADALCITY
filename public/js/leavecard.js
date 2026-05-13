@@ -114,9 +114,6 @@ renderLeaveCardTable(emp);
   // Render personnel table
   renderPersonnelTable(emp);
 
-  // Wire personnel entry form
-  if (canEdit) wirePersonnelEntryForm(emp, null);
-
   // Wire "Add Record" button
   document.getElementById('cAddRec')?.addEventListener('click', () => {
     if (canEdit) wireLeaveEntryForm(emp, null);
