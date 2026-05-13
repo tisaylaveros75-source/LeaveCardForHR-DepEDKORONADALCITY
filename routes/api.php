@@ -44,5 +44,9 @@ Route::middleware('web')->prefix('')->group(function () {
     Route::get('/get_recorded_applications',    [LeaveCardApiController::class, 'getRecordedApplications']);
     Route::get('/get_my_recorded_applications', [LeaveCardApiController::class, 'getMyRecordedApplications']);
     Route::post('/assign_school_admin',         [LeaveCardApiController::class, 'assignSchoolAdmin']);
+    Route::get('/get_personnel_records',    [LeaveCardApiController::class, 'getPersonnelRecords']);
+Route::post('/save_personnel_record',   [LeaveCardApiController::class, 'savePersonnelRecord']);
+Route::post('/update_personnel_record', [LeaveCardApiController::class, 'updatePersonnelRecord']);
+Route::post('/delete_personnel_record', [LeaveCardApiController::class, 'deletePersonnelRecord']);
 
 });
