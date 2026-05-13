@@ -1139,84 +1139,8 @@ function renderHomeDashboard() {
   </div>
 </div>
 
-<!-- ── SPECIAL THANKS ────────────────────────────────────────── -->
-<div class="edb-thanks">
-  <div class="edb-thanks-pattern"></div>
-  <div class="edb-thanks-inner">
-    <div class="edb-thanks-eyebrow">🏅 WITH GRATITUDE</div>
-    <h2 class="edb-thanks-title">Special Thanks</h2>
-    <p class="edb-thanks-sub">
-      This system would not exist without the guidance, trust, and expertise of these remarkable individuals
-      who believed in the vision and helped shape it into reality.
-    </p>
-    <div class="edb-thanks-grid">
-
-      <!-- Sir Faizal -->
-      <div class="edb-thanks-card">
-        <div class="edb-thanks-avatar">FM</div>
-        <div class="edb-thanks-body">
-          <div class="edb-thanks-badge">🏢 HR Administration</div>
-          <div class="edb-thanks-name">Sir Faizal B. Macasayon</div>
-          <div class="edb-thanks-role">Administrative Officer IV / HRMO</div>
-          <div class="edb-thanks-desc">
-            The first believer. Sir Fyke championed this system from proposal to deployment —
-            accepting it into the HR office and trusting two developers to modernize a process
-            that had been done by hand for decades.
-          </div>
-          <div class="edb-thanks-quote">
-            "He opened the door for digital leave management in SDO Koronadal City." 🗝️
-          </div>
-        </div>
-      </div>
-
-      <!-- Sir Gregory -->
-      <div class="edb-thanks-card">
-        <div class="edb-thanks-avatar" style="background:linear-gradient(135deg,#065f46,#059669);">GJ</div>
-        <div class="edb-thanks-body">
-          <div class="edb-thanks-badge" style="background:rgba(5,150,105,.15);border-color:rgba(5,150,105,.3);color:#10b981;">📐 Consultancy</div>
-          <div class="edb-thanks-name">Sir John Gregory D. Jabido</div>
-          <div class="edb-thanks-role">Education Program Supervisor</div>
-          <div class="edb-thanks-desc">
-            Our systems consultant and compass. Sir Greg provided the direction, feedback, and
-            professional insight that transformed a functional tool into a truly reliable and
-            well-designed management system.
-          </div>
-          <div class="edb-thanks-quote" style="border-left-color:rgba(5,150,105,.4);color:rgba(16,185,129,.8);">
-            "He shaped what 'better' looks like for every feature in this system." ✨
-          </div>
-        </div>
-      </div>
-
-    </div>
-    <div class="edb-thanks-footer">
-      <div class="edb-thanks-footer-line"></div>
-      <span class="edb-thanks-footer-text">SDO Koronadal City · Leave Card System · Thank you for making this possible 🙏</span>
-      <div class="edb-thanks-footer-line"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ── DEVELOPERS TEASER ─────────────────────────────────────── -->
-<div class="edb-devs-teaser" id="edb-devs-teaser">
-  <div class="edb-teaser-blobs">
-    <div class="edb-teaser-blob edb-teaser-blob1"></div>
-    <div class="edb-teaser-blob edb-teaser-blob2"></div>
-  </div>
-  <div class="edb-devs-teaser-left">
-    <div class="edb-devs-teaser-eyebrow">🩷 MADE WITH LOVE</div>
-    <div class="edb-devs-teaser-title">Meet the Developers</div>
-    <div class="edb-devs-teaser-sub">The minds behind this system ✨ Click to meet them!</div>
-  </div>
-  <div class="edb-devs-teaser-right">
-    <div class="edb-devs-teaser-avatars">
-      <img class="edb-devs-teaser-avatar" src="/img/jeoan.jpg"
-           onerror="this.src='https://ui-avatars.com/api/?name=Jeoan+Gran&background=ffd6ec&color=b01860&size=200&bold=true'" alt="Jeoan"/>
-      <img class="edb-devs-teaser-avatar" src="/img/janice.jpg"
-           onerror="this.src='https://ui-avatars.com/api/?name=Janice+Laveros&background=ffd6ec&color=b01860&size=200&bold=true'" alt="Janice"/>
-    </div>
-    <button class="edb-devs-teaser-btn" id="edb-devs-open-btn">Meet Us 🩷</button>
-  </div>
-</div>
+<!-- ── DEVELOPERS INLINE DRAWER ─────────────────────────────────────── -->
+<div id="edb-dev-drawer-mount"></div>
 
 </div><!-- /.edb-wrap -->
 `;
@@ -1321,12 +1245,12 @@ function renderHomeDashboard() {
     });
   }
 
-  /* ── Wire devs teaser ─────────────────────────────────────── */
-  document.getElementById('edb-devs-teaser')?.addEventListener('click', _edbOpenDevsModal);
-  document.getElementById('edb-devs-open-btn')?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    _edbOpenDevsModal();
-  });
+/* ── Inject inline developer drawer (same as employee view) ── */
+  const edbDevMount = document.getElementById('edb-dev-drawer-mount');
+  if (edbDevMount) {
+    edbDevMount.innerHTML = _buildEmpDevDrawer();
+    _wireEmpDevDrawer();
+  }
 
   /* ── Wire stat card effects ───────────────────────────────── */
   const edbStatConfig = [
