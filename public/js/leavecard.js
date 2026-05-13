@@ -87,9 +87,9 @@ async function openLeaveCardInContainer(emp, container) {
       </div>
     </div>
     ${profileHtml}
-    ${canEdit ? buildLeaveEntryForm(emp) : ''}
-${canEdit ? buildPersonnelEntryForm() : ''}
+${canEdit ? buildLeaveEntryForm(emp) : ''}
     <div id="prcTableWrap" style="padding:0 4px;"></div>
+    ${canEdit ? buildPersonnelEntryForm() : ''}
     <div id="lcTableWrap"></div>
   </div>`;
 
