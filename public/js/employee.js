@@ -126,7 +126,7 @@
   overflow: hidden;
 }
 .emp-dev-drawer.emp-dev-open {
-  max-height: 700px;
+  max-height: 1600px;
   opacity: 1;
 }
 .emp-dev-drawer-blobs {
@@ -340,6 +340,118 @@
 }
 .emp-drawer-popped { animation: emp-drawer-pop 0.4s cubic-bezier(0.22,1,0.36,1) both; }
 
+/* ── SPECIAL THANKS (inside drawer) ─────────────────── */
+.emp-thanks-section {
+  margin-top: 32px;
+  background: linear-gradient(145deg, #0a0c18 0%, #0e1428 40%, #111830 100%);
+  border-radius: 18px; padding: 32px 28px 28px;
+  position: relative; overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,.35),
+              inset 0 1px 0 rgba(180,160,80,.1);
+  border: 1px solid rgba(180,160,60,.2);
+}
+.emp-thanks-section-pattern {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(255,255,255,.025) 1px, transparent 0),
+    repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(180,160,40,.04) 80px, rgba(180,160,40,.04) 81px);
+  background-size: 28px 28px, 100% 100%;
+}
+.emp-thanks-inner { position: relative; z-index: 1; }
+.emp-thanks-eyebrow {
+  font-size: 9px; font-weight: 700; letter-spacing: 3px;
+  text-transform: uppercase; color: #c8a840; margin-bottom: 6px;
+  text-shadow: 0 0 12px rgba(200,168,64,.4);
+  font-family: 'DM Sans', sans-serif;
+}
+.emp-thanks-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.6rem; font-weight: 800; color: #fff;
+  margin-bottom: 6px;
+  text-shadow: 0 2px 12px rgba(0,0,0,.5);
+}
+.emp-thanks-sub {
+  font-size: 11px; color: rgba(255,255,255,.38);
+  margin-bottom: 24px; line-height: 1.6;
+  font-family: 'DM Sans', sans-serif;
+}
+.emp-thanks-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+@media (max-width: 600px) { .emp-thanks-grid { grid-template-columns: 1fr; } }
+.emp-thanks-card {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(200,168,60,.18);
+  border-radius: 14px; padding: 20px 18px;
+  display: flex; align-items: flex-start; gap: 14px;
+  transition: background .22s, transform .22s, border-color .22s;
+  position: relative; overflow: hidden;
+}
+.emp-thanks-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(200,168,60,.45), transparent);
+  border-radius: 14px 14px 0 0;
+}
+.emp-thanks-card:hover {
+  background: rgba(255,255,255,.07);
+  border-color: rgba(200,168,60,.38);
+  transform: translateY(-3px);
+}
+.emp-thanks-avatar {
+  width: 60px; height: 60px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #1e3a6e, #4a7cc7);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 800; color: #fff;
+  border: 2px solid rgba(200,168,60,.3);
+  box-shadow: 0 3px 14px rgba(0,0,0,.4);
+  font-family: 'Playfair Display', serif;
+}
+.emp-thanks-body { flex: 1; min-width: 0; }
+.emp-thanks-badge {
+  display: inline-block;
+  background: rgba(200,168,60,.14);
+  border: 1px solid rgba(200,168,60,.28);
+  color: #c8a840; font-size: 8px; font-weight: 800;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 20px; margin-bottom: 6px;
+  font-family: 'DM Sans', sans-serif;
+}
+.emp-thanks-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: .95rem; font-weight: 800; color: #fff;
+  margin-bottom: 3px; line-height: 1.2;
+}
+.emp-thanks-role {
+  font-size: 10px; color: rgba(255,255,255,.4);
+  font-weight: 600; letter-spacing: .3px; margin-bottom: 8px;
+  font-family: 'DM Sans', sans-serif;
+}
+.emp-thanks-desc {
+  font-size: 10.5px; color: rgba(255,255,255,.48);
+  line-height: 1.75; font-family: 'DM Sans', sans-serif;
+}
+.emp-thanks-quote {
+  margin-top: 10px; padding: 8px 12px;
+  background: rgba(200,168,60,.06);
+  border-left: 3px solid rgba(200,168,60,.38);
+  border-radius: 0 7px 7px 0;
+  font-size: 10px; color: rgba(200,168,60,.75);
+  font-style: italic; line-height: 1.6;
+  font-family: 'DM Sans', sans-serif;
+}
+.emp-thanks-footer {
+  display: flex; align-items: center; gap: 12px; margin-top: 22px;
+}
+.emp-thanks-footer-line {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200,168,60,.28), transparent);
+}
+.emp-thanks-footer-text {
+  font-size: 9px; color: rgba(200,168,60,.45);
+  white-space: nowrap; font-weight: 600; letter-spacing: .4px;
+  font-family: 'DM Sans', sans-serif;
+}
+
 /* ── NO PRINT ────────────────────────────────────────── */
 @media print {
   .emp-dev-trigger, .emp-dev-drawer { display: none !important; }
@@ -533,7 +645,61 @@ function _buildEmpDevDrawer() {
         </div>
       </div>
 
-    </div><!-- /.emp-dev-grid -->
+</div><!-- /.emp-dev-grid -->
+
+    <!-- ── Special Thanks ── -->
+    <div class="emp-thanks-section">
+      <div class="emp-thanks-section-pattern"></div>
+      <div class="emp-thanks-inner">
+        <div class="emp-thanks-eyebrow">🏅 WITH GRATITUDE</div>
+        <div class="emp-thanks-title">Special Thanks</div>
+        <div class="emp-thanks-sub">
+          This system — and your digital leave card — would not exist without the vision and trust of these two remarkable individuals.
+        </div>
+        <div class="emp-thanks-grid">
+
+          <!-- Sir Faizal -->
+          <div class="emp-thanks-card">
+            <div class="emp-thanks-avatar">FM</div>
+            <div class="emp-thanks-body">
+              <div class="emp-thanks-badge">🏢 HR Administration</div>
+              <div class="emp-thanks-name">Sir Faizal B. Macasayon</div>
+              <div class="emp-thanks-role">Administrative Officer IV / HRMO</div>
+              <div class="emp-thanks-desc">
+                The first believer. Sir Fyke championed this system from proposal to deployment —
+                trusting two developers to modernize a process done by hand for decades.
+              </div>
+              <div class="emp-thanks-quote">
+                "He opened the door so you never have to walk to HR again." 🗝️
+              </div>
+            </div>
+          </div>
+
+          <!-- Sir Gregory -->
+          <div class="emp-thanks-card">
+            <div class="emp-thanks-avatar" style="background:linear-gradient(135deg,#065f46,#059669);">GJ</div>
+            <div class="emp-thanks-body">
+              <div class="emp-thanks-badge" style="background:rgba(5,150,105,.14);border-color:rgba(5,150,105,.28);color:#10b981;">📐 Consultancy</div>
+              <div class="emp-thanks-name">Sir John Gregory D. Jabido</div>
+              <div class="emp-thanks-role">Education Program Supervisor</div>
+              <div class="emp-thanks-desc">
+                Our systems consultant and compass. Sir Greg's guidance transformed a functional
+                tool into a reliable, well-designed system built with you in mind.
+              </div>
+              <div class="emp-thanks-quote" style="border-left-color:rgba(5,150,105,.38);color:rgba(16,185,129,.75);">
+                "He shaped what 'better' looks like for every feature you see here." ✨
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="emp-thanks-footer">
+          <div class="emp-thanks-footer-line"></div>
+          <span class="emp-thanks-footer-text">SDO Koronadal City · Thank you for making this possible 🙏</span>
+          <div class="emp-thanks-footer-line"></div>
+        </div>
+      </div>
+    </div><!-- /.emp-thanks-section -->
 
     <div class="emp-dev-footer">
       <div class="emp-dev-footer-line"></div>
