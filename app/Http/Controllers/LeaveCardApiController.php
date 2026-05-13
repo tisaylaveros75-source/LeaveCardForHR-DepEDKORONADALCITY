@@ -1354,4 +1354,125 @@ $emp['assigned_encoder_id']  = $arr['assigned_encoder_id'] ?? null;
             return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
         }
     }
+    // ── GET /api/get_personnel_records ──────────────────────────
+public function getPersonnelRecords(Request $request): JsonResponse
+{
+    try {
+        $empId = $request->input('employee_id');
+        if (!$empId) return response()->json(['ok' => false, 'error' => 'employee_id required'], 400);
+
+        $rows = DB::table('personnel_records')
+            ->where('employee_id', $empId)
+            ->orderBy('id')
+            ->get()
+            ->toArray();
+
+        $records = array_map(function ($r) {
+            return [
+                'effectiveDate'  => $r->effective_date  ?? '',
+                'designation'    => $r->designation     ?? '',
+                'statusReg'      => $r->status_reg      ?? '',
+                'salary'         => $r->salary          ?? '',
+                'station'        => $r->station         ?? '',
+                'sourceOfFund'   => $r->source_of_fund  ?? '',
+                'lastPromotion'  => $r->last_promotion  ?? '',
+                'remarks'        => $r->remarks         ?? '',
+            ];
+        }, $rows);
+
+        return response()->json(['ok' => true, 'records' => $records]);
+    } catch (Exception $e) {
+        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+    }
+}
+
+// ── POST /api/save_personnel_record ─────────────────────────
+public function savePersonnelRecord(Request $request): JsonResponse
+{
+    try {
+        $empId  = $request->input('employee_id');
+        $record = $request->input('record', []);
+        if (!$empId) return response()->json(['ok' => false, 'error' => 'employee_id required'], 400);
+
+        DB::table('personnel_records')->insert([
+            'employee_id'    => $empId,
+            'effective_date' => $record['effectiveDate'] ?? '',
+            'designation'    => $record['designation']  ?? '',
+            'status_reg'     => $record['statusReg']    ?? '',
+            'salary'         => $record['salary']       ?? '',
+            'station'        => $record['station']      ?? '',
+            'source_of_fund' => $record['sourceOfFund'] ?? '',
+            'last_promotion' => $record['lastPromotion'] ?? '',
+            'remarks'        => $record['remarks']      ?? '',
+            'created_at'     => now(),
+            'updated_at'     => now(),
+        ]);
+
+        return response()->json(['ok' => true]);
+    } catch (Exception $e) {
+        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+    }
+}
+
+// ── POST /api/update_personnel_record ───────────────────────
+public function updatePersonnelRecord(Request $request): JsonResponse
+{
+    try {
+        $empId  = $request->input('employee_id');
+        $idx    = (int)$request->input('idx');
+        $record = $request->input('record', []);
+        if (!$empId) return response()->json(['ok' => false, 'error' => 'employee_id required'], 400);
+
+        $rows = DB::table('personnel_records')
+            ->where('employee_id', $empId)
+            ->orderBy('id')
+            ->pluck('id')
+            ->toArray();
+
+        if (!isset($rows[$idx])) {
+            return response()->json(['ok' => false, 'error' => 'Record not found.'], 404);
+        }
+
+        DB::table('personnel_records')->where('id', $rows[$idx])->update([
+            'effective_date' => $record['effectiveDate'] ?? '',
+            'designation'    => $record['designation']  ?? '',
+            'status_reg'     => $record['statusReg']    ?? '',
+            'salary'         => $record['salary']       ?? '',
+            'station'        => $record['station']      ?? '',
+            'source_of_fund' => $record['sourceOfFund'] ?? '',
+            'last_promotion' => $record['lastPromotion'] ?? '',
+            'remarks'        => $record['remarks']      ?? '',
+            'updated_at'     => now(),
+        ]);
+
+        return response()->json(['ok' => true]);
+    } catch (Exception $e) {
+        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+    }
+}
+
+// ── POST /api/delete_personnel_record ───────────────────────
+public function deletePersonnelRecord(Request $request): JsonResponse
+{
+    try {
+        $empId = $request->input('employee_id');
+        $idx   = (int)$request->input('idx');
+        if (!$empId) return response()->json(['ok' => false, 'error' => 'employee_id required'], 400);
+
+        $rows = DB::table('personnel_records')
+            ->where('employee_id', $empId)
+            ->orderBy('id')
+            ->pluck('id')
+            ->toArray();
+
+        if (!isset($rows[$idx])) {
+            return response()->json(['ok' => false, 'error' => 'Record not found.'], 404);
+        }
+
+        DB::table('personnel_records')->where('id', $rows[$idx])->delete();
+        return response()->json(['ok' => true]);
+    } catch (Exception $e) {
+        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+    }
+}
 }
