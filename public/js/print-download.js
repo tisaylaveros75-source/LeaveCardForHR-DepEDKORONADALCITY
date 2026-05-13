@@ -335,18 +335,20 @@ const logoImgLetterhead = '';
     <div class="lc-prc-title">PERSONNEL RECORD CARD</div>
 
     <div class="lc-prc-personal">
-      <div class="lc-prc-name-row">
-        <div class="lc-prc-field-group" style="flex:2;">
-          <span class="lc-prc-field-line">
-            <span class="lc-prc-field-val">${eu(emp.surname || '')}</span>
-            <span class="lc-prc-field-val">${eu(emp.given || '')}</span>
-            <span class="lc-prc-field-val">${eu(emp.maternal || '')}</span>
-          </span>
-          <span class="lc-prc-field-sublabel">
-            <span>(Surname)</span>
-            <span>(Given Name)</span>
-            <span>(Maternal Surname)</span>
-          </span>
+<div class="lc-prc-name-row">
+        <div class="lc-prc-name-cols">
+          <div class="lc-prc-name-col">
+            <div class="lc-prc-field-val lc-prc-name-val">${eu(emp.surname || '')}&nbsp;</div>
+            <div class="lc-prc-name-sublabel">(Surname)</div>
+          </div>
+          <div class="lc-prc-name-col">
+            <div class="lc-prc-field-val lc-prc-name-val">${eu(emp.given || '')}&nbsp;</div>
+            <div class="lc-prc-name-sublabel">(Given Name)</div>
+          </div>
+          <div class="lc-prc-name-col">
+            <div class="lc-prc-field-val lc-prc-name-val">${eu(emp.maternal || '')}&nbsp;</div>
+            <div class="lc-prc-name-sublabel">(Maternal Surname)</div>
+          </div>
         </div>
         <div class="lc-prc-field-group lc-prc-inline">
           <span class="lc-prc-label">Sex:</span>
@@ -363,9 +365,9 @@ const logoImgLetterhead = '';
           <span class="lc-prc-label">Date of Birth:</span>
           <span class="lc-prc-field-val lc-prc-underline">${esc(fmtDateEx(emp.dob || ''))}</span>
         </div>
-        <div class="lc-prc-field-group lc-prc-half">
+<div class="lc-prc-field-group lc-prc-half">
           <span class="lc-prc-label">Place of Birth:</span>
-          <span class="lc-prc-field-val">${eu(emp.pob || '')}</span>
+          <span class="lc-prc-field-val lc-prc-underline">${eu(emp.pob || '')}</span>
         </div>
       </div>
 
@@ -375,19 +377,19 @@ const logoImgLetterhead = '';
           <span class="lc-prc-field-val lc-prc-underline">${eu(emp.addr || '')}</span>
         </div>
         <div class="lc-prc-field-group lc-prc-half">
-          <span class="lc-prc-label">Name of Spouse:</span>
-          <span class="lc-prc-field-val">${eu(emp.spouse || '')}</span>
+<span class="lc-prc-label">Name of Spouse:</span>
+          <span class="lc-prc-field-val lc-prc-underline">${eu(emp.spouse || '')}</span>
         </div>
       </div>
 
       <div class="lc-prc-row">
         <div class="lc-prc-field-group lc-prc-half">
           <span class="lc-prc-label">Educational Qualification:</span>
-         <span class="lc-prc-field-val">${eu(emp.edu || '')}</span>
+         <span class="lc-prc-field-val lc-prc-underline">${eu(emp.edu || '')}</span>
         </div>
         <div class="lc-prc-field-group" style="flex:1;">
           <span class="lc-prc-label">C.S. Eligibility: Kind of Exam:</span>
-          <span class="lc-prc-field-val">${eu(emp.elig || '')}</span>
+          <span class="lc-prc-field-val lc-prc-underline">${eu(emp.elig || '')}</span>
         </div>
         <div class="lc-prc-field-group lc-prc-inline">
           <span class="lc-prc-label">Rating:</span>
@@ -398,11 +400,11 @@ const logoImgLetterhead = '';
       <div class="lc-prc-row">
         <div class="lc-prc-field-group" style="flex:1;justify-content:center;text-align:center;">
           <span class="lc-prc-label">Place of Exam:</span>
-          <span class="lc-prc-field-val">${eu(emp.pexam || '')}</span>
+         <span class="lc-prc-field-val lc-prc-underline">${eu(emp.pexam || '')}</span>
         </div>
         <div class="lc-prc-field-group" style="flex:1;justify-content:center;text-align:center;">
           <span class="lc-prc-label">Date:</span>
-          <span class="lc-prc-field-val">${esc(fmtDateEx(emp.dexam || ''))}</span>
+         <span class="lc-prc-field-val lc-prc-underline">${esc(fmtDateEx(emp.dexam || ''))}</span>
         </div>
       </div>
 
@@ -732,6 +734,21 @@ html, body {
 .lc-prc-name-prefix {
   font-size: 9pt; font-weight: 400;
   white-space: nowrap; margin-right: 4px;
+}
+.lc-prc-name-cols {
+  display: flex; flex: 2; gap: 8px;
+}
+.lc-prc-name-col {
+  flex: 1; display: flex; flex-direction: column;
+}
+.lc-prc-name-val {
+  border-bottom: 1pt solid #000;
+  min-height: 16px; width: 100%;
+  padding-bottom: 1px; text-align: center;
+}
+.lc-prc-name-sublabel {
+  font-size: 7pt; color: #000; font-style: italic;
+  text-align: center; margin-top: 1px;
 }
 
 /* ═══════════════════════════════════
