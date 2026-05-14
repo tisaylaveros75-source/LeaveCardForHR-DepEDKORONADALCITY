@@ -1399,93 +1399,13 @@ window.lcPrint = lcPrint;
    21.  DOWNLOAD PDF  v8.1
    ───────────────────────────────────────────────────────────── */
 async function lcDownloadPDF(emp) {
-  if (typeof html2pdf === 'undefined') {
-    alert(
-      'html2pdf not loaded.\n\nAdd to <head>:\n\n' +
-      '<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\/script>'
-    );
-    return;
-  }
-
   if (!emp || !emp.id) {
     const resolved = resolveCurrentEmp();
     if (!resolved) { alert('No employee leave card is currently open.'); return; }
     emp = resolved;
   }
-
-  const dlBtn = document.querySelector('.lc-dl-btn');
-  let origHTML = '', origWidth = '';
-  if (dlBtn) {
-    origHTML  = dlBtn.innerHTML;
-    origWidth = dlBtn.style.width;
-    dlBtn.disabled    = true;
-    dlBtn.style.width = dlBtn.offsetWidth + 'px';
-    dlBtn.innerHTML   = '🛡 &nbsp;Forging PDF…';
-    dlBtn.style.opacity = '0.7';
-  }
-
-  showArmourOverlay();
-  setOverlayProgress(5, 'Summoning the forge…', 0);
-
-  try {
-    const logoSrc = await getLogoBase64();
-    setOverlayProgress(12, 'Loading insignia…', 0);
-
-    setOverlayProgress(18, 'Building document layout…', 0);
-    setOverlayProgress(40, 'Rendering document…', 1);
-    const html = buildFullPage(emp, logoSrc);
-
-    // Use same iframe approach as print for pixel-perfect match
-    const iframe = await createCaptureIframe(html);
-    await Promise.all(
-      [...iframe.contentDocument.images].map(img =>
-        img.decode ? img.decode().catch(() => {}) : Promise.resolve()
-      )
-    );
-    await new Promise(r => setTimeout(r, 500));
-
-    const buf = await new Promise((resolve, reject) => {
-      const target = iframe.contentDocument.querySelector('.lc-export-doc')
-                  || iframe.contentDocument.body;
-      html2pdf()
-        .set(PDF_OPT_BASE)
-        .from(target)
-        .outputPdf('arraybuffer')
-        .then(b => { iframe.remove(); resolve(b); })
-        .catch(e => { iframe.remove(); reject(e); });
-    });
-    const buffers = [buf];
-
-    setOverlayProgress(72, 'Finalising document…', 2);
-    const mergedBytes = await mergePageBuffers(buffers);
-
-    setOverlayProgress(92, 'Sealing the document…', 3);
-    const surname  = (emp.surname || 'RECORD').toUpperCase().replace(/\s+/g, '_');
-    const given    = (emp.given   || '').toUpperCase().replace(/\s+/g, '_');
-    const filename = `LeaveCard_${surname}_${given}.pdf`;
-
-    const blob = new Blob([mergedBytes], { type: 'application/pdf' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click();
-    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 3000);
-
-    setOverlayProgress(100, 'PDF ready — download started!', 3);
-    await new Promise(r => setTimeout(r, 900));
-
-  } catch (err) {
-    console.error('[print-download] PDF error:', err);
-    alert('PDF generation failed: ' + err.message);
-  } finally {
-    hideArmourOverlay();
-    if (dlBtn) {
-      dlBtn.disabled    = false;
-      dlBtn.innerHTML   = origHTML || dlBtn.innerHTML;
-      dlBtn.style.width = origWidth || '';
-      dlBtn.style.opacity = '';
-    }
-  }
+  // Just trigger the same print dialog — user saves as PDF from there
+  lcPrint();
 }
 window.lcDownloadPDF = lcDownloadPDF;
 
