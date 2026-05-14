@@ -193,7 +193,7 @@
       border-right: 1px solid #f0dede;
     }
 
-    /* ── Balance column ── */
+/* ── Balance column ── */
     .tw table tbody td.bc {
       font-weight: 800 !important;
       font-size: 12.5px !important;
@@ -207,6 +207,43 @@
     .tw table tbody td.rdc {
       color: #c0392b !important;
       font-weight: 800 !important;
+    }
+
+    @media print {
+      .tw table tbody td.bc {
+        color: #000000 !important;
+        background: #ffffff !important;
+        border-left: 1px solid #000 !important;
+        border-right: 1px solid #000 !important;
+      }
+      .tw table tbody td.rdc {
+        color: #000000 !important;
+        background: #ffffff !important;
+      }
+      .era-fwd-row {
+        background: #ffffff !important;
+        border-top: 2px solid #000000 !important;
+      }
+      .era-fwd-row td {
+        color: #000000 !important;
+        background: #ffffff !important;
+        border-color: #000000 !important;
+      }
+      .tw table thead th.tha {
+        background: #ffffff !important;
+        color: #000000 !important;
+        border-bottom: 1px solid #000 !important;
+      }
+      .tw table thead th.thb {
+        background: #ffffff !important;
+        color: #000000 !important;
+        border-bottom: 1px solid #000 !important;
+      }
+      .tw table thead tr:first-child th,
+      .tw table thead tr:last-child th {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
     }
 
     /* ── Number cells ── */
