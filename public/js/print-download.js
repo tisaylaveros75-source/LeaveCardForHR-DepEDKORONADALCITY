@@ -827,163 +827,55 @@ html, body {
 table {
   width: 100% !important; border-collapse: collapse !important;
   table-layout: fixed !important;
-  font-size: 7.5pt; font-family: Arial, sans-serif;
+  font-size: 6.5pt; font-family: Arial, sans-serif;
 }
 thead { display: table-header-group; }
+
+/* ── Top header row (SO#, PERIOD, group spans) ── */
 thead tr:first-child th {
-  background: #fff !important; color: #000 !important;
-  font-size: 5.5pt; font-weight: 800; padding: 5px 3px 4px;
-  text-align: center;
+  background: #ffffff !important;
+  color: #000000 !important;
+  font-size: 5pt !important;
+  font-weight: 800 !important;
+  padding: 3px 2px !important;
+  text-align: center !important;
   border: .5pt solid #000 !important;
-  text-transform: uppercase; letter-spacing: .03em;
-  white-space: normal; word-break: break-word; line-height: 1.3;
-  font-family: Arial, sans-serif;
+  text-transform: uppercase !important;
+  letter-spacing: .02em !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  line-height: 1.2 !important;
+  font-family: Arial, sans-serif !important;
 }
-thead th.tha {
-  background: #fff !important; color: #000 !important;
-  border: .5pt solid #000 !important;
-}
+
+/* ── All tha / thb group headers ── */
+thead th.tha,
 thead th.thb {
-  background: #fff !important; color: #000 !important;
+  background: #ffffff !important;
+  color: #000000 !important;
   border: .5pt solid #000 !important;
 }
+
+/* ── Sub-header row (EARNED, ABS W/P, BALANCE, W/O P) ── */
 thead tr:nth-child(2) th {
-  background: #fff !important; color: #000 !important;
-  font-size: 5pt; font-weight: 700; padding: 3px 2px;
-  text-align: center; border: .5pt solid #000 !important;
-  white-space: normal; word-break: break-word; line-height: 1.2;
-  font-family: Arial, sans-serif;
+  background: #ffffff !important;
+  color: #000000 !important;
+  font-size: 4.5pt !important;
+  font-weight: 700 !important;
+  padding: 2px 1px !important;
+  text-align: center !important;
+  border: .5pt solid #000 !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  line-height: 1.1 !important;
+  font-family: Arial, sans-serif !important;
 }
+
 thead th.ths.tha,
 thead th.ths.thb {
-  background: #fff !important; color: #000 !important;
+  background: #ffffff !important;
+  color: #000000 !important;
 }
-
-/* ── TBODY ── */
-tbody tr { page-break-inside: avoid !important; break-inside: avoid !important; }
-tbody td {
-  border: .5pt solid #000 !important;
-  padding: 3pt 2pt;
-  font-size: 7.5pt; text-align: center; vertical-align: middle;
-  white-space: normal; word-break: break-word; overflow-wrap: break-word;
-  overflow: visible; line-height: 1.35; text-transform: uppercase;
-  font-family: Arial, sans-serif;
-  background: #fff !important; color: #000 !important;
-}
-tbody tr:nth-child(even) td { background: #fff !important; }
-tbody tr:nth-child(odd)  td { background: #fff !important; }
-
-.bc {
-  background: #fff !important; color: #000 !important;
-  font-weight: 800 !important; font-size: 8pt !important;
-}
-.rdc {
-  color: #000 !important; font-weight: 700 !important;
-  background: #fff !important;
-  text-decoration: underline !important;
-}
-.nc {
-  font-family: Arial, sans-serif !important;
-  white-space: nowrap !important; font-size: 7.5pt !important;
-  color: #000 !important;
-}
-.so-cell {
-  font-size: 6.5pt !important; padding: 3px 2px !important;
-  color: #000 !important; white-space: normal !important;
-  word-break: break-word !important;
-}
-.num-cell { padding: 3px 2px !important; font-size: 7.5pt !important; }
-.period-cell {
-  text-align: left !important; padding: 3pt 4pt !important;
-  font-weight: 600 !important; line-height: 1.35 !important;
-  white-space: normal !important; word-break: break-word !important;
-  font-size: 7pt !important; text-transform: uppercase !important;
-  color: #000 !important;
-}
-.date-range {
-  display: block; font-size: 7pt; font-weight: 700; line-height: 1.35;
-  font-family: Arial, sans-serif;
-  color: #000 !important; text-transform: uppercase;
-}
-.ampm-tag {
-  font-size: 5.5pt; color: #000; font-weight: 400;
-}
-.remarks-cell {
-  text-align: left !important; padding: 3pt 5pt !important;
-  font-size: 7pt !important; white-space: normal !important;
-  word-break: break-word !important; overflow: visible !important;
-  line-height: 1.4 !important; text-transform: uppercase !important;
-  color: #000 !important;
-}
-.empty-row-cell {
-  text-align: center !important; padding: 10px !important;
-  color: #000 !important; font-style: italic !important;
-  font-size: 7.5pt !important;
-}
-
-/* ── Forward balance row ── */
-.era-fwd-row {
-  border-top: 1.5pt solid #000 !important;
-  page-break-inside: avoid !important;
-}
-.fwd-label-cell {
-  text-align: left !important; padding: 4px 8px !important;
-  font-style: italic !important; font-size: 7pt !important;
-background: #fff !important; color: #000 !important;
-  font-weight: 700 !important; border-color: #000 !important;
-  white-space: normal !important; word-break: break-word !important;
-}
-.fwd-num-cell {
-background: #fff !important; color: #000 !important;
-  font-weight: 700 !important; font-style: italic !important;
-  font-size: 7pt !important; border-color: #000 !important;
-  padding: 3pt 2pt !important; text-align: center !important;
-}
-.fwd-remarks-cell { background: #fff !important; border-color: #000 !important; }
-
-/* ── Column widths (leave table) ── */
-table col:nth-child(1)  { width: 5%  !important; }
-table col:nth-child(2)  { width: 14% !important; }
-table col:nth-child(3)  { width: 5%  !important; }
-table col:nth-child(4)  { width: 5%  !important; }
-table col:nth-child(5)  { width: 5%  !important; }
-table col:nth-child(6)  { width: 5%  !important; }
-table col:nth-child(7)  { width: 5%  !important; }
-table col:nth-child(8)  { width: 5%  !important; }
-table col:nth-child(9)  { width: 5%  !important; }
-table col:nth-child(10) { width: 5%  !important; }
-table col:nth-child(11) { width: 36% !important; }
-
-table th:nth-child(1),  table td:nth-child(1)  { width: 5%  !important; }
-table th:nth-child(2),  table td:nth-child(2)  { width: 14% !important; }
-table th:nth-child(3),  table td:nth-child(3),
-table th:nth-child(4),  table td:nth-child(4),
-table th:nth-child(5),  table td:nth-child(5),
-table th:nth-child(6),  table td:nth-child(6),
-table th:nth-child(7),  table td:nth-child(7),
-table th:nth-child(8),  table td:nth-child(8),
-table th:nth-child(9),  table td:nth-child(9),
-table th:nth-child(10), table td:nth-child(10) { width: 5% !important; }
-table th:nth-child(11), table td:nth-child(11) {
-  width: 36% !important;
-  text-align: left !important; padding-left: 6px !important;
-}
-
-@media print {
-  tr, .data-row, .era-fwd-row {
-    page-break-inside: avoid !important; break-inside: avoid !important;
-  }
-  td, th {
-    overflow: visible !important;
-    overflow-wrap: break-word !important;
-    word-break: break-word !important;
-  }
-  *, *::before, *::after {
-    box-shadow: none !important;
-    text-shadow: none !important;
-  }
-}
-`;
 
 /* ─────────────────────────────────────────────────────────────
    17.  BUILD FULL STANDALONE PAGE  (for PRINT only)
