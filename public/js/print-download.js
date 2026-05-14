@@ -699,8 +699,9 @@ html, body {
 .lc-prc-field-group {
   display: flex; flex-direction: row; flex: 1;
   align-items: flex-end; gap: 4px;
+  width: 100%;
 }
-.lc-prc-field-group.lc-prc-half { flex: 1; align-items: flex-end; }
+.lc-prc-field-group.lc-prc-half { flex: 1; align-items: flex-end; width: 100%; }
 .lc-prc-field-group.lc-prc-inline {
   flex-direction: row; align-items: flex-end;
   gap: 3px; flex: 0 0 auto;
@@ -712,11 +713,12 @@ html, body {
 }
 .lc-prc-field-val {
   font-size: 9pt; font-weight: 700; color: #000;
-  text-transform: uppercase; min-width: 30px;
+  text-transform: uppercase; min-width: 30px; flex: 1;
 }
 .lc-prc-underline {
   border-bottom: 1pt solid #000;
-  display: inline-block; min-width: 80px;
+  display: inline-block; flex: 1;
+  min-width: 40px;
   padding-bottom: 0; line-height: 1;
   vertical-align: bottom; align-self: flex-end;
 }
