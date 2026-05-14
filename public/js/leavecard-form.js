@@ -982,24 +982,142 @@ function resetPersonnelForm() {
   if (errEl)     errEl.textContent = '';
 }
 
+/* ============================================================
+   REPLACEMENTS FOR leavecard-form.js
+   Replace the TWO functions below in your existing file:
+     1. renderPersonnelTable()  — softer card wrapper, no sharp edges
+     2. showPersonnelModal()    — login-page-inspired, easy on the eyes
+   ============================================================ */
+
+
+/* ─────────────────────────────────────────────────────────
+   REPLACEMENT 1 of 2
+   Find: function renderPersonnelTable(emp) {
+   Replace the ENTIRE function with this block.
+───────────────────────────────────────────────────────── */
 function renderPersonnelTable(emp) {
   const wrap = document.getElementById('prcTableWrap');
   if (!wrap) return;
-  const rows = emp.personnelRecords || [];
-  if (rows.length === 0) {
-    wrap.innerHTML = `<p style="color:#888;font-size:12px;padding:10px 0;">No personnel records yet.</p>`;
-    return;
-  }
+
+  const rows    = emp.personnelRecords || [];
   const canEdit = window.state && (window.state.isAdmin || window.state.isEncoder);
-  wrap.innerHTML = `
-    <div class="tw" style="margin-top:8px;">
-      <table>
+
+  // Inject once — personnel table card styles
+  if (!document.getElementById('prc-table-style')) {
+    const st = document.createElement('style');
+    st.id = 'prc-table-style';
+    st.textContent = `
+      .prc-card {
+        background: linear-gradient(160deg, #0d1228 0%, #0f172a 60%, #080e1c 100%);
+        border: 1px solid rgba(34, 81, 179, 0.35);
+        border-radius: 16px;
+        overflow: hidden;
+        margin-bottom: 14px;
+        box-shadow:
+          0 4px 24px rgba(0,0,0,0.45),
+          inset 0 1px 0 rgba(100,150,255,0.08);
+      }
+      .prc-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 13px 20px;
+        background: linear-gradient(135deg, #0d1a3a 0%, #1a2d6b 45%, #2251b3 100%);
+        border-bottom: 1px solid rgba(34, 81, 179, 0.4);
+      }
+      .prc-card-header span {
+        font-family: 'Barlow Condensed', 'Rajdhani', sans-serif;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: rgba(180, 210, 255, 0.95);
+      }
+      .prc-card-body {
+        padding: 14px 16px 10px;
+        overflow-x: auto;
+      }
+      .prc-empty {
+        text-align: center;
+        padding: 20px 8px;
+        color: rgba(100, 140, 220, 0.4);
+        font-size: 12px;
+        font-style: italic;
+        letter-spacing: 0.05em;
+      }
+      .prc-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11.5px;
+        table-layout: auto;
+      }
+      .prc-table thead tr {
+        background: rgba(34, 81, 179, 0.18);
+      }
+      .prc-table thead th {
+        padding: 8px 10px;
+        text-align: center;
+        font-size: 9.5px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(140, 180, 255, 0.8);
+        border-bottom: 1px solid rgba(34, 81, 179, 0.3);
+        white-space: nowrap;
+      }
+      .prc-table tbody tr {
+        border-bottom: 1px solid rgba(34, 81, 179, 0.12);
+        transition: background 0.15s;
+      }
+      .prc-table tbody tr:last-child { border-bottom: none; }
+      .prc-table tbody tr:hover { background: rgba(34, 81, 179, 0.08); }
+      .prc-table tbody td {
+        padding: 8px 10px;
+        color: rgba(210, 230, 255, 0.88);
+        vertical-align: middle;
+        font-size: 11.5px;
+        text-align: center;
+      }
+      .prc-table td.prc-td-left { text-align: left; }
+      .prc-table td.prc-td-actions {
+        white-space: nowrap;
+        text-align: center;
+      }
+      .prc-edit-btn, .prc-del-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+        padding: 2px 5px;
+        border-radius: 5px;
+        transition: background 0.15s, transform 0.15s;
+        line-height: 1;
+      }
+      .prc-edit-btn:hover {
+        background: rgba(34, 81, 179, 0.25);
+        transform: scale(1.12);
+      }
+      .prc-del-btn:hover {
+        background: rgba(192, 57, 43, 0.22);
+        transform: scale(1.12);
+      }
+    `;
+    document.head.appendChild(st);
+  }
+
+  const bodyHtml = rows.length === 0
+    ? `<p class="prc-empty">No personnel records yet. Click <strong>📋 Personnel Record</strong> to add one.</p>`
+    : `<table class="prc-table">
         <thead>
           <tr>
-<th>Effective Date</th><th>Designation</th><th>Status</th>
-            <th>Mo./Annual Salary</th><th>Name of Dist./Station</th>
-            <th>Source of Fund</th><th>Date of Last Prom.</th>
-            <th>Place of Exam</th><th>Remarks</th>
+            <th>Effective Date</th>
+            <th>Designation</th>
+            <th>Status</th>
+            <th>Mo./Annual Salary</th>
+            <th>Name of Dist./Station</th>
+            <th>Source of Fund</th>
+            <th>Date of Last Prom.</th>
+            <th>Remarks</th>
             ${canEdit ? '<th class="no-print">⋮</th>' : ''}
           </tr>
         </thead>
@@ -1007,24 +1125,572 @@ function renderPersonnelTable(emp) {
           ${rows.map((r, i) => `
             <tr>
               <td>${escHtml(r.effectiveDate || '')}</td>
-              <td style="text-align:left;padding-left:6px;">${escHtml(r.designation || '')}</td>
+              <td class="prc-td-left">${escHtml(r.designation || '')}</td>
               <td>${escHtml(r.statusReg || '')}</td>
               <td>${escHtml(r.salary || '')}</td>
-              <td style="text-align:left;padding-left:6px;">${escHtml(r.station || '')}</td>
+              <td class="prc-td-left">${escHtml(r.station || '')}</td>
               <td>${escHtml(r.sourceOfFund || '')}</td>
-<td>${escHtml(r.lastPromotion || '')}</td>
-              <td>${escHtml(r.placeOfExam || '')}</td>
-              <td style="text-align:left;padding-left:6px;">${escHtml(r.remarks || '')}</td>
-${canEdit ? `<td class="no-print">
-                <button onclick="showPersonnelModal(window._currentPrcEmp, {...window._currentPrcEmp.personnelRecords[${i}], _idx:${i}})"
-                  style="background:none;border:none;cursor:pointer;font-size:13px;" title="Edit">✏️</button>
-                <button onclick="deletePrcRow(${i})"
-                  style="background:none;border:none;cursor:pointer;font-size:13px;color:#c0392b;" title="Delete">🗑️</button>
+              <td>${escHtml(r.lastPromotion || '')}</td>
+              <td class="prc-td-left">${escHtml(r.remarks || '')}</td>
+              ${canEdit ? `
+              <td class="prc-td-actions no-print">
+                <button class="prc-edit-btn"
+                  onclick="showPersonnelModal(window._currentPrcEmp, {...window._currentPrcEmp.personnelRecords[${i}], _idx:${i}})"
+                  title="Edit">✏️</button>
+                <button class="prc-del-btn"
+                  onclick="deletePrcRow(${i})"
+                  title="Delete">🗑️</button>
               </td>` : ''}
             </tr>`).join('')}
         </tbody>
-      </table>
+      </table>`;
+
+  wrap.innerHTML = `
+    <div class="prc-card no-print">
+      <div class="prc-card-header">
+        <span>📋 Personnel Record</span>
+      </div>
+      <div class="prc-card-body">
+        ${bodyHtml}
+      </div>
     </div>`;
+}
+
+
+/* ─────────────────────────────────────────────────────────
+   REPLACEMENT 2 of 2
+   Find: function showPersonnelModal(emp, editRecord) {
+   Replace the ENTIRE function with this block.
+───────────────────────────────────────────────────────── */
+function showPersonnelModal(emp, editRecord) {
+  // Inject styles once
+  if (!document.getElementById('prc-modal-style')) {
+    const st = document.createElement('style');
+    st.id = 'prc-modal-style';
+    st.textContent = `
+      /* ── Overlay ── */
+      #prcModal {
+        position: fixed; inset: 0; z-index: 99998;
+        background: rgba(16, 6, 4, 0.72);
+        backdrop-filter: blur(10px);
+        display: flex; align-items: center; justify-content: center;
+        padding: 16px;
+        animation: prcmo-in 0.28s cubic-bezier(0.22,1,0.36,1) both;
+      }
+      @keyframes prcmo-in {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+      }
+
+      /* ── Card ── */
+      .prcmo-card {
+        position: relative;
+        width: 100%;
+        max-width: 860px;
+        max-height: 92vh;
+        overflow-y: auto;
+        background: linear-gradient(160deg, #fdf5f2 0%, #fbeae4 55%, #f8ddd5 100%);
+        border: 1px solid rgba(192, 57, 43, 0.22);
+        border-radius: 20px;
+        box-shadow:
+          0 0 0 1px rgba(255, 80, 50, 0.06),
+          0 30px 80px rgba(0, 0, 0, 0.35),
+          0 0 60px rgba(192, 57, 43, 0.08),
+          inset 0 1px 0 rgba(255, 120, 90, 0.12),
+          inset 0 -1px 0 rgba(0,0,0,0.04);
+        animation: prcmo-card-in 0.35s cubic-bezier(0.22,1,0.36,1) both;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(192,57,43,0.3) transparent;
+      }
+      @keyframes prcmo-card-in {
+        from { opacity: 0; transform: translateY(22px) scale(0.97); }
+        to   { opacity: 1; transform: none; }
+      }
+      .prcmo-card::-webkit-scrollbar { width: 5px; }
+      .prcmo-card::-webkit-scrollbar-thumb {
+        background: rgba(192,57,43,0.25); border-radius: 4px;
+      }
+
+      /* Corner rivets */
+      .prcmo-card::after {
+        content: '';
+        position: absolute; top: 14px; left: 14px;
+        width: 7px; height: 7px; border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, rgba(220,80,50,0.6), rgba(180,40,20,0.4));
+        pointer-events: none;
+      }
+
+      /* ── Header ── */
+      .prcmo-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 24px 16px;
+        background: linear-gradient(135deg,
+          rgba(192,57,43,0.12) 0%,
+          rgba(220,80,50,0.08) 50%,
+          rgba(192,57,43,0.06) 100%);
+        border-bottom: 1px solid rgba(192, 57, 43, 0.18);
+        border-radius: 20px 20px 0 0;
+        position: sticky; top: 0;
+        backdrop-filter: blur(12px);
+        z-index: 5;
+      }
+      .prcmo-header::before {
+        content: '';
+        position: absolute; top: 0; left: 0; right: 0; height: 2.5px;
+        background: linear-gradient(90deg,
+          transparent 0%, rgba(192,57,43,0.6) 25%,
+          rgba(220,80,50,0.9) 50%,
+          rgba(192,57,43,0.6) 75%, transparent 100%);
+        border-radius: 20px 20px 0 0;
+        pointer-events: none;
+      }
+      .prcmo-title {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #5a1008;
+        letter-spacing: -0.01em;
+      }
+      .prcmo-close {
+        width: 32px; height: 32px;
+        background: rgba(192,57,43,0.1);
+        border: 1px solid rgba(192,57,43,0.22);
+        border-radius: 8px;
+        color: rgba(160, 40, 20, 0.7);
+        font-size: 15px;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.18s, color 0.18s, transform 0.18s;
+        line-height: 1;
+        flex-shrink: 0;
+      }
+      .prcmo-close:hover {
+        background: rgba(192,57,43,0.2);
+        color: #7a1010;
+        transform: rotate(90deg) scale(1.1);
+      }
+
+      /* ── Body ── */
+      .prcmo-body {
+        padding: 24px 28px;
+      }
+
+      /* ── Section label ── */
+      .prcmo-section {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: rgba(140, 40, 20, 0.55);
+        padding: 12px 0 8px;
+        border-bottom: 1px solid rgba(192, 57, 43, 0.15);
+        margin-bottom: 14px;
+        display: flex; align-items: center; gap: 8px;
+      }
+      .prcmo-section::before {
+        content: '';
+        display: inline-block;
+        width: 14px; height: 2.5px;
+        background: linear-gradient(90deg, #c0392b, rgba(192,57,43,0.4));
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+
+      /* ── Form grid ── */
+      .prcmo-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px 16px;
+        margin-bottom: 4px;
+      }
+      .prcmo-grid-2 { grid-template-columns: repeat(2, 1fr) !important; }
+      .prcmo-full  { grid-column: 1 / -1 !important; }
+
+      /* ── Field ── */
+      .prcmo-f {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      .prcmo-f label {
+        font-size: 9.5px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(130, 35, 15, 0.72);
+      }
+      .prcmo-f input,
+      .prcmo-f select {
+        height: 42px;
+        padding: 0 13px;
+        background: #ffffff;
+        border: 1.5px solid rgba(180, 55, 35, 0.28);
+        border-radius: 10px;
+        color: #2a0808;
+        font-size: 13.5px;
+        font-weight: 500;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        appearance: auto;
+      }
+      .prcmo-f input::placeholder { color: rgba(160, 80, 60, 0.35); font-weight: 400; }
+      .prcmo-f input:focus,
+      .prcmo-f select:focus {
+        border-color: rgba(192, 57, 43, 0.6);
+        box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.1);
+        background: #fffaf9;
+      }
+      .prcmo-f select option { background: #fff; color: #2a0808; }
+
+      /* ── Error ── */
+      .prcmo-err {
+        font-size: 11.5px;
+        color: #c0392b;
+        min-height: 16px;
+        padding: 0 2px;
+        font-weight: 600;
+      }
+
+      /* ── Existing records mini-table ── */
+      .prcmo-rec-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+        margin-top: 6px;
+      }
+      .prcmo-rec-table thead tr {
+        background: rgba(192, 57, 43, 0.08);
+      }
+      .prcmo-rec-table thead th {
+        padding: 7px 9px;
+        text-align: center;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(130, 35, 15, 0.65);
+        border-bottom: 1px solid rgba(192, 57, 43, 0.2);
+        white-space: nowrap;
+      }
+      .prcmo-rec-table tbody tr {
+        border-bottom: 1px solid rgba(192, 57, 43, 0.1);
+        transition: background 0.15s;
+      }
+      .prcmo-rec-table tbody tr:last-child { border-bottom: none; }
+      .prcmo-rec-table tbody tr:hover { background: rgba(192, 57, 43, 0.05); }
+      .prcmo-rec-table tbody td {
+        padding: 7px 9px;
+        color: #3a0a0a;
+        text-align: center;
+        font-size: 11.5px;
+      }
+      .prcmo-rec-table td.prcmo-td-left { text-align: left; }
+      .prcmo-rec-edit, .prcmo-rec-del {
+        background: none; border: none; cursor: pointer;
+        font-size: 13px; padding: 2px 4px; border-radius: 5px;
+        transition: background 0.15s, transform 0.15s; line-height: 1;
+      }
+      .prcmo-rec-edit:hover { background: rgba(59,130,246,0.12); transform: scale(1.12); }
+      .prcmo-rec-del:hover  { background: rgba(192,57,43,0.12);  transform: scale(1.12); }
+      .prcmo-rec-empty {
+        text-align: center;
+        padding: 14px 8px;
+        color: rgba(140, 60, 40, 0.4);
+        font-size: 11.5px;
+        font-style: italic;
+      }
+
+      /* ── Footer ── */
+      .prcmo-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 16px 28px 22px;
+        border-top: 1px solid rgba(192, 57, 43, 0.15);
+        background: rgba(248, 220, 210, 0.25);
+        border-radius: 0 0 20px 20px;
+        position: sticky; bottom: 0;
+        backdrop-filter: blur(10px);
+      }
+
+      /* ── Buttons ── */
+      .prcmo-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 10px 22px;
+        font-family: 'DM Sans', 'Inter', sans-serif;
+        font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em;
+        text-transform: uppercase; border: none; border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s ease;
+      }
+      .prcmo-btn:hover   { transform: translateY(-2px); }
+      .prcmo-btn:active  { transform: translateY(0); }
+      .prcmo-btn-cancel {
+        background: rgba(192,57,43,0.1);
+        color: rgba(140, 40, 20, 0.75);
+        border: 1px solid rgba(192,57,43,0.25) !important;
+      }
+      .prcmo-btn-cancel:hover { background: rgba(192,57,43,0.16); color: #7a1010; }
+      .prcmo-btn-save {
+        background: linear-gradient(135deg, #1e3a6e, #2251b3);
+        color: #fff;
+        box-shadow: 0 4px 16px rgba(30, 58, 110, 0.4);
+      }
+      .prcmo-btn-save:hover {
+        box-shadow: 0 8px 24px rgba(30, 58, 110, 0.55);
+        background: linear-gradient(135deg, #1a3262, #1e48a0);
+      }
+      .prcmo-btn-save:disabled {
+        opacity: 0.6; cursor: not-allowed; transform: none;
+      }
+    `;
+    document.head.appendChild(st);
+  }
+
+  // Remove any existing instance
+  document.getElementById('prcModal')?.remove();
+
+  const isEdit   = !!editRecord;
+  const r        = editRecord || {};
+  const STATUS   = ['Permanent','Temporary','Substitute','Regular','Casual'];
+  const FUNDS    = ['National','Local'];
+  function esc(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  const overlay = document.createElement('div');
+  overlay.id    = 'prcModal';
+  overlay.innerHTML = `
+    <div class="prcmo-card">
+
+      <div class="prcmo-header">
+        <div class="prcmo-title">📋 ${isEdit ? 'Edit' : 'Add'} Personnel Record</div>
+        <button class="prcmo-close" id="prcmo_close_btn" type="button">✕</button>
+      </div>
+
+      <div class="prcmo-body">
+
+        <div class="prcmo-section">Entry Details</div>
+        <div class="prcmo-grid prcmo-grid-2">
+
+          <div class="prcmo-f">
+            <label>Effective Date</label>
+            <input id="pm_effectiveDate" class="date-text" type="text"
+              placeholder="mm/dd/yyyy" value="${esc(r.effectiveDate||'')}"/>
+          </div>
+
+          <div class="prcmo-f">
+            <label>Date of Last Promotion</label>
+            <input id="pm_lastPromotion" class="date-text" type="text"
+              placeholder="mm/dd/yyyy" value="${esc(r.lastPromotion||'')}"/>
+          </div>
+
+          <div class="prcmo-f prcmo-full">
+            <label>Designation</label>
+            <input id="pm_designation" type="text"
+              placeholder="e.g. Teacher I" value="${esc(r.designation||'')}"/>
+          </div>
+
+          <div class="prcmo-f">
+            <label>Status (Reg/Perm/Temp/Subt)</label>
+            <select id="pm_statusReg">
+              <option value="">— Select —</option>
+              ${STATUS.map(o=>`<option value="${esc(o)}" ${r.statusReg===o?'selected':''}>${esc(o)}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="prcmo-f">
+            <label>Mo. / Annual Salary</label>
+            <input id="pm_salary" type="text"
+              placeholder="e.g. 25000" value="${esc(r.salary||'')}"/>
+          </div>
+
+          <div class="prcmo-f prcmo-full">
+            <label>Name of Dist. / Station</label>
+            <input id="pm_station" type="text"
+              placeholder="e.g. Koronadal City NHS" value="${esc(r.station||'')}"/>
+          </div>
+
+          <div class="prcmo-f">
+            <label>Source of Fund</label>
+            <select id="pm_sourceOfFund">
+              <option value="">— Select —</option>
+              ${FUNDS.map(o=>`<option value="${esc(o)}" ${r.sourceOfFund===o?'selected':''}>${esc(o)}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="prcmo-f">
+            <label>Remarks <span style="font-weight:400;font-size:9px;opacity:.5;">(optional)</span></label>
+            <input id="pm_remarks" type="text"
+              placeholder="Optional" value="${esc(r.remarks||'')}"/>
+          </div>
+
+        </div>
+
+        <div class="prcmo-err" id="pm_err"></div>
+
+        <div class="prcmo-section" style="margin-top:20px;">Existing Records</div>
+        <div id="prcmo_rec_table"></div>
+
+      </div>
+
+      <div class="prcmo-footer">
+        <button class="prcmo-btn prcmo-btn-cancel" id="prcmo_cancel_btn" type="button">Cancel</button>
+        <button class="prcmo-btn prcmo-btn-save"   id="prcmo_save_btn"   type="button">
+          💾 ${isEdit ? 'Update Record' : 'Save Record'}
+        </button>
+      </div>
+
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  // ── Wire date auto-format ──
+  overlay.querySelectorAll('.date-text').forEach(inp => {
+    inp.addEventListener('input', () => { inp.value = fmtDateInput(inp.value); });
+  });
+
+  // ── Close handlers ──
+  const closeFn = () => {
+    overlay.style.transition = 'opacity 0.22s ease';
+    overlay.style.opacity    = '0';
+    setTimeout(() => overlay.remove(), 230);
+  };
+  document.getElementById('prcmo_close_btn').addEventListener('click', closeFn);
+  document.getElementById('prcmo_cancel_btn').addEventListener('click', closeFn);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeFn(); });
+
+  // ── Render existing records mini-table ──
+  function renderPrcMoTable() {
+    const tableWrap = document.getElementById('prcmo_rec_table');
+    if (!tableWrap) return;
+    const rows = emp.personnelRecords || [];
+    if (rows.length === 0) {
+      tableWrap.innerHTML = `<p class="prcmo-rec-empty">No records yet.</p>`;
+      return;
+    }
+    tableWrap.innerHTML = `
+      <table class="prcmo-rec-table">
+        <thead>
+          <tr>
+            <th>Effective Date</th>
+            <th>Designation</th>
+            <th>Status</th>
+            <th>Salary</th>
+            <th>Station</th>
+            <th>Fund</th>
+            <th>Last Prom.</th>
+            <th>Remarks</th>
+            <th class="no-print">⋮</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((row, i) => `
+            <tr>
+              <td>${esc(row.effectiveDate||'')}</td>
+              <td class="prcmo-td-left">${esc(row.designation||'')}</td>
+              <td>${esc(row.statusReg||'')}</td>
+              <td>${esc(row.salary||'')}</td>
+              <td class="prcmo-td-left">${esc(row.station||'')}</td>
+              <td>${esc(row.sourceOfFund||'')}</td>
+              <td>${esc(row.lastPromotion||'')}</td>
+              <td class="prcmo-td-left">${esc(row.remarks||'')}</td>
+              <td class="no-print" style="white-space:nowrap;">
+                <button class="prcmo-rec-edit" data-edit-i="${i}" title="Edit">✏️</button>
+                <button class="prcmo-rec-del"  data-del-i="${i}"  title="Delete">🗑️</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+
+    tableWrap.querySelectorAll('.prcmo-rec-edit').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = +btn.dataset.editI;
+        const rec = { ...emp.personnelRecords[idx], _idx: idx };
+        closeFn();
+        setTimeout(() => showPersonnelModal(emp, rec), 240);
+      });
+    });
+    tableWrap.querySelectorAll('.prcmo-rec-del').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const idx = +btn.dataset.delI;
+        if (!confirm('Delete this personnel record? This cannot be undone.')) return;
+        const res = await apiCall('delete_personnel_record', { employee_id: emp.id, idx });
+        if (!res.ok) { alert(res.error || 'Delete failed.'); return; }
+        emp.personnelRecords.splice(idx, 1);
+        if (typeof renderPersonnelTable === 'function') renderPersonnelTable(emp);
+        renderPrcMoTable();
+      });
+    });
+  }
+  renderPrcMoTable();
+
+  // ── Save handler ──
+  document.getElementById('prcmo_save_btn').addEventListener('click', async () => {
+    const errEl  = document.getElementById('pm_err');
+    errEl.textContent = '';
+    const saveBtn = document.getElementById('prcmo_save_btn');
+
+    const rec = {
+      effectiveDate : document.getElementById('pm_effectiveDate').value.trim(),
+      designation   : document.getElementById('pm_designation').value.trim(),
+      statusReg     : document.getElementById('pm_statusReg').value,
+      salary        : document.getElementById('pm_salary').value.trim(),
+      station       : document.getElementById('pm_station').value.trim(),
+      sourceOfFund  : document.getElementById('pm_sourceOfFund').value,
+      lastPromotion : document.getElementById('pm_lastPromotion').value.trim(),
+      remarks       : document.getElementById('pm_remarks').value.trim(),
+    };
+
+    if (!rec.effectiveDate && !rec.designation) {
+      errEl.textContent = 'Please fill in at least Effective Date or Designation.';
+      return;
+    }
+
+    const editIdx = isEdit ? (editRecord._idx ?? null) : null;
+    saveBtn.disabled    = true;
+    saveBtn.textContent = 'Saving…';
+
+    const apiRes = editIdx !== null
+      ? await apiCall('update_personnel_record', { employee_id: emp.id, idx: editIdx, record: rec })
+      : await apiCall('save_personnel_record',   { employee_id: emp.id, record: rec });
+
+    saveBtn.disabled = false;
+
+    if (!apiRes.ok) {
+      errEl.textContent   = apiRes.error || 'Save failed.';
+      saveBtn.textContent = isEdit ? '💾 Update Record' : '💾 Save Record';
+      return;
+    }
+
+    if (!emp.personnelRecords) emp.personnelRecords = [];
+    if (editIdx !== null) emp.personnelRecords[editIdx] = rec;
+    else emp.personnelRecords.push(rec);
+
+    if (typeof renderPersonnelTable === 'function') renderPersonnelTable(emp);
+
+    // Refresh table in modal and reset form for next entry
+    renderPrcMoTable();
+    // Clear form for next entry (don't close — let user add more)
+    document.getElementById('pm_effectiveDate').value = '';
+    document.getElementById('pm_designation').value   = '';
+    document.getElementById('pm_statusReg').value     = '';
+    document.getElementById('pm_salary').value        = '';
+    document.getElementById('pm_station').value       = '';
+    document.getElementById('pm_sourceOfFund').value  = '';
+    document.getElementById('pm_lastPromotion').value = '';
+    document.getElementById('pm_remarks').value       = '';
+    saveBtn.textContent = '💾 Save Record';
+
+    // If it was an edit, close the modal
+    if (editIdx !== null) closeFn();
+  });
 }
 
 async function deletePrcRow(idx) {
