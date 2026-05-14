@@ -123,10 +123,6 @@ document.getElementById('cAddPrcRec')?.addEventListener('click', () => {
     if (canEdit) showPersonnelModal(emp, null);
 });
 
-document.getElementById('cAddPrcRec2')?.addEventListener('click', () => {
-    if (canEdit) showPersonnelModal(emp, null);
-});
-
   // Wire Force Leave button
   const forceLvBtn = document.getElementById('cForceLeave');
   if (forceLvBtn && !forceLeaveApplied) {
