@@ -699,9 +699,8 @@ html, body {
 .lc-prc-field-group {
   display: flex; flex-direction: row; flex: 1;
   align-items: flex-end; gap: 4px;
-  width: 100%;
 }
-.lc-prc-field-group.lc-prc-half { flex: 1; align-items: flex-end; width: 100%; }
+.lc-prc-field-group.lc-prc-half { flex: 1; align-items: flex-end; }
 .lc-prc-field-group.lc-prc-inline {
   flex-direction: row; align-items: flex-end;
   gap: 3px; flex: 0 0 auto;
@@ -713,12 +712,11 @@ html, body {
 }
 .lc-prc-field-val {
   font-size: 9pt; font-weight: 700; color: #000;
-  text-transform: uppercase; min-width: 30px; flex: 1;
+  text-transform: uppercase; min-width: 30px;
 }
 .lc-prc-underline {
   border-bottom: 1pt solid #000;
-  display: inline-block; flex: 1;
-  min-width: 40px;
+  display: inline-block; min-width: 80px;
   padding-bottom: 0; line-height: 1;
   vertical-align: bottom; align-self: flex-end;
 }
@@ -1436,7 +1434,26 @@ async function lcDownloadPDF(emp) {
     setOverlayProgress(18, 'Building document layout…', 0);
     setOverlayProgress(40, 'Rendering document…', 1);
     const html = buildFullPage(emp, logoSrc);
-    const buf  = await renderPageToArrayBuffer(html);
+
+    // Use same iframe approach as print for pixel-perfect match
+    const iframe = await createCaptureIframe(html);
+    await Promise.all(
+      [...iframe.contentDocument.images].map(img =>
+        img.decode ? img.decode().catch(() => {}) : Promise.resolve()
+      )
+    );
+    await new Promise(r => setTimeout(r, 500));
+
+    const buf = await new Promise((resolve, reject) => {
+      const target = iframe.contentDocument.querySelector('.lc-export-doc')
+                  || iframe.contentDocument.body;
+      html2pdf()
+        .set(PDF_OPT_BASE)
+        .from(target)
+        .outputPdf('arraybuffer')
+        .then(b => { iframe.remove(); resolve(b); })
+        .catch(e => { iframe.remove(); reject(e); });
+    });
     const buffers = [buf];
 
     setOverlayProgress(72, 'Finalising document…', 2);
