@@ -1380,6 +1380,12 @@ function showPersonnelRecordModal(emp, editRecord) {
               </select>
             </div>
 
+<div class="f">
+              <label>Place of Exam <span style="font-weight:400;font-size:10px;opacity:.6;">(optional)</span></label>
+              <input id="prc_mo_placeOfExam" type="text" placeholder="e.g. PBET - Koronadal City"
+                     value="${esc(r.placeOfExam||'')}"/>
+            </div>
+
             <div class="f">
               <label>Remarks <span style="font-weight:400;font-size:10px;opacity:.6;">(optional)</span></label>
               <input id="prc_mo_remarks" type="text" placeholder="Optional"
@@ -1434,6 +1440,7 @@ function showPersonnelRecordModal(emp, editRecord) {
     errEl.textContent = '';
 
     const rec = {
+const rec = {
       effectiveDate : document.getElementById('prc_mo_effectiveDate').value.trim(),
       designation   : document.getElementById('prc_mo_designation').value.trim(),
       statusReg     : document.getElementById('prc_mo_statusReg').value,
@@ -1441,6 +1448,7 @@ function showPersonnelRecordModal(emp, editRecord) {
       station       : document.getElementById('prc_mo_station').value.trim(),
       sourceOfFund  : document.getElementById('prc_mo_sourceOfFund').value,
       lastPromotion : document.getElementById('prc_mo_lastPromotion').value.trim(),
+      placeOfExam   : document.getElementById('prc_mo_placeOfExam').value.trim(),
       remarks       : document.getElementById('prc_mo_remarks').value.trim(),
     };
 
