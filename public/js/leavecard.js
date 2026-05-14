@@ -88,9 +88,8 @@ async function openLeaveCardInContainer(emp, container) {
     </div>
     ${profileHtml}
 ${canEdit ? buildLeaveEntryForm(emp) : ''}
-${canEdit ? `<div style="padding:4px 0 8px 0;" class="no-print"><button class="btn b-sm" id="cAddPrcRec2" style="background:rgba(30,58,110,.8);color:#a8c4f0;border:1px solid rgba(30,58,110,.9);">➕ Add Personnel Record</button></div>` : ''}
-    ${canEdit ? buildPersonnelEntryForm() : ''}
-    <div id="prcTableWrap" style="padding:0 4px;"></div>
+${canEdit ? buildPersonnelEntryForm() : ''}
+    <div id="prcTableWrap" style="padding:0 4px;margin-top:12px;"></div>
     <div id="lcTableWrap"></div>
   </div>`;
 
@@ -106,12 +105,10 @@ renderLeaveCardTable(emp);
   // Store emp reference for personnel table row actions
   window._currentPrcEmp = emp;
 
-  // Load existing personnel records
-  if (!emp.personnelRecords) {
-    const prcRes = await apiCall('get_personnel_records', { employee_id: emp.id }, 'GET');
-    if (prcRes.ok) emp.personnelRecords = prcRes.records || [];
-    else emp.personnelRecords = [];
-  }
+// Load existing personnel records — always reload fresh
+  const prcRes = await apiCall('get_personnel_records', { employee_id: emp.id }, 'GET');
+  if (prcRes.ok) emp.personnelRecords = prcRes.records || [];
+  else emp.personnelRecords = emp.personnelRecords || [];
 
   // Render personnel table
   renderPersonnelTable(emp);
@@ -126,9 +123,9 @@ document.getElementById('cAddPrcRec')?.addEventListener('click', () => {
     if (canEdit) showPersonnelModal(emp, null);
   });
 
-  if (canEdit) wirePersonnelEntryForm(emp, null);
-    document.getElementById('cAddPrcRec2')?.addEventListener('click', () => {
-    document.getElementById('prcEntryPanel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+if (canEdit) wirePersonnelEntryForm(emp, null);
+  document.getElementById('cAddPrcRec2')?.addEventListener('click', () => {
+    if (canEdit) showPersonnelModal(emp, null);
   });
 
   // Wire Force Leave button
