@@ -1044,7 +1044,7 @@ function renderPersonnelTable(emp) {
         font-weight: 800;
         letter-spacing: 0.22em;
         text-transform: uppercase;
-        color: #ffffff;
+        color: #2F63C9;
       }
       .prc-card-body {
         padding: 14px 16px 12px;
@@ -1065,7 +1065,7 @@ function renderPersonnelTable(emp) {
         table-layout: auto;
       }
       .prc-table thead tr {
-        background: rgba(192, 57, 43, 0.08);
+        background: rgba(47, 99, 201, 0.08);
       }
       .prc-table thead th {
         padding: 8px 10px;
