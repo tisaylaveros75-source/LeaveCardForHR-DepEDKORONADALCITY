@@ -970,7 +970,8 @@ async function openLeaveCard(emp) {
           </div>
         </div>
       </div>
-      ${canEdit ? buildLeaveEntryForm(emp) : ''}
+     ${canEdit ? buildLeaveEntryForm(emp) : ''}
+      <div id="prcTableWrap" style="padding:0 4px;margin-top:12px;"></div>
       <div id="lcTableWrap"></div>
     </div>`;
 
@@ -982,10 +983,25 @@ async function openLeaveCard(emp) {
   document.getElementById('lcPrintBtn')?.addEventListener('click', () => pdfExportPrint(emp));
   document.getElementById('lcDlBtn')?.addEventListener('click', () => pdfExportDownload(emp));
 
-  sortRecordsInPlace(emp.records);
-lcPrimeForPrint(emp); // ← ADD THIS LINE
-renderLeaveCardTable(emp);
-if (canEdit) wireLeaveEntryForm(emp, null);
+sortRecordsInPlace(emp.records);
+  renderLeaveCardTable(emp);
+  if (canEdit) wireLeaveEntryForm(emp, null);
+
+  // Load and render personnel records
+  window._currentPrcEmp = emp;
+  const prcRes = await apiCall('get_personnel_records', { employee_id: emp.id }, 'GET');
+  if (prcRes.ok) emp.personnelRecords = prcRes.records || [];
+  else emp.personnelRecords = emp.personnelRecords || [];
+  if (typeof renderPersonnelTable === 'function') renderPersonnelTable(emp);
+
+  // Wire Personnel Record button if present
+  document.getElementById('cAddPrcRec')?.addEventListener('click', () => {
+    if (canEdit) showPersonnelModal(emp, null);
+  });
+
+  // Prime print AFTER personnel records are loaded
+  lcPrimeForPrint(emp);
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
