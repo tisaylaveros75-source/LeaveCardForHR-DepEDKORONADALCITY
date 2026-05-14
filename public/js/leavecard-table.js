@@ -276,21 +276,33 @@ function buildLeaveRow(r, idx, isNT, emp, canEdit) {
   }
 
 let periodHtml = '';
-  if (r.prd && !r.from && !r.to) {
-    // Only show prd when there are no from/to dates — avoids duplication
-    const prdDisplay = normalizePrd(r.prd);
-    periodHtml += `<span style="display:block;font-size:10px;color:var(--mu);margin-bottom:2px;">${escHtml(prdDisplay)}</span>`;
+
+  // Build the from/to display string for dedup comparison
+  let dateLineStr = '';
+  if (fromStr && toStr && fromStr !== toStr) {
+    dateLineStr = `${fromStr} – ${toStr}`;
+  } else if (fromStr) {
+    dateLineStr = fromStr;
   }
-  if (fromStr && toStr) {
-    periodHtml += fromStr === toStr
-      ? `<span class="prd-date">${escHtml(fromStr)}${fpTag}</span>`
-      : `<span class="prd-date">${escHtml(fromStr)}${fpTag} – ${escHtml(toStr)}${tpTag}</span>`;
+
+  // Only show prd if it's not a duplicate of the from/to display
+  if (r.prd) {
+    const prdDisplay = normalizePrd(r.prd);
+    const isDupe = prdDisplay === fromStr
+                || prdDisplay === toStr
+                || prdDisplay === dateLineStr;
+    if (!isDupe) {
+      periodHtml += `<span style="display:block;font-size:10px;color:var(--mu);margin-bottom:2px;">${escHtml(prdDisplay)}</span>`;
+    }
+  }
+
+  if (fromStr && toStr && fromStr !== toStr) {
+    periodHtml += `<span class="prd-date">${escHtml(fromStr)}${fpTag} – ${escHtml(toStr)}${tpTag}</span>`;
   } else if (fromStr) {
     periodHtml += `<span class="prd-date">${escHtml(fromStr)}${fpTag}</span>`;
   } else if (r.prd) {
-    // No from/to — show prd as the main date display
-    const prdDisplay = normalizePrd(r.prd);
-    periodHtml += `<span class="prd-date">${escHtml(prdDisplay)}</span>`;
+    // No from/to at all — show prd as the only date line
+    periodHtml += `<span class="prd-date">${escHtml(normalizePrd(r.prd))}</span>`;
   }
 
   const menuHtml = canEdit ? `<td class="no-print">
