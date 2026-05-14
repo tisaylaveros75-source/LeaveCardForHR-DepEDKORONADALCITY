@@ -275,14 +275,12 @@ function buildLeaveRow(r, idx, isNT, emp, canEdit) {
     return prd;
   }
 
-  let periodHtml = '';
+let periodHtml = '';
   if (r.prd) {
     const prdDisplay = normalizePrd(r.prd);
-    // Only show prd line if it adds info not already shown by from/to dates
-    const prdIsDateOnly = /^\d{4}$/.test(r.prd.trim())
-      || /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(r.prd.trim())
-      || /^\d{4}-\d{2}-\d{2}$/.test(r.prd.trim());
-    if (!prdIsDateOnly || (!r.from && !r.to)) {
+    // Only show prd if it's different from the from/to dates
+    const isDuplicate = prdDisplay === fromStr || prdDisplay === toStr;
+    if (!isDuplicate) {
       periodHtml += `<span style="display:block;font-size:10px;color:var(--mu);margin-bottom:2px;">${escHtml(prdDisplay)}</span>`;
     }
   }
