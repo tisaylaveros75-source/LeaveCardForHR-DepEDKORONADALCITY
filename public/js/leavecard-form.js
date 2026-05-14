@@ -1006,9 +1006,101 @@ function renderPersonnelTable(emp) {
   if (!document.getElementById('prc-table-style')) {
     const st = document.createElement('style');
     st.id = 'prc-table-style';
-    st.textContent = `
+   st.textContent = `
       .prc-card {
-        background: linear-gradient(160deg, #0d1228 0%, #0f172a 60%, #080e1c 100%);
+        background: linear-gradient(160deg, #fdf5f2 0%, #fbeae4 55%, #f8ddd5 100%);
+        border: 1px solid rgba(192, 57, 43, 0.22);
+        border-radius: 16px;
+        overflow: hidden;
+        margin-bottom: 14px;
+        box-shadow:
+          0 0 0 1px rgba(255, 80, 50, 0.06),
+          0 6px 28px rgba(0,0,0,0.12),
+          inset 0 1px 0 rgba(255, 120, 90, 0.1);
+      }
+      .prc-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0; right: 0; height: 2.5px;
+        background: linear-gradient(90deg,
+          transparent 0%, rgba(192,57,43,0.5) 25%,
+          rgba(220,80,50,0.85) 50%,
+          rgba(192,57,43,0.5) 75%, transparent 100%);
+        pointer-events: none;
+      }
+      .prc-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 13px 20px;
+        background: linear-gradient(135deg,
+          rgba(192,57,43,0.12) 0%,
+          rgba(220,80,50,0.08) 50%,
+          rgba(192,57,43,0.06) 100%);
+        border-bottom: 1px solid rgba(192, 57, 43, 0.18);
+      }
+      .prc-card-header span {
+        font-family: 'Barlow Condensed', 'Rajdhani', sans-serif;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: rgba(130, 35, 15, 0.72);
+      }
+      .prc-card-body {
+        padding: 14px 16px 12px;
+        overflow-x: auto;
+      }
+      .prc-empty {
+        text-align: center;
+        padding: 20px 8px;
+        color: rgba(140, 60, 40, 0.4);
+        font-size: 12px;
+        font-style: italic;
+        letter-spacing: 0.05em;
+      }
+      .prc-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11.5px;
+        table-layout: auto;
+      }
+      .prc-table thead tr {
+        background: rgba(192, 57, 43, 0.08);
+      }
+      .prc-table thead th {
+        padding: 8px 10px;
+        text-align: center;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(130, 35, 15, 0.65);
+        border-bottom: 1px solid rgba(192, 57, 43, 0.2);
+        white-space: nowrap;
+      }
+      .prc-table tbody tr {
+        border-bottom: 1px solid rgba(192, 57, 43, 0.1);
+        transition: background 0.15s;
+      }
+      .prc-table tbody tr:last-child { border-bottom: none; }
+      .prc-table tbody tr:hover { background: rgba(192, 57, 43, 0.05); }
+      .prc-table tbody td {
+        padding: 8px 10px;
+        color: #3a0a0a;
+        vertical-align: middle;
+        font-size: 11.5px;
+        text-align: center;
+      }
+      .prc-table td.prc-td-left { text-align: left; }
+      .prc-table td.prc-td-actions { white-space: nowrap; text-align: center; }
+      .prc-edit-btn, .prc-del-btn {
+        background: none; border: none; cursor: pointer;
+        font-size: 13px; padding: 2px 5px; border-radius: 5px;
+        transition: background 0.15s, transform 0.15s; line-height: 1;
+      }
+      .prc-edit-btn:hover { background: rgba(59,130,246,0.12); transform: scale(1.12); }
+      .prc-del-btn:hover  { background: rgba(192,57,43,0.12);  transform: scale(1.12); }
+    `;
         border: 1px solid rgba(34, 81, 179, 0.35);
         border-radius: 16px;
         overflow: hidden;
