@@ -120,11 +120,11 @@ renderLeaveCardTable(emp);
 
 // Wire "Add Personnel Record" button — scrolls to the inline form
 document.getElementById('cAddPrcRec')?.addEventListener('click', () => {
-    if (canEdit) showPersonnelRecordModal(emp, null);
+    if (canEdit) showPersonnelModal(emp, null);
 });
 
 document.getElementById('cAddPrcRec2')?.addEventListener('click', () => {
-    if (canEdit) showPersonnelRecordModal(emp, null);
+    if (canEdit) showPersonnelModal(emp, null);
 });
 
   // Wire Force Leave button
