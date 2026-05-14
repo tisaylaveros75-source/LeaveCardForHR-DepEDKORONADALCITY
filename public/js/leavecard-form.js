@@ -293,9 +293,9 @@ function buildLeaveEntryForm(emp) {
           </div>
 
 <div id="le_err" class="lc-err"></div>
-          <button class="btn lc-save-btn"        id="leaveEntrySave" type="button">💾 SAVE ENTRY</button>
+<button class="btn lc-save-btn"        id="leaveEntrySave" type="button">💾 SAVE ENTRY</button>
           <button class="btn lc-cancel-edit-btn" id="leCancelEdit"   type="button" style="display:none;">✕ CANCEL EDIT</button>
-          <button class="btn b-sm" id="cAddPrcRec2" type="button" style="background:linear-gradient(135deg,#1e3a6e,#2251b3);color:#fff;border:1px solid rgba(59,130,246,.5);height:36px;padding:0 16px;font-size:12px;font-weight:700;letter-spacing:.5px;border-radius:10px;box-shadow:0 4px 14px rgba(30,58,110,.5);cursor:pointer;">📋 Personnel Record</button>
+          <button class="btn" id="cAddPrcRec2" type="button" style="background:linear-gradient(135deg,#1e3a6e,#2251b3);color:#fff;border:1px solid rgba(59,130,246,.5);padding:0 16px;font-size:12px;font-weight:700;letter-spacing:.5px;border-radius:10px;box-shadow:0 4px 14px rgba(30,58,110,.5);cursor:pointer;align-self:stretch;">📋 Personnel Record</button>
         </div>
 
       </div>
