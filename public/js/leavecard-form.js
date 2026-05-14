@@ -583,7 +583,7 @@ function _val(panel, selector, value) {
 // ── Personnel Record Card entry form ─────────────────────────────────
 function buildPersonnelEntryForm() {
   return `
-    <div class="lc-entry-card no-print" id="prcEntryPanel" style="margin-top:12px;">
+    <div class="lc-entry-card no-print" id="prcEntryPanel" style="margin-top:12px;display:none;">
       <div class="lc-entry-header" style="background:linear-gradient(135deg,#1a2d6b 0%,#2251b3 100%);">
         <span>📋 PERSONNEL RECORD ENTRY</span>
       </div>
@@ -648,6 +648,197 @@ function buildPersonnelEntryForm() {
         </div>
       </div>
     </div>`;
+}
+
+function showPersonnelModal(emp, editRecord) {
+  // Build modal if it doesn't exist
+  if (!document.getElementById('prcModal')) {
+    const overlay = document.createElement('div');
+    overlay.id = 'prcModal';
+    overlay.style.cssText = `
+      position:fixed;inset:0;z-index:99998;
+      background:rgba(0,0,0,0.75);
+      display:flex;align-items:center;justify-content:center;
+      padding:16px;
+    `;
+    overlay.innerHTML = `
+      <div style="
+        background:#0d0404;border:1px solid #5a0a0a;border-top:3px solid #8b0000;
+        border-radius:12px;padding:24px;width:100%;max-width:820px;
+        max-height:90vh;overflow-y:auto;position:relative;
+        box-shadow:0 20px 60px rgba(0,0,0,0.8);
+      ">
+        <button id="prcModalClose" style="
+          position:absolute;top:12px;right:14px;
+          background:none;border:none;color:#888;font-size:20px;
+          cursor:pointer;line-height:1;
+        ">✕</button>
+        <div style="
+          font-family:'Barlow Condensed',sans-serif;font-size:11px;
+          font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+          color:#c0392b;margin-bottom:16px;
+        ">📋 PERSONNEL RECORD ENTRY</div>
+        <div id="prcModalBody"></div>
+      </div>`;
+    document.body.appendChild(overlay);
+    document.getElementById('prcModalClose').addEventListener('click', () => {
+      document.getElementById('prcModal').style.display = 'none';
+    });
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.style.display = 'none';
+    });
+  }
+
+  // Inject the form fields into modal body
+  document.getElementById('prcModalBody').innerHTML = `
+    <div id="prcModalPanel">
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <label style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#4a2020;">EFFECTIVE DATE</label>
+          <div style="display:flex;gap:4px;">
+            <input id="pm_effectiveDate" class="date-text" type="text" placeholder="mm/dd/yyyy"
+              style="height:34px;padding:0 8px;background:#060202;border:1px solid #2a0808;border-radius:5px;color:#d0d0d0;font-size:13px;width:130px;"/>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;flex:2;min-width:160px;">
+          <label style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#4a2020;">DESIGNATION</label>
+          <input id="pm_designation" type="text" placeholder="e.g. Teacher I"
+            style="height:34px;padding:0 8px;background:#060202;border:1px solid #2a0808;border-radius:5px;color:#d0d0d0;font-size:13px;width:100%;"/>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <label style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#4a2020;">STATUS</label>
+          <select id="pm_statusReg"
+            style="height:34px;padding:0 8px;background:#060202;border:1px solid #2a0808;border-radius:5px;color:#d0d0d0;font-size:13px;min-width:130px;">
+            <option value="">-- Select --</option>
+            <option>Permanent</option><option>Temporary</option>
+            <option>Substitute</option><option>Regular</option><option>Casual</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <label style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#4a2020;">MO./ANNUAL SALARY</label>
+          <input id="pm_salary" type="text" placeholder="e.g. 25000"
+            style="height:34px;padding:0 8px;background:#060202;border:1px solid #2a0808;border-radius:5px;color:#d0d0d0;font-size:13px;width:130px;"/>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;flex:2;min-width:160px;">
+          <label style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#4a2020;">NAME OF DIST./STATION</label>
+          <input id="pm_station" type="text" placeholder="e.g. Koronadal City NHS"
+            style="height:34px;padding:0 8px;background:#060202;border:1px solid #2a0808;border-radius:5px;color:#d0d0d0;font-size:13px;width:100%;"/>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <label style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#4a2020;">SOURCE OF FUND</label>
+          <select id="pm_sourceOfFund"
+            style="height:34px;padding:0 8px;background:#060202;border:1px solid #2a0808;border-radius:5px;color:#d0d0d0;font-size:13px;min-width:110px;">
+            <option value="">-- Select --</option>
+            <option>National</option><option>Local</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <label style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#4a2020;">DATE OF LAST PROMOTION</label>
+          <input id="pm_lastPromotion" class="date-text" type="text" placeholder="mm/dd/yyyy"
+            style="height:34px;padding:0 8px;background:#060202;border:1px solid #2a0808;border-radius:5px;color:#d0d0d0;font-size:13px;width:130px;"/>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;flex:3;min-width:160px;">
+          <label style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#4a2020;">REMARKS</label>
+          <input id="pm_remarks" type="text" placeholder="Optional"
+            style="height:34px;padding:0 8px;background:#060202;border:1px solid #2a0808;border-radius:5px;color:#d0d0d0;font-size:13px;width:100%;"/>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+        <div id="pm_err" style="color:#e74c3c;font-size:11px;flex:1;"></div>
+        <button id="pm_saveBtn" type="button" style="
+          height:36px;padding:0 20px;background:#4a0808;border:1px solid #8b0000;
+          border-radius:6px;color:#d0d0d0;font-size:12px;font-weight:800;
+          letter-spacing:.1em;text-transform:uppercase;cursor:pointer;">
+          💾 SAVE RECORD
+        </button>
+        <button id="pm_cancelBtn" type="button" style="
+          display:none;height:36px;padding:0 16px;background:#0a0202;
+          border:1px solid #2a0808;border-radius:6px;color:#888;
+          font-size:12px;font-weight:800;letter-spacing:.1em;
+          text-transform:uppercase;cursor:pointer;">
+          ✕ CANCEL
+        </button>
+      </div>
+    </div>`;
+
+  // Wire date-text auto-format
+  document.querySelectorAll('#prcModalPanel .date-text').forEach(txt => {
+    txt.addEventListener('input', () => { txt.value = fmtDateInput(txt.value); });
+  });
+
+  // Pre-fill if editing
+  if (editRecord) {
+    document.getElementById('pm_effectiveDate').value = editRecord.effectiveDate || '';
+    document.getElementById('pm_designation').value   = editRecord.designation   || '';
+    document.getElementById('pm_statusReg').value     = editRecord.statusReg     || '';
+    document.getElementById('pm_salary').value        = editRecord.salary        || '';
+    document.getElementById('pm_station').value       = editRecord.station       || '';
+    document.getElementById('pm_sourceOfFund').value  = editRecord.sourceOfFund  || '';
+    document.getElementById('pm_lastPromotion').value = editRecord.lastPromotion || '';
+    document.getElementById('pm_remarks').value       = editRecord.remarks       || '';
+    document.getElementById('pm_saveBtn').textContent = '💾 UPDATE RECORD';
+    document.getElementById('pm_cancelBtn').style.display = '';
+    document.getElementById('prcModalPanel').dataset.editIdx = editRecord._idx;
+  } else {
+    document.getElementById('prcModalPanel').dataset.editIdx = '';
+    document.getElementById('pm_saveBtn').textContent = '💾 SAVE RECORD';
+    document.getElementById('pm_cancelBtn').style.display = 'none';
+  }
+
+  document.getElementById('prcModal').style.display = 'flex';
+
+  // Cancel
+  document.getElementById('pm_cancelBtn').addEventListener('click', () => {
+    document.getElementById('prcModal').style.display = 'none';
+  });
+
+  // Save
+  document.getElementById('pm_saveBtn').addEventListener('click', async () => {
+    const errEl   = document.getElementById('pm_err');
+    errEl.textContent = '';
+    const panel2  = document.getElementById('prcModalPanel');
+    const editIdx = panel2.dataset.editIdx !== '' ? +panel2.dataset.editIdx : null;
+
+    const rec = {
+      effectiveDate : document.getElementById('pm_effectiveDate').value.trim(),
+      designation   : document.getElementById('pm_designation').value.trim(),
+      statusReg     : document.getElementById('pm_statusReg').value,
+      salary        : document.getElementById('pm_salary').value.trim(),
+      station       : document.getElementById('pm_station').value.trim(),
+      sourceOfFund  : document.getElementById('pm_sourceOfFund').value,
+      lastPromotion : document.getElementById('pm_lastPromotion').value.trim(),
+      remarks       : document.getElementById('pm_remarks').value.trim(),
+    };
+
+    if (!rec.effectiveDate && !rec.designation) {
+      errEl.textContent = 'Please fill in at least Effective Date or Designation.';
+      return;
+    }
+
+    const saveBtn = document.getElementById('pm_saveBtn');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+
+    const apiRes = editIdx !== null
+      ? await apiCall('update_personnel_record', { employee_id: emp.id, idx: editIdx, record: rec })
+      : await apiCall('save_personnel_record',   { employee_id: emp.id, record: rec });
+
+    saveBtn.disabled = false;
+
+    if (!apiRes.ok) {
+      errEl.textContent   = apiRes.error || 'Save failed.';
+      saveBtn.textContent = editIdx !== null ? '💾 UPDATE RECORD' : '💾 SAVE RECORD';
+      return;
+    }
+
+    // Update local emp object
+    if (!emp.personnelRecords) emp.personnelRecords = [];
+    if (editIdx !== null) emp.personnelRecords[editIdx] = rec;
+    else emp.personnelRecords.push(rec);
+
+    document.getElementById('prcModal').style.display = 'none';
+    renderPersonnelTable(emp);
+  });
 }
 
 function wirePersonnelEntryForm(emp, editRecord) {
@@ -812,8 +1003,8 @@ function renderPersonnelTable(emp) {
               <td>${escHtml(r.sourceOfFund || '')}</td>
               <td>${escHtml(r.lastPromotion || '')}</td>
               <td style="text-align:left;padding-left:6px;">${escHtml(r.remarks || '')}</td>
-              ${canEdit ? `<td class="no-print">
-                <button onclick="showPersonnelRecordModal(window._currentPrcEmp, {...window._currentPrcEmp.personnelRecords[${i}], _idx:${i}})"
+${canEdit ? `<td class="no-print">
+                <button onclick="showPersonnelModal(window._currentPrcEmp, {...window._currentPrcEmp.personnelRecords[${i}], _idx:${i}})"
                   style="background:none;border:none;cursor:pointer;font-size:13px;" title="Edit">✏️</button>
                 <button onclick="deletePrcRow(${i})"
                   style="background:none;border:none;cursor:pointer;font-size:13px;color:#c0392b;" title="Delete">🗑️</button>
