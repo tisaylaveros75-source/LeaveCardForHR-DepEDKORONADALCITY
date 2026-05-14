@@ -1388,7 +1388,10 @@ function showPersonnelRecordModal(emp, editRecord) {
 
           </div>
 
-          <div id="prc_mo_err" style="color:#f87171;font-size:12px;margin-top:10px;min-height:14px;"></div>
+<div id="prc_mo_err" style="color:#f87171;font-size:12px;margin-top:10px;min-height:14px;"></div>
+
+          <div class="sdiv" style="margin-top:20px;">📋 Existing Personnel Records</div>
+          <div id="prc_mo_table"></div>
         </div>
 
         <div class="mf" style="
@@ -1429,6 +1432,69 @@ function showPersonnelRecordModal(emp, editRecord) {
   });
 
   // Save handler
+ function renderPrcMoTable() {
+    const wrap = document.getElementById('prc_mo_table');
+    if (!wrap) return;
+    const rows = emp.personnelRecords || [];
+    if (rows.length === 0) {
+      wrap.innerHTML = `<p style="color:rgba(255,180,130,.4);font-size:12px;padding:8px 0;">No records yet.</p>`;
+      return;
+    }
+    wrap.innerHTML = `
+      <table class="arm-table" style="margin-top:8px;">
+        <thead>
+          <tr>
+            <th>Effective Date</th><th>Designation</th><th>Status</th>
+            <th>Salary</th><th>Station</th><th>Fund</th>
+            <th>Last Prom.</th><th>Remarks</th>
+            <th class="no-print">⋮</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((r, i) => `
+            <tr>
+              <td>${esc(r.effectiveDate||'')}</td>
+              <td>${esc(r.designation||'')}</td>
+              <td>${esc(r.statusReg||'')}</td>
+              <td>${esc(r.salary||'')}</td>
+              <td>${esc(r.station||'')}</td>
+              <td>${esc(r.sourceOfFund||'')}</td>
+              <td>${esc(r.lastPromotion||'')}</td>
+              <td>${esc(r.remarks||'')}</td>
+              <td>
+                <button data-edit-idx="${i}" class="prc-mo-edit-btn"
+                  style="background:none;border:none;cursor:pointer;font-size:14px;" title="Edit">✏️</button>
+                <button data-del-idx="${i}" class="prc-mo-del-btn"
+                  style="background:none;border:none;cursor:pointer;font-size:14px;" title="Delete">🗑️</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+
+    wrap.querySelectorAll('.prc-mo-edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = +btn.dataset.editIdx;
+        const rec = { ...emp.personnelRecords[idx], _idx: idx };
+        closeMo('prcMo');
+        showPersonnelRecordModal(emp, rec);
+      });
+    });
+
+    wrap.querySelectorAll('.prc-mo-del-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const idx = +btn.dataset.delIdx;
+        if (!confirm('Delete this personnel record? This cannot be undone.')) return;
+        const res = await apiCall('delete_personnel_record', { employee_id: emp.id, idx });
+        if (!res.ok) { alert(res.error || 'Delete failed.'); return; }
+        emp.personnelRecords.splice(idx, 1);
+        if (typeof renderPersonnelTable === 'function') renderPersonnelTable(emp);
+        renderPrcMoTable();
+      });
+    });
+  }
+
+  renderPrcMoTable();
+
   document.getElementById('prcMoSave').addEventListener('click', async () => {
     const errEl = document.getElementById('prc_mo_err');
     errEl.textContent = '';
