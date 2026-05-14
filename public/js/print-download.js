@@ -1404,10 +1404,58 @@ async function lcDownloadPDF(emp) {
     if (!resolved) { alert('No employee leave card is currently open.'); return; }
     emp = resolved;
   }
-  // Just trigger the same print dialog — user saves as PDF from there
-  lcPrint();
+
+  showArmourOverlay();
+  setOverlayProgress(5, 'Loading logo…', 0);
+
+  try {
+    const logoSrc = await getLogoBase64();
+    setOverlayProgress(15, 'Building layout…', 0);
+
+    const flat        = flattenRecords(emp);
+    const pages       = sliceIntoPages(flat);
+    const totalPages  = pages.length;
+    const eraLabel    = '&#9632; Leave Record';
+
+    setOverlayProgress(25, 'Rendering pages…', 1);
+
+    const buffers = [];
+    for (let i = 0; i < pages.length; i++) {
+      const pct     = 25 + Math.round(((i + 1) / pages.length) * 45);
+      const htmlStr = buildPageHTML(i, pages[i], emp, logoSrc, totalPages, eraLabel);
+      const buf     = await renderPageToArrayBuffer(htmlStr);
+      buffers.push(buf);
+      setOverlayProgress(pct, `Rendered page ${i + 1} of ${totalPages}…`, 1);
+    }
+
+    setOverlayProgress(72, 'Merging pages…', 2);
+    const merged = await mergePageBuffers(buffers);
+
+    setOverlayProgress(90, 'Saving file…', 3);
+
+    // ── Auto-download ──
+    const blob     = new Blob([merged], { type: 'application/pdf' });
+    const url      = URL.createObjectURL(blob);
+    const surname  = (emp.surname || 'employee').replace(/\s+/g, '_').toUpperCase();
+    const given    = (emp.given   || '').replace(/\s+/g, '_').toUpperCase();
+    const filename = `LeaveCard_${surname}_${given}.pdf`;
+    const a        = document.createElement('a');
+    a.href         = url;
+    a.download     = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+
+    setOverlayProgress(100, 'Done!', 3);
+    setTimeout(hideArmourOverlay, 900);
+
+  } catch (err) {
+    hideArmourOverlay();
+    console.error('[lcDownloadPDF]', err);
+    alert('PDF generation failed: ' + err.message);
+  }
 }
-window.lcDownloadPDF = lcDownloadPDF;
 
 /* ─────────────────────────────────────────────────────────────
    22.  RED ARMOUR BUTTON STYLES
