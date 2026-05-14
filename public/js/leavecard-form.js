@@ -295,7 +295,7 @@ function buildLeaveEntryForm(emp) {
 <div id="le_err" class="lc-err"></div>
           <button class="btn lc-save-btn"        id="leaveEntrySave" type="button">💾 SAVE ENTRY</button>
           <button class="btn lc-cancel-edit-btn" id="leCancelEdit"   type="button" style="display:none;">✕ CANCEL EDIT</button>
-          <button class="btn b-sm" id="cAddPrcRec2" type="button" style="background:rgba(30,58,138,.35);color:#93c5fd;border:1px solid rgba(59,130,246,.4);height:36px;padding:0 14px;font-size:12px;">📋 Personnel Record</button>
+          <button class="btn b-sm" id="cAddPrcRec2" type="button" style="background:linear-gradient(135deg,#1e3a6e,#2251b3);color:#fff;border:1px solid rgba(59,130,246,.5);height:36px;padding:0 16px;font-size:12px;font-weight:700;letter-spacing:.5px;border-radius:10px;box-shadow:0 4px 14px rgba(30,58,110,.5);cursor:pointer;">📋 Personnel Record</button>
         </div>
 
       </div>
@@ -447,6 +447,16 @@ function wireLeaveEntryForm(emp, editRecord) {
     delete panel.dataset.editId;
     document.getElementById('leaveEntrySave').textContent = '💾 SAVE ENTRY';
     document.getElementById('leCancelEdit').style.display = 'none';
+  }
+
+// ── Personnel Record button ──
+  const prcBtn2 = document.getElementById('cAddPrcRec2');
+  if (prcBtn2) {
+    const newPrcBtn2 = prcBtn2.cloneNode(true);
+    prcBtn2.parentNode.replaceChild(newPrcBtn2, prcBtn2);
+    newPrcBtn2.addEventListener('click', () => {
+      if (typeof showPersonnelRecordModal === 'function') showPersonnelRecordModal(emp, null);
+    });
   }
 
   // ── Cancel edit ──
