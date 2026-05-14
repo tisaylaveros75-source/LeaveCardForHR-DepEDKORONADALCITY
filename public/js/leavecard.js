@@ -88,10 +88,9 @@ async function openLeaveCardInContainer(emp, container) {
     </div>
     ${profileHtml}
 ${canEdit ? buildLeaveEntryForm(emp) : ''}
+${canEdit ? `<div style="padding:4px 0 8px 0;" class="no-print"><button class="btn b-sm" id="cAddPrcRec2" style="background:rgba(30,58,110,.8);color:#a8c4f0;border:1px solid rgba(30,58,110,.9);">➕ Add Personnel Record</button></div>` : ''}
     ${canEdit ? buildPersonnelEntryForm() : ''}
-    <div id="prcTableWrap" style="padding:0 4px;">
-  ${canEdit ? `<button class="btn b-sm no-print" id="cAddPrcRec2" style="margin-bottom:8px;background:rgba(30,58,110,.8);color:#a8c4f0;border:1px solid rgba(30,58,110,.9);">➕ Add Personnel Record</button>` : ''}
-</div>
+    <div id="prcTableWrap" style="padding:0 4px;"></div>
     <div id="lcTableWrap"></div>
   </div>`;
 
