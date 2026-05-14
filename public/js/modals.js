@@ -940,7 +940,7 @@ function showRegisterModal(emp) {
             <div class="f"><label>Highest Education</label><input id="reg_edu" type="text" value="${_escMo(r.edu||'')}"/></div>
             <div class="f"><label>Eligibility / Professional Exam</label><input id="reg_elig" type="text" value="${_escMo(r.elig||'')}"/></div>
             <div class="f"><label>Date of Exam</label><input id="reg_dexam" type="text" placeholder="mm/dd/yyyy" value="${r.dexam ? fmtD(r.dexam) : ''}"/></div>
-            <input type="hidden" id="reg_pexam" value="${_escMo(r.pexam||'')}"/>
+            <div class="f"><label>Place of Exam</label><input id="reg_pexam" type="text" placeholder="e.g. PBET - Koronadal City" value="${_escMo(r.pexam||'')}"/></div>
           </div>
 
           <div class="sdiv">📍 Contact Information</div>
@@ -1125,7 +1125,7 @@ enforceAllCaps(mo);
       elig:           getVal('reg_elig').toUpperCase(),
       rating:         getVal('reg_rating').toUpperCase(),
       tin:            getVal('reg_tin').toUpperCase(),
-      pexam:          getVal('reg_elig').toUpperCase(),
+      pexam:          getVal('reg_pexam').toUpperCase(),
       dexam:          mo.querySelector('#reg_dexam').value,
       appt:           mo.querySelector('#reg_appt').value,
       status:         mo.querySelector('#reg_status').value,
