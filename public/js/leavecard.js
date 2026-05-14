@@ -89,7 +89,9 @@ async function openLeaveCardInContainer(emp, container) {
     ${profileHtml}
 ${canEdit ? buildLeaveEntryForm(emp) : ''}
     ${canEdit ? buildPersonnelEntryForm() : ''}
-    <div id="prcTableWrap" style="padding:0 4px;"></div>
+    <div id="prcTableWrap" style="padding:0 4px;">
+  ${canEdit ? `<button class="btn b-sm no-print" id="cAddPrcRec2" style="margin-bottom:8px;background:rgba(30,58,110,.8);color:#a8c4f0;border:1px solid rgba(30,58,110,.9);">➕ Add Personnel Record</button>` : ''}
+</div>
     <div id="lcTableWrap"></div>
   </div>`;
 
@@ -128,6 +130,9 @@ renderLeaveCardTable(emp);
   });
 
   if (canEdit) wirePersonnelEntryForm(emp, null);
+    document.getElementById('cAddPrcRec2')?.addEventListener('click', () => {
+    document.getElementById('prcEntryPanel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
 
   // Wire Force Leave button
   const forceLvBtn = document.getElementById('cForceLeave');
