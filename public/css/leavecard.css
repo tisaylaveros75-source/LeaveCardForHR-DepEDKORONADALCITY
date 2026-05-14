@@ -733,8 +733,8 @@ input[type="tel"] {
 .era-old-body      { display: none; margin-top: 8px; }
 .era-old-body.open { display: block; }
 
-.era-fwd-row { background: linear-gradient(90deg,var(--au2),#fff9f0) !important; border-top: 2px solid var(--au) !important; }
-.era-fwd-row td { font-weight: 700 !important; color: var(--au) !important; font-style: italic; }
+.era-fwd-row { background: #ffffff !important; border-top: 2px solid #000000 !important; }
+.era-fwd-row td { font-weight: 700 !important; color: #000000 !important; font-style: italic; }
 
 
 /* ══════════════════════════════════════════════════════════
@@ -822,8 +822,8 @@ input[type="tel"] {
   .lc-era-bar,
   .lc-entry-card { display: none !important; }
 
-  .era-fwd-row    { background: #fff9f0 !important; page-break-inside: avoid !important; }
-  .era-fwd-row td { color: #8a5a0a !important; font-weight: 700 !important; }
+.era-fwd-row    { background: #ffffff !important; page-break-inside: avoid !important; }
+  .era-fwd-row td { color: #000000 !important; font-weight: 700 !important; }
 
   .era-old-body   { display: block !important; }
   .era-old-toggle { display: none !important; }
