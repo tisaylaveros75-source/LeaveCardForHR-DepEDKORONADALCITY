@@ -832,7 +832,7 @@ table {
 thead { display: table-header-group; }
 thead tr:first-child th {
   background: #fff !important; color: #000 !important;
-  font-size: 6.5pt; font-weight: 800; padding: 5px 3px 4px;
+  font-size: 5.5pt; font-weight: 800; padding: 5px 3px 4px;
   text-align: center;
   border: .5pt solid #000 !important;
   text-transform: uppercase; letter-spacing: .03em;
@@ -849,7 +849,7 @@ thead th.thb {
 }
 thead tr:nth-child(2) th {
   background: #fff !important; color: #000 !important;
-  font-size: 6pt; font-weight: 700; padding: 3px 2px;
+  font-size: 5pt; font-weight: 700; padding: 3px 2px;
   text-align: center; border: .5pt solid #000 !important;
   white-space: normal; word-break: break-word; line-height: 1.2;
   font-family: Arial, sans-serif;
