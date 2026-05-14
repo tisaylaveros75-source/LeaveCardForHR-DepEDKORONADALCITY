@@ -1038,13 +1038,13 @@ function renderPersonnelTable(emp) {
           rgba(192,57,43,0.06) 100%);
         border-bottom: 1px solid rgba(192, 57, 43, 0.18);
       }
-      .prc-card-header span {
+     .prc-card-header span {
         font-family: 'Barlow Condensed', 'Rajdhani', sans-serif;
         font-size: 10px;
         font-weight: 800;
         letter-spacing: 0.22em;
         text-transform: uppercase;
-        color: rgba(130, 35, 15, 0.72);
+        color: #ffffff;
       }
       .prc-card-body {
         padding: 14px 16px 12px;
