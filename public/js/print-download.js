@@ -997,10 +997,16 @@ table th:nth-child(11), table td:nth-child(11) {
     overflow: visible !important;
     overflow-wrap: break-word !important;
     word-break: break-word !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   *, *::before, *::after {
     box-shadow: none !important;
     text-shadow: none !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
   }
 }
 `;
