@@ -878,50 +878,6 @@ thead th.ths.thb {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   17.  BUILD FULL STANDALONE PAGE  (for PRINT only)
-   ───────────────────────────────────────────────────────────── */
-function buildExportHTML(emp, logoSrc) {
-  const records = emp.records || [];
-  const logoImgLetterhead = ''; // plain black & white — no logo
-
-  const segments = [];
-  let cur = { conv: null, recs: [] };
-  for (const r of records) {
-    if (r._conversion) { segments.push(cur); cur = { conv: r, recs: [] }; }
-    else cur.recs.push(r);
-  }
-  segments.push(cur);
-
-  const erasHtml = segments.map((seg, si) => {
-    const isFirst = si === 0;
-    const fwdRow = (!isFirst && seg.conv) ? buildFwdRow(seg.conv) : '';
-    const dataRows = seg.recs.map(r => buildTableRow(r)).join('');
-    const emptyRow = seg.recs.length === 0
-      ? `<tr class="data-row"><td colspan="11" class="empty-row-cell">NO RECORDS IN THIS ERA.</td></tr>` : '';
-    return `
-      <div class="lc-export-era">
-        <div class="lc-table-cap">
-          <div class="lc-table-cap-line"></div>
-          <div class="lc-table-cap-badge">&#9632; Leave Record</div>
-          <div class="lc-table-cap-line"></div>
-        </div>
-        <div class="tw">
-          <table>
-            ${buildTableHeader()}
-            <tbody>${fwdRow}${dataRows}${emptyRow}</tbody>
-          </table>
-        </div>
-      </div>`;
-  }).join('');
-
- return `
-    <div class="lc-export-doc">
-      ${buildHeaderSection(emp, logoSrc)}
-      ${erasHtml}
-    </div>`;
-}
-
-/* ─────────────────────────────────────────────────────────────
    18.  IFRAME HELPER
    ───────────────────────────────────────────────────────────── */
 function createCaptureIframe(htmlContent) {
