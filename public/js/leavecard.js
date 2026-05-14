@@ -88,6 +88,7 @@ async function openLeaveCardInContainer(emp, container) {
     </div>
     ${profileHtml}
 ${canEdit ? buildLeaveEntryForm(emp) : ''}
+    ${canEdit ? buildPersonnelEntryForm() : ''}
     <div id="prcTableWrap" style="padding:0 4px;"></div>
     <div id="lcTableWrap"></div>
   </div>`;
@@ -119,10 +120,14 @@ renderLeaveCardTable(emp);
     if (canEdit) wireLeaveEntryForm(emp, null);
   });
 
-// Wire "Add Personnel Record" button — opens popup modal
+// Wire "Add Personnel Record" button — scrolls to the inline form
   document.getElementById('cAddPrcRec')?.addEventListener('click', () => {
-    if (canEdit) showPersonnelRecordModal(emp, null);
+    if (canEdit) {
+      document.getElementById('prcEntryPanel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   });
+
+  if (canEdit) wirePersonnelEntryForm(emp, null);
 
   // Wire Force Leave button
   const forceLvBtn = document.getElementById('cForceLeave');
