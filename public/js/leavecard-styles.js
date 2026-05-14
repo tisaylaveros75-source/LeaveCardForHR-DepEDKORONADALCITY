@@ -135,15 +135,15 @@
     }
 
     /* ── THEAD ── */
-    .tw table thead tr:first-child th {
-      background: #1a0505 !important;
-      color: #f5d0c8 !important;
-      border-bottom: 1px solid #3d1010;
+   .tw table thead tr:first-child th {
+      background: #ffffff !important;
+      color: #000000 !important;
+      border-bottom: 1px solid #000000;
     }
     .tw table thead tr:last-child th {
-      background: #2d0a0a !important;
-      color: #e8b8b0 !important;
-      border-bottom: 2px solid #8b1a1a;
+      background: #ffffff !important;
+      color: #000000 !important;
+      border-bottom: 2px solid #000000;
     }
     .tw table thead th {
       white-space: normal !important;
@@ -156,15 +156,15 @@
       letter-spacing: 0.06em !important;
       border-right: 1px solid rgba(255,255,255,0.07) !important;
     }
-    .tw table thead th.tha {
-      background: #6b1010 !important;
-      color: #fddbd8 !important;
-      border-bottom: 2px solid #c0392b !important;
+.tw table thead th.tha {
+      background: #ffffff !important;
+      color: #000000 !important;
+      border-bottom: 2px solid #000000 !important;
     }
     .tw table thead th.thb {
-      background: #1e3a6e !important;
-      color: #bfdbfe !important;
-      border-bottom: 2px solid #2a4f96 !important;
+      background: #ffffff !important;
+      color: #000000 !important;
+      border-bottom: 2px solid #000000 !important;
     }
     .tw table thead th.ths {
       font-size: 8px !important;
@@ -194,19 +194,21 @@
     }
 
 /* ── Balance column ── */
+    /* ── Balance column ── */
     .tw table tbody td.bc {
       font-weight: 800 !important;
       font-size: 12.5px !important;
-      color: #7a5010 !important;
-      background: #fffbee !important;
-      border-left: 1px solid #e8d090 !important;
-      border-right: 1px solid #e8d090 !important;
+      color: #000000 !important;
+      background: #ffffff !important;
+      border-left: 1px solid #000000 !important;
+      border-right: 1px solid #000000 !important;
     }
 
     /* ── W/O Pay ── */
     .tw table tbody td.rdc {
-      color: #c0392b !important;
+      color: #000000 !important;
       font-weight: 800 !important;
+      text-decoration: underline !important;
     }
 
     @media print {
@@ -220,15 +222,17 @@
         color: #000000 !important;
         background: #ffffff !important;
       }
-      .era-fwd-row {
-        background: #ffffff !important;
-        border-top: 2px solid #000000 !important;
-      }
-      .era-fwd-row td {
-        color: #000000 !important;
-        background: #ffffff !important;
-        border-color: #000000 !important;
-      }
+      /* ── Forward balance row ── */
+    .era-fwd-row {
+      background: #ffffff !important;
+      border-top: 2px solid #000000 !important;
+    }
+    .era-fwd-row td {
+      color: #000000 !important;
+      font-weight: 700 !important;
+      font-style: italic !important;
+      border-color: #000000 !important;
+    }
       .tw table thead th.tha {
         background: #ffffff !important;
         color: #000000 !important;
