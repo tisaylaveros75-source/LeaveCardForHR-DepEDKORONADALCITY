@@ -1004,7 +1004,7 @@ function renderPersonnelTable(emp) {
               <td>${escHtml(r.lastPromotion || '')}</td>
               <td style="text-align:left;padding-left:6px;">${escHtml(r.remarks || '')}</td>
 ${canEdit ? `<td class="no-print">
-                <button onclick="showPersonnelModal(window._currentPrcEmp, {...window._currentPrcEmp.personnelRecords[${i}], _idx:${i}})"
+                <button onclick="showPersonnelRecordModal(window._currentPrcEmp, {...window._currentPrcEmp.personnelRecords[${i}], _idx:${i}})"
                   style="background:none;border:none;cursor:pointer;font-size:13px;" title="Edit">✏️</button>
                 <button onclick="deletePrcRow(${i})"
                   style="background:none;border:none;cursor:pointer;font-size:13px;color:#c0392b;" title="Delete">🗑️</button>
