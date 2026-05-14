@@ -1065,7 +1065,7 @@ function renderPersonnelTable(emp) {
         table-layout: auto;
       }
       .prc-table thead tr {
-        background: rgba(47, 99, 201, 0.08);
+        background: rgba(58, 10, 10, 0.82);
       }
       .prc-table thead th {
         padding: 8px 10px;
@@ -1074,7 +1074,7 @@ function renderPersonnelTable(emp) {
         font-weight: 800;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: rgba(130, 35, 15, 0.65);
+        color: #ffffff;
         border-bottom: 1px solid rgba(192, 57, 43, 0.2);
         white-space: nowrap;
       }
