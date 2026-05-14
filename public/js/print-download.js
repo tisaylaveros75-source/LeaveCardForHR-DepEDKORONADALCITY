@@ -808,15 +808,16 @@ html, body {
 }
 .lc-table-cap {
   width: 100%; padding: 4px 8px;
-  background: #fff; border-bottom: 1pt solid #000;
+  background: #ffffff !important; border-bottom: 1pt solid #000;
   display: flex; align-items: center; gap: 6px;
 }
 .lc-table-cap-line {
-  flex: 1; height: 1px; background: #000;
+  flex: 1; height: 1px; background: #000 !important;
 }
 .lc-table-cap-badge {
   font-size: 7pt; font-weight: 700;
-  color: #000; letter-spacing: .1em;
+  color: #000 !important; background: #ffffff !important;
+  letter-spacing: .1em;
   text-transform: uppercase; white-space: nowrap;
 }
 .tw { overflow: visible; width: 100%; display: block; }
@@ -1003,6 +1004,48 @@ table th:nth-child(11), table td:nth-child(11) {
   }
 }
 `;
+
+/* ─────────────────────────────────────────────────────────────
+   17.  BUILD FULL STANDALONE PAGE  (for PRINT only)
+   ───────────────────────────────────────────────────────────── */
+function buildExportHTML(emp, logoSrc) {
+  const records = emp.records || [];
+  const segments = [];
+  let cur = { conv: null, recs: [] };
+  for (const r of records) {
+    if (r._conversion) { segments.push(cur); cur = { conv: r, recs: [] }; }
+    else cur.recs.push(r);
+  }
+  segments.push(cur);
+
+  const erasHtml = segments.map((seg, si) => {
+    const isFirst = si === 0;
+    const fwdRow  = (!isFirst && seg.conv) ? buildFwdRow(seg.conv) : '';
+    const dataRows = seg.recs.map(r => buildTableRow(r)).join('');
+    const emptyRow = seg.recs.length === 0
+      ? `<tr class="data-row"><td colspan="11" class="empty-row-cell">NO RECORDS IN THIS ERA.</td></tr>` : '';
+    return `
+      <div class="lc-export-era">
+        <div class="lc-table-cap">
+          <div class="lc-table-cap-line"></div>
+          <div class="lc-table-cap-badge">&#9632; LEAVE RECORD</div>
+          <div class="lc-table-cap-line"></div>
+        </div>
+        <div class="tw">
+          <table>
+            ${buildTableHeader()}
+            <tbody>${fwdRow}${dataRows}${emptyRow}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="lc-export-doc">
+      ${buildHeaderSection(emp, logoSrc)}
+      ${erasHtml}
+    </div>`;
+}
 
 /* ─────────────────────────────────────────────────────────────
    18.  IFRAME HELPER
