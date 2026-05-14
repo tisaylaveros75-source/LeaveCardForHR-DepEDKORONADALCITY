@@ -123,7 +123,6 @@ document.getElementById('cAddPrcRec')?.addEventListener('click', () => {
     if (canEdit) showPersonnelRecordModal(emp, null);
 });
 
-if (canEdit) wirePersonnelEntryForm(emp, null);
 document.getElementById('cAddPrcRec2')?.addEventListener('click', () => {
     if (canEdit) showPersonnelRecordModal(emp, null);
 });
