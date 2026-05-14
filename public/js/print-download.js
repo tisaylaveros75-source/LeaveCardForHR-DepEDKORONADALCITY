@@ -548,10 +548,10 @@ const PDF_OPT_BASE = {
 async function renderPageToArrayBuffer(htmlStr) {
   const wrapper = document.createElement('div');
 wrapper.style.cssText = [
-    'position:fixed','left:-9999px','top:0',
-    'width:794px','background:#fff',
-    'z-index:-9999','visibility:hidden',
-    'filter:grayscale(1)',
+    'position:fixed','left:-9999px','top:-9999px',
+    'width:794px','height:auto','background:#fff',
+    'z-index:-99999','visibility:hidden','opacity:0',
+    'pointer-events:none','overflow:hidden',
   ].join(';');
   wrapper.innerHTML = htmlStr;
   document.body.appendChild(wrapper);
@@ -893,13 +893,15 @@ tbody tr:nth-child(even) td { background: #fff !important; }
 tbody tr:nth-child(odd)  td { background: #fff !important; }
 
 .bc {
-  background: #fff !important; color: #000 !important;
+  background: #ffffff !important; color: #000000 !important;
   font-weight: 800 !important; font-size: 8pt !important;
+  border: .5pt solid #000 !important;
 }
 .rdc {
-  color: #000 !important; font-weight: 700 !important;
-  background: #fff !important;
+  color: #000000 !important; font-weight: 700 !important;
+  background: #ffffff !important;
   text-decoration: underline !important;
+  border: .5pt solid #000 !important;
 }
 .nc {
   font-family: Arial, sans-serif !important;
