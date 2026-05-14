@@ -81,7 +81,7 @@ async function openLeaveCardInContainer(emp, container) {
       <span>📋 ${escHtml(emp.surname)}, ${escHtml(emp.given)}</span>
       <div style="display:flex;gap:8px;" class="no-print">
         ${canEdit ? `<button class="btn b-sm" style="background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3);" id="cAddRec">➕ Add Record</button>` : ''}
-        ${canEdit ? `<button class="btn b-sm" style="background:rgba(100,149,237,.22);color:#a8c4f0;border:1px solid rgba(100,149,237,.4);" id="cAddPrcRec">📋 Add Personnel Record</button>` : ''}
+        ${canEdit ? `<button class="btn b-sm" style="background:rgba(30,58,138,.35);color:#93c5fd;border:1px solid rgba(59,130,246,.4);" id="cAddPrcRec">📋 Personnel Record</button>` : ''}
         ${forceBtnHtml}
         <button class="btn b-sm" style="background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3);" onclick="window.print()">🖨️ Print</button>
       </div>
@@ -122,10 +122,8 @@ renderLeaveCardTable(emp);
   });
 
 // Wire "Add Personnel Record" button — scrolls to the inline form
-  document.getElementById('cAddPrcRec')?.addEventListener('click', () => {
-    if (canEdit) {
-      document.getElementById('prcEntryPanel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+document.getElementById('cAddPrcRec')?.addEventListener('click', () => {
+    if (canEdit) showPersonnelModal(emp, null);
   });
 
   if (canEdit) wirePersonnelEntryForm(emp, null);
