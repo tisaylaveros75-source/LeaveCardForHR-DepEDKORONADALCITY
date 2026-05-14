@@ -996,10 +996,10 @@ function renderPersonnelTable(emp) {
       <table>
         <thead>
           <tr>
-            <th>Effective Date</th><th>Designation</th><th>Status</th>
+<th>Effective Date</th><th>Designation</th><th>Status</th>
             <th>Mo./Annual Salary</th><th>Name of Dist./Station</th>
             <th>Source of Fund</th><th>Date of Last Prom.</th>
-            <th>Remarks</th>
+            <th>Place of Exam</th><th>Remarks</th>
             ${canEdit ? '<th class="no-print">⋮</th>' : ''}
           </tr>
         </thead>
@@ -1012,7 +1012,8 @@ function renderPersonnelTable(emp) {
               <td>${escHtml(r.salary || '')}</td>
               <td style="text-align:left;padding-left:6px;">${escHtml(r.station || '')}</td>
               <td>${escHtml(r.sourceOfFund || '')}</td>
-              <td>${escHtml(r.lastPromotion || '')}</td>
+<td>${escHtml(r.lastPromotion || '')}</td>
+              <td>${escHtml(r.placeOfExam || '')}</td>
               <td style="text-align:left;padding-left:6px;">${escHtml(r.remarks || '')}</td>
 ${canEdit ? `<td class="no-print">
                 <button onclick="showPersonnelModal(window._currentPrcEmp, {...window._currentPrcEmp.personnelRecords[${i}], _idx:${i}})"
