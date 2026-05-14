@@ -1339,34 +1339,46 @@ async function lcPrint() {
   const emp = resolveCurrentEmp();
   if (!emp) { alert('No employee leave card is currently open.'); return; }
 
-  let iframe = (_readyIframe && _readyForEmpId === emp.id
-                && document.body.contains(_readyIframe))
-    ? _readyIframe : null;
-
-  _readyIframe   = null;
-  _readyForEmpId = null;
-
-  if (!iframe) {
+  try {
     const logoSrc = await getLogoBase64();
-    iframe = await createCaptureIframe(buildFullPage(emp, logoSrc));
+
+    const flat       = flattenRecords(emp);
+    const pages      = sliceIntoPages(flat);
+    const totalPages = pages.length;
+    const eraLabel   = '&#9632; Leave Record';
+
+    const buffers = [];
+    for (let i = 0; i < pages.length; i++) {
+      const htmlStr = buildPageHTML(i, pages[i], emp, logoSrc, totalPages, eraLabel);
+      const buf     = await renderPageToArrayBuffer(htmlStr);
+      buffers.push(buf);
+    }
+
+    const merged = await mergePageBuffers(buffers);
+    const blob   = new Blob([merged], { type: 'application/pdf' });
+    const url    = URL.createObjectURL(blob);
+
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;border:none;';
+    iframe.src = url;
+    document.body.appendChild(iframe);
+
+    iframe.onload = () => {
+      setTimeout(() => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        iframe.contentWindow.addEventListener('afterprint', () => {
+          iframe.remove();
+          URL.revokeObjectURL(url);
+        }, { once: true });
+        setTimeout(() => { try { iframe.remove(); URL.revokeObjectURL(url); } catch(_){} }, 3000);
+      }, 300);
+    };
+
+  } catch (err) {
+    console.error('[lcPrint]', err);
+    alert('Print failed: ' + err.message);
   }
-
-  await Promise.all(
-    [...iframe.contentDocument.images].map(img =>
-      img.decode ? img.decode().catch(() => {}) : Promise.resolve()
-    )
-  );
-  await new Promise(r => setTimeout(r, 350));
-
-  iframe.contentWindow.focus();
-  iframe.contentWindow.print();
-
-  const cleanup = () => {
-    try { iframe.remove(); } catch (_) {}
-    lcPrimeForPrint(emp);
-  };
-  iframe.contentWindow.addEventListener('afterprint', cleanup, { once: true });
-  setTimeout(cleanup, 1500);
 }
 window.lcPrint = lcPrint;
 
