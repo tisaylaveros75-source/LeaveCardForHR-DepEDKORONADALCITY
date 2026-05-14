@@ -95,23 +95,25 @@ ${canEdit ? buildPersonnelEntryForm() : ''}
 
   // AFTER (correct order):
   sortRecordsInPlace(emp.records);
-await saveRowBalances(emp.records, emp.id, emp.status);
-const freshRes = await apiCall('get_records', { employee_id: emp.id }, 'GET');
-if (freshRes.ok) emp.records = freshRes.records || [];
-sortRecordsInPlace(emp.records);
-lcPrimeForPrint(emp); // ← ADD THIS LINE
-renderLeaveCardTable(emp);
+  await saveRowBalances(emp.records, emp.id, emp.status);
+  const freshRes = await apiCall('get_records', { employee_id: emp.id }, 'GET');
+  if (freshRes.ok) emp.records = freshRes.records || [];
+  sortRecordsInPlace(emp.records);
+  renderLeaveCardTable(emp);
 
   // Store emp reference for personnel table row actions
   window._currentPrcEmp = emp;
 
-// Load existing personnel records — always reload fresh
+  // Load existing personnel records — always reload fresh
   const prcRes = await apiCall('get_personnel_records', { employee_id: emp.id }, 'GET');
   if (prcRes.ok) emp.personnelRecords = prcRes.records || [];
   else emp.personnelRecords = emp.personnelRecords || [];
 
   // Render personnel table
   renderPersonnelTable(emp);
+
+  // Prime print AFTER personnel records are loaded
+  lcPrimeForPrint(emp);
 
   // Wire "Add Record" button
   document.getElementById('cAddRec')?.addEventListener('click', () => {
