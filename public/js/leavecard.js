@@ -81,7 +81,7 @@ async function openLeaveCardInContainer(emp, container) {
       <span>📋 ${escHtml(emp.surname)}, ${escHtml(emp.given)}</span>
       <div style="display:flex;gap:8px;" class="no-print">
         ${canEdit ? `<button class="btn b-sm" style="background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3);" id="cAddRec">➕ Add Record</button>` : ''}
-        ${canEdit ? `<button class="btn b-sm" style="background:rgba(255,165,0,.22);color:#fde68a;border:1px solid rgba(255,165,0,.4);" id="cAddPrcRec">➕ Add Personnel Record</button>` : ''}
+        ${canEdit ? `<button class="btn b-sm" style="background:rgba(100,149,237,.22);color:#a8c4f0;border:1px solid rgba(100,149,237,.4);" id="cAddPrcRec">📋 Add Personnel Record</button>` : ''}
         ${forceBtnHtml}
         <button class="btn b-sm" style="background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3);" onclick="window.print()">🖨️ Print</button>
       </div>
