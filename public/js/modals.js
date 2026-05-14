@@ -1439,7 +1439,6 @@ function showPersonnelRecordModal(emp, editRecord) {
     const errEl = document.getElementById('prc_mo_err');
     errEl.textContent = '';
 
-    const rec = {
 const rec = {
       effectiveDate : document.getElementById('prc_mo_effectiveDate').value.trim(),
       designation   : document.getElementById('prc_mo_designation').value.trim(),
