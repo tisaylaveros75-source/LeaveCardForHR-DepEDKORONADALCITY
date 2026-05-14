@@ -1006,54 +1006,50 @@ function renderPersonnelTable(emp) {
   if (!document.getElementById('prc-table-style')) {
     const st = document.createElement('style');
     st.id = 'prc-table-style';
-   st.textContent = `
+  st.textContent = `
       .prc-card {
-        background: linear-gradient(160deg, #fdf5f2 0%, #fbeae4 55%, #f8ddd5 100%);
-        border: 1px solid rgba(192, 57, 43, 0.22);
-        border-radius: 16px;
+        background: #ffffff;
+        border: 1px solid rgba(192, 57, 43, 0.15);
+        border-radius: 14px;
         overflow: hidden;
         margin-bottom: 14px;
+        position: relative;
         box-shadow:
-          0 0 0 1px rgba(255, 80, 50, 0.06),
-          0 6px 28px rgba(0,0,0,0.12),
-          inset 0 1px 0 rgba(255, 120, 90, 0.1);
+          0 2px 12px rgba(192, 57, 43, 0.08),
+          0 1px 3px rgba(0,0,0,0.06);
       }
       .prc-card::before {
         content: '';
-        position: absolute; top: 0; left: 0; right: 0; height: 2.5px;
+        position: absolute; top: 0; left: 0; right: 0; height: 3px;
         background: linear-gradient(90deg,
-          transparent 0%, rgba(192,57,43,0.5) 25%,
-          rgba(220,80,50,0.85) 50%,
-          rgba(192,57,43,0.5) 75%, transparent 100%);
+          #c0392b 0%, #e74c3c 40%, #c0392b 70%, #922b21 100%);
         pointer-events: none;
+        z-index: 1;
       }
       .prc-card-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 13px 20px;
-        background: linear-gradient(135deg,
-          rgba(192,57,43,0.12) 0%,
-          rgba(220,80,50,0.08) 50%,
-          rgba(192,57,43,0.06) 100%);
-        border-bottom: 1px solid rgba(192, 57, 43, 0.18);
+        padding: 11px 18px;
+        background: linear-gradient(135deg, #3a0a0a 0%, #5a1010 40%, #7a1515 100%);
+        border-bottom: 1px solid rgba(192, 57, 43, 0.3);
       }
-     .prc-card-header span {
+      .prc-card-header span {
         font-family: 'Barlow Condensed', 'Rajdhani', sans-serif;
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 800;
-        letter-spacing: 0.22em;
+        letter-spacing: 0.2em;
         text-transform: uppercase;
-        color: #2F63C9;
+        color: #ffffff;
       }
       .prc-card-body {
-        padding: 14px 16px 12px;
+        padding: 0;
         overflow-x: auto;
       }
       .prc-empty {
         text-align: center;
-        padding: 20px 8px;
-        color: rgba(140, 60, 40, 0.4);
+        padding: 28px 8px;
+        color: rgba(140, 60, 40, 0.45);
         font-size: 12px;
         font-style: italic;
         letter-spacing: 0.05em;
@@ -1065,41 +1061,46 @@ function renderPersonnelTable(emp) {
         table-layout: auto;
       }
       .prc-table thead tr {
-        background: rgba(58, 10, 10, 0.82);
+        background: linear-gradient(135deg, #4a0e0e 0%, #6b1515 100%);
       }
       .prc-table thead th {
-        padding: 8px 10px;
+        padding: 9px 12px;
         text-align: center;
         font-size: 9px;
         font-weight: 800;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
-        color: #ffffff;
-        border-bottom: 1px solid rgba(192, 57, 43, 0.2);
+        color: rgba(255, 220, 210, 0.92);
+        border-bottom: 2px solid rgba(192, 57, 43, 0.4);
+        border-right: 1px solid rgba(255, 255, 255, 0.06);
         white-space: nowrap;
       }
+      .prc-table thead th:last-child { border-right: none; }
       .prc-table tbody tr {
-        border-bottom: 1px solid rgba(192, 57, 43, 0.1);
+        border-bottom: 1px solid rgba(192, 57, 43, 0.08);
         transition: background 0.15s;
       }
       .prc-table tbody tr:last-child { border-bottom: none; }
-      .prc-table tbody tr:hover { background: rgba(192, 57, 43, 0.05); }
+      .prc-table tbody tr:nth-child(even) { background: rgba(253, 245, 242, 0.6); }
+      .prc-table tbody tr:hover { background: rgba(192, 57, 43, 0.06); }
       .prc-table tbody td {
-        padding: 8px 10px;
-        color: #3a0a0a;
+        padding: 9px 12px;
+        color: #2a0808;
         vertical-align: middle;
         font-size: 11.5px;
         text-align: center;
+        border-right: 1px solid rgba(192, 57, 43, 0.07);
       }
+      .prc-table tbody td:last-child { border-right: none; }
       .prc-table td.prc-td-left { text-align: left; }
       .prc-table td.prc-td-actions { white-space: nowrap; text-align: center; }
       .prc-edit-btn, .prc-del-btn {
         background: none; border: none; cursor: pointer;
-        font-size: 13px; padding: 2px 5px; border-radius: 5px;
+        font-size: 13px; padding: 3px 6px; border-radius: 6px;
         transition: background 0.15s, transform 0.15s; line-height: 1;
       }
-      .prc-edit-btn:hover { background: rgba(59,130,246,0.12); transform: scale(1.12); }
-      .prc-del-btn:hover  { background: rgba(192,57,43,0.12);  transform: scale(1.12); }
+      .prc-edit-btn:hover { background: rgba(59,130,246,0.14); transform: scale(1.15); }
+      .prc-del-btn:hover  { background: rgba(192,57,43,0.14);  transform: scale(1.15); }
 `;
     document.head.appendChild(st);
   }
@@ -1533,9 +1534,6 @@ function showPersonnelModal(emp, editRecord) {
         </div>
 
         <div class="prcmo-err" id="pm_err"></div>
-
-        <div class="prcmo-section" style="margin-top:20px;">Existing Records</div>
-        <div id="prcmo_rec_table"></div>
 
       </div>
 
