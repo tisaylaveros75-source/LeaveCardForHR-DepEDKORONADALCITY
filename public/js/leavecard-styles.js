@@ -194,14 +194,13 @@
     }
 
 /* ── Balance column ── */
-    /* ── Balance column ── */
     .tw table tbody td.bc {
       font-weight: 800 !important;
       font-size: 12.5px !important;
-      color: #000000 !important;
-      background: #ffffff !important;
-      border-left: 1px solid #000000 !important;
-      border-right: 1px solid #000000 !important;
+      color: #7a5010 !important;
+      background: #fffbee !important;
+      border-left: 1px solid #e8d090 !important;
+      border-right: 1px solid #e8d090 !important;
     }
 
     /* ── W/O Pay ── */
