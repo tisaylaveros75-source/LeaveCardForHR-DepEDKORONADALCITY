@@ -149,9 +149,9 @@
       white-space: normal !important;
       word-break: break-word !important;
       line-height: 1.25 !important;
-      font-size: 9px !important;
+      font-size: 7.5px !important;
       font-weight: 800 !important;
-      padding: 7px 4px !important;
+      padding: 5px 2px !important;
       text-align: center !important;
       letter-spacing: 0.06em !important;
       border-right: 1px solid #c8a0a0 !important;
@@ -167,8 +167,13 @@
       border-bottom: 2px solid #000000 !important;
     }
     .tw table thead th.ths {
-      font-size: 8px !important;
+      font-size: 6.5px !important;
       opacity: 0.9;
+      letter-spacing: 0.01em !important;
+      word-break: break-word !important;
+      white-space: normal !important;
+      line-height: 1.1 !important;
+      padding: 4px 2px !important;
     }
 
     /* ── TBODY ── */
@@ -314,9 +319,8 @@
     .tw table th:nth-child(8),  .tw table td:nth-child(8),
     .tw table th:nth-child(9),  .tw table td:nth-child(9),
     .tw table th:nth-child(10), .tw table td:nth-child(10) {
-      width: 5%; white-space: nowrap; overflow: hidden;
+      width: 5%; white-space: normal; overflow: hidden;
     }
-
     /* Remarks — gets all remaining space */
     .tw table th:nth-child(11), .tw table td:nth-child(11) {
       width: 38%; white-space: normal;
