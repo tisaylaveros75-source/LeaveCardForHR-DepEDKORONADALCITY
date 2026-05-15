@@ -130,8 +130,8 @@
     .tw::-webkit-scrollbar-track { background: #f5eded; }
 
     .tw table {
-      table-layout: auto; width: 100%; border-collapse: collapse;
-      background: #ffffff;
+     table-layout: auto; width: 100%; border-collapse: collapse;
+      background: #ffffff; border: 1px solid #c8a0a0;
     }
 
     /* ── THEAD ── */
@@ -154,7 +154,7 @@
       padding: 7px 4px !important;
       text-align: center !important;
       letter-spacing: 0.06em !important;
-      border-right: 1px solid rgba(255,255,255,0.07) !important;
+      border-right: 1px solid #c8a0a0 !important;
     }
 .tw table thead th.tha {
       background: #ffffff !important;
@@ -190,7 +190,7 @@
       vertical-align: middle;
       text-align: center;
       color: #2a1010;
-      border-right: 1px solid #f0dede;
+      border-right: 1px solid #c8a0a0;
     }
 
 /* ── Balance column ── */
@@ -199,8 +199,8 @@
       font-size: 12.5px !important;
       color: #7a5010 !important;
       background: #fffbee !important;
-      border-left: 1px solid #e8d090 !important;
-      border-right: 1px solid #e8d090 !important;
+      border-left: 2px solid #b8900a !important;
+      border-right: 2px solid #b8900a !important;
     }
 
     /* ── W/O Pay ── */
