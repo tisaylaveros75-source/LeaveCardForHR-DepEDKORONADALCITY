@@ -30,7 +30,7 @@ function eu(s) {
    1.  PAGE LAYOUT CONSTANTS
    ───────────────────────────────────────────────────────────── */
 const PDF_ROWS_PAGE1 = 16;
-const PDF_ROWS_PAGEN = 33;
+const PDF_ROWS_PAGEN = 26;
 const PAGE_W_MM = 215.9;
 const PAGE_H_MM = 355.6;
 
