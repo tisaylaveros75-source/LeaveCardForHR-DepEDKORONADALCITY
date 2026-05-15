@@ -882,8 +882,8 @@ thead th.ths.thb {
 tbody tr { page-break-inside: avoid !important; break-inside: avoid !important; }
 tbody td {
   border: .5pt solid #000 !important;
-  padding: 3pt 2pt;
-  font-size: 7.5pt; text-align: center; vertical-align: middle;
+  padding: 2pt 1pt;
+  font-size: 6pt; text-align: center; vertical-align: middle;
   white-space: normal; word-break: break-word; overflow-wrap: break-word;
   overflow: visible; line-height: 1.35; text-transform: uppercase;
   font-family: Arial, sans-serif;
@@ -894,7 +894,7 @@ tbody tr:nth-child(odd)  td { background: #fff !important; }
 
 .bc {
   background: #ffffff !important; color: #000000 !important;
-  font-weight: 800 !important; font-size: 8pt !important;
+  font-weight: 800 !important; font-size: 6pt !important;
   border: .5pt solid #000 !important;
 }
 .rdc {
@@ -905,7 +905,7 @@ tbody tr:nth-child(odd)  td { background: #fff !important; }
 }
 .nc {
   font-family: Arial, sans-serif !important;
-  white-space: nowrap !important; font-size: 7.5pt !important;
+  white-space: nowrap !important; font-size: 6pt !important;
   color: #000 !important;
 }
 .so-cell {
@@ -930,10 +930,10 @@ tbody tr:nth-child(odd)  td { background: #fff !important; }
   font-size: 5.5pt; color: #000; font-weight: 400;
 }
 .remarks-cell {
-  text-align: left !important; padding: 3pt 5pt !important;
-  font-size: 7pt !important; white-space: normal !important;
+  text-align: left !important; padding: 2pt 4pt !important;
+  font-size: 5.5pt !important; white-space: normal !important;
   word-break: break-word !important; overflow: visible !important;
-  line-height: 1.4 !important; text-transform: uppercase !important;
+  line-height: 1.3 !important; text-transform: uppercase !important;
   color: #000 !important;
 }
 .empty-row-cell {
