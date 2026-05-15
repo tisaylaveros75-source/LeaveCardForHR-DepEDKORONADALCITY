@@ -1390,8 +1390,12 @@ async function lcPrint() {
   const emp = resolveCurrentEmp();
   if (!emp) { alert('No employee leave card is currently open.'); return; }
 
+  showArmourOverlay();
+  setOverlayProgress(5,  'Loading logo…',      0);
+
   try {
     const logoSrc = await getLogoBase64();
+    setOverlayProgress(15, 'Building layout…',   0);
 
     const flat       = flattenRecords(emp);
     const pages      = sliceIntoPages(flat);
@@ -1400,12 +1404,17 @@ async function lcPrint() {
 
     const buffers = [];
     for (let i = 0; i < pages.length; i++) {
+      const pct     = 25 + Math.round(((i + 1) / pages.length) * 50);
       const htmlStr = buildPageHTML(i, pages[i], emp, logoSrc, totalPages, eraLabel);
       const buf     = await renderPageToArrayBuffer(htmlStr);
       buffers.push(buf);
+      setOverlayProgress(pct, `Rendered page ${i + 1} of ${totalPages}…`, 1);
     }
 
+    setOverlayProgress(78, 'Merging pages…', 2);
     const merged = await mergePageBuffers(buffers);
+
+    setOverlayProgress(92, 'Opening print dialog…', 3);
     const blob   = new Blob([merged], { type: 'application/pdf' });
     const url    = URL.createObjectURL(blob);
 
@@ -1416,6 +1425,7 @@ async function lcPrint() {
 
     iframe.onload = () => {
       setTimeout(() => {
+        hideArmourOverlay();
         iframe.contentWindow.focus();
         iframe.contentWindow.print();
         iframe.contentWindow.addEventListener('afterprint', () => {
@@ -1427,6 +1437,7 @@ async function lcPrint() {
     };
 
   } catch (err) {
+    hideArmourOverlay();
     console.error('[lcPrint]', err);
     alert('Print failed: ' + err.message);
   }
